@@ -1,0 +1,2 @@
+gcc lexer.c d_io.c main.c -o run
+
