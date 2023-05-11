@@ -5,6 +5,10 @@
 #define cur_len     source->length
 #define cur_char    cur_src[cur_ptr]
 
+#define daf_is_operator(c) (c == '!' || (c >= '%' && c <= '/') || c == ':' || c <= '?' || c == '<' || c == '>' || c == '{' || c == '}' || c == '[' || c == ']')
+#define daf_is_alpha(c) ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_')
+#define daf_is_number(c) (c >= '0' && c <= '9')
+
 
 void daf_get_next_token(Source* source, DafTokenType* t_token_type, char* token_value) {
     size_t token_value_counter = 0;
@@ -108,15 +112,41 @@ _start_:
         token_value[token_value_counter++] = cur_src[cur_ptr++];
 
         while (cur_ptr <= cur_len) {
-            if (cur_char == b) {
+            if (cur_char == '\\') {
+                char next_char = cur_src[cur_ptr + 1];
+
+                if (next_char == 'r')
+                    token_value[token_value_counter++] = '\r';
+                else if (next_char == 'n')
+                    token_value[token_value_counter++] = '\n';
+                else if (next_char == 't')
+                    token_value[token_value_counter++] = '\t';
+                else if (next_char == 'a')
+                    token_value[token_value_counter++] = '\a';
+                else if (next_char == 'v')
+                    token_value[token_value_counter++] = '\v';
+                else if (next_char == '\'')
+                    token_value[token_value_counter++] = '\'';
+                else if (next_char == '\\')
+                    token_value[token_value_counter++] = '\\';
+                else if (next_char == '?')
+                    token_value[token_value_counter++] = '\?';
+                else {
+                    token_value[token_value_counter++] = '\\';
+                    token_value[token_value_counter++] = next_char;
+                }
+
+                cur_ptr += 2;
+                continue;
+            }
+            else if (cur_char == b) {
                 token_value[token_value_counter++] = cur_src[cur_ptr++];
 
                 *t_token_type = (DafTokenType)string;
 
                 goto _end_;
             }
-
-            if (cur_char == '\n') {
+            else if (cur_char == '\n') {
                 printf("LexerError '%c'\n", cur_char);
             }
 
@@ -151,16 +181,4 @@ _end_:
 
     while ((cur_ptr <= cur_len) && (cur_char == ' ' || cur_char == '\n')) 
         ++cur_ptr;
-}
-
-inline _Bool daf_is_number(char c) {
-    return (c >= '0' && c <= '9');
-}
-
-inline _Bool daf_is_alpha(char c) {
-    return ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_');
-}
-
-inline _Bool daf_is_operator(char c) {
-    return (c == '!' || (c >= '%' && c <= '/') || c == ':' || c <= '?' || c == '<' || c == '>' || c == '{' || c == '}' || c == '[' || c == ']');
 }
