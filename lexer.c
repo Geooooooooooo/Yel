@@ -9,7 +9,31 @@
 void daf_get_next_token(Source* source, DafTokenType* t_token_type, char* token_value) {
     size_t token_value_counter = 0;
 
-    while ((cur_ptr != cur_len) && (cur_char == ' ' || cur_char == '\n')) cur_ptr++;
+    while ((cur_ptr != cur_len) && (cur_char == ' ' || cur_char == '\n')) 
+        cur_ptr++;
+
+    // comments
+    if (cur_char == '/' && cur_src[cur_ptr + 1] == '/') {
+        while ((cur_ptr != cur_len) && cur_char != '\n') 
+            cur_ptr++;
+    }
+    else if (cur_char == '/' && cur_src[cur_ptr + 1] == '*') {
+        _Bool close_comment = 0;
+
+        while ((cur_ptr != cur_len)) {
+            if (cur_char == '*' && cur_src[cur_ptr + 1] == '/') {
+                close_comment = 1;
+                cur_ptr += 2;
+                break;
+            }
+
+            cur_ptr++;
+        }
+
+        if (!close_comment) {
+            printf("LexerError: unclosed comment\n");
+        }
+    }
 
     // num
     if (daf_is_number(cur_char) || cur_char == '.') {
@@ -43,12 +67,9 @@ void daf_get_next_token(Source* source, DafTokenType* t_token_type, char* token_
             cur_ptr++;
         }
         *t_token_type = (DafTokenType)number;
-        source->pointer++;
+        cur_ptr++;
         
-        while (token_value[token_value_counter] != '\0') 
-            token_value[token_value_counter++] = '\0';
-
-        return;
+        goto _end_;
     }
 
     while ((cur_ptr != cur_len) && (cur_char == ' ' || cur_char == '\n')) 
@@ -64,18 +85,16 @@ void daf_get_next_token(Source* source, DafTokenType* t_token_type, char* token_
                 break;
             }
 
-            source->pointer++;
+            cur_ptr++;
         }
 
         *t_token_type = (DafTokenType)variable;
 
-        while (token_value[token_value_counter] != '\0') 
-            token_value[token_value_counter++] = '\0';
-
-        return;
+        goto _end_;
     }
 
-    while ((cur_ptr != cur_len) && (cur_char == ' ' || cur_char == '\n')) cur_ptr++;
+    while ((cur_ptr != cur_len) && (cur_char == ' ' || cur_char == '\n')) 
+        cur_ptr++;
 
     // string
     if (cur_char == '\'' || cur_char == '\"') {
@@ -88,9 +107,7 @@ void daf_get_next_token(Source* source, DafTokenType* t_token_type, char* token_
 
                 *t_token_type = (DafTokenType)string;
 
-                while (token_value[token_value_counter] != '\0') 
-                    token_value[token_value_counter++] = '\0';
-                return;
+                goto _end_;
             }
 
             if (cur_char == '\n') {
@@ -110,24 +127,25 @@ void daf_get_next_token(Source* source, DafTokenType* t_token_type, char* token_
     if (daf_is_operator(cur_char)) {
         *t_token_type = (DafTokenType)operator;
 
-        if (cur_char == '<' || cur_char == '>') {
-            if (cur_src[cur_ptr + 1] == '=') {
-                token_value[token_value_counter++] = cur_src[cur_ptr++];
-                token_value[token_value_counter++] = cur_src[cur_ptr];
-                source->pointer += 2;
+        if ((cur_char == '<' || cur_char == '>') && cur_src[cur_ptr + 1] == '=') {
+            token_value[token_value_counter++] = cur_src[cur_ptr++];
+            token_value[token_value_counter++] = cur_src[cur_ptr];
+            cur_ptr += 2;
 
-                while (token_value[token_value_counter] != '\0')
-                    token_value[token_value_counter++] = '\0';
-                return;
-            }
+            goto _end_;
         }
 
         token_value[token_value_counter++] = cur_char;
         source->pointer++;
-
-        while (token_value[token_value_counter] != '\0') 
-            token_value[token_value_counter++] = '\0';
     }
+
+_end_: {
+    while (token_value[token_value_counter] != '\0') 
+        token_value[token_value_counter++] = '\0';
+
+    while ((cur_ptr != cur_len) && (cur_char == ' ' || cur_char == '\n')) 
+        cur_ptr++;
+}
 }
 
 inline _Bool daf_is_number(char c) {
