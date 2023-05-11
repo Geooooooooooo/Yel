@@ -13,8 +13,13 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
+    DafTokenType token_type;
+    char token_value[2048];
+
     while (source.pointer != source.length) {
-        daf_get_next_token(&source);
+        daf_get_next_token(&source, &token_type, token_value);
+
+        printf("%d: %s\n", token_type, token_value);
     }
 
     daf_free_string(source.source_text);
