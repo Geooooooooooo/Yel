@@ -9,29 +9,35 @@
 void daf_get_next_token(Source* source, DafTokenType* t_token_type, char* token_value) {
     size_t token_value_counter = 0;
 
-    while ((cur_ptr != cur_len) && (cur_char == ' ' || cur_char == '\n')) 
-        cur_ptr++;
+_start_:
+    while ((cur_ptr <= cur_len) && (cur_char == ' ' || cur_char == '\n')) 
+        ++cur_ptr;
 
     // comments
     if (cur_char == '/' && cur_src[cur_ptr + 1] == '/') {
-        while ((cur_ptr != cur_len) && cur_char != '\n') 
-            cur_ptr++;
+        while ((cur_ptr <= cur_len) && cur_char != '\n') 
+            ++cur_ptr;
+
+        goto _start_;
     }
     else if (cur_char == '/' && cur_src[cur_ptr + 1] == '*') {
         _Bool close_comment = 0;
 
-        while ((cur_ptr != cur_len)) {
+        while (cur_ptr <= cur_len) {
             if (cur_char == '*' && cur_src[cur_ptr + 1] == '/') {
                 close_comment = 1;
                 cur_ptr += 2;
                 break;
             }
 
-            cur_ptr++;
+            ++cur_ptr;
+
+            goto _start_;
         }
 
         if (!close_comment) {
             printf("LexerError: unclosed comment\n");
+            goto _end_;
         }
     }
 
@@ -64,16 +70,16 @@ void daf_get_next_token(Source* source, DafTokenType* t_token_type, char* token_
                 }
             }
 
-            cur_ptr++;
+            ++cur_ptr;
         }
         *t_token_type = (DafTokenType)number;
-        cur_ptr++;
-        
+        ++cur_ptr;
+
         goto _end_;
     }
 
-    while ((cur_ptr != cur_len) && (cur_char == ' ' || cur_char == '\n')) 
-        cur_ptr++;
+    while ((cur_ptr <= cur_len) && (cur_char == ' ' || cur_char == '\n')) 
+        ++cur_ptr;
 
     // var
     if (daf_is_alpha(cur_char)) {
@@ -85,7 +91,7 @@ void daf_get_next_token(Source* source, DafTokenType* t_token_type, char* token_
                 break;
             }
 
-            cur_ptr++;
+            ++cur_ptr;
         }
 
         *t_token_type = (DafTokenType)variable;
@@ -93,15 +99,15 @@ void daf_get_next_token(Source* source, DafTokenType* t_token_type, char* token_
         goto _end_;
     }
 
-    while ((cur_ptr != cur_len) && (cur_char == ' ' || cur_char == '\n')) 
-        cur_ptr++;
+    while ((cur_ptr <= cur_len) && (cur_char == ' ' || cur_char == '\n')) 
+        ++cur_ptr;
 
     // string
     if (cur_char == '\'' || cur_char == '\"') {
         char b = cur_char;
         token_value[token_value_counter++] = cur_src[cur_ptr++];
 
-        while (cur_ptr != cur_len) {
+        while (cur_ptr <= cur_len) {
             if (cur_char == b) {
                 token_value[token_value_counter++] = cur_src[cur_ptr++];
 
@@ -120,32 +126,31 @@ void daf_get_next_token(Source* source, DafTokenType* t_token_type, char* token_
         printf("LexerError unclosed string\n");
     }
 
-    while ((cur_ptr != cur_len) && (cur_char == ' ' || cur_char == '\n')) 
-        cur_ptr++;
+    while ((cur_ptr <= cur_len) && (cur_char == ' ' || cur_char == '\n')) 
+        ++cur_ptr;
 
     // operators
     if (daf_is_operator(cur_char)) {
         *t_token_type = (DafTokenType)operator;
 
-        if ((cur_char == '<' || cur_char == '>') && cur_src[cur_ptr + 1] == '=') {
+        if ((cur_char == '<' || cur_char == '>') && (cur_src[cur_ptr + 1] == '=')) {
             token_value[token_value_counter++] = cur_src[cur_ptr++];
             token_value[token_value_counter++] = cur_src[cur_ptr];
             cur_ptr += 2;
+            source->pointer++;
 
             goto _end_;
         }
 
-        token_value[token_value_counter++] = cur_char;
-        source->pointer++;
+        token_value[token_value_counter++] = cur_src[cur_ptr++];
     }
 
-_end_: {
+_end_:
     while (token_value[token_value_counter] != '\0') 
         token_value[token_value_counter++] = '\0';
 
-    while ((cur_ptr != cur_len) && (cur_char == ' ' || cur_char == '\n')) 
-        cur_ptr++;
-}
+    while ((cur_ptr <= cur_len) && (cur_char == ' ' || cur_char == '\n')) 
+        ++cur_ptr;
 }
 
 inline _Bool daf_is_number(char c) {
@@ -157,5 +162,5 @@ inline _Bool daf_is_alpha(char c) {
 }
 
 inline _Bool daf_is_operator(char c) {
-    return (c == '!' || (c >= '%' && c <= '/') || c == ':' || c <= '?' || c == '<' || c == '>' || c == '{' || c == '}' );
+    return (c == '!' || (c >= '%' && c <= '/') || c == ':' || c <= '?' || c == '<' || c == '>' || c == '{' || c == '}' || c == '[' || c == ']');
 }
