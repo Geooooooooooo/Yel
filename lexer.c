@@ -137,7 +137,6 @@ _start_:
             cur_ptr += 2;
         }
         else {
-            printf("%c\n", cur_char);
             token_value[token_value_counter++] = cur_src[cur_ptr++];
         }
 
@@ -155,4 +154,64 @@ _end_:
 
     while ((cur_ptr < cur_len) && (cur_char == ' ' || cur_char == '\n')) 
         ++cur_ptr;
+}
+
+DafTokens daf_parse_tokens(Source* source) {
+    DafTokens daf_tokens = {0, ((void*)0), ((void*)0)};
+
+    DafTokenType token_type;
+    char token_value[2048];
+
+    daf_tokens.length = 0;
+    while (source->pointer < source->length) {
+        daf_get_next_token(source, &token_type, token_value);
+        ++daf_tokens.length;
+    }
+
+    source->pointer = 0;
+
+    daf_tokens.type = (DafTokenType*)malloc((size_t)(daf_tokens.length * sizeof(DafTokenType)));
+    if (daf_tokens.type == ((void*)0)) {
+        printf("MemoryAllocationError <module Lexer>\nHeap was corrupted. Unable to allocate memory to buffer.\n");
+
+        return daf_tokens;
+    }
+    
+    daf_tokens.value = (char**)malloc((size_t)(daf_tokens.length * sizeof(char*)));
+    if (daf_tokens.value == ((void*)0)) {
+        printf("MemoryAllocationError <module Lexer>\nHeap was corrupted. Unable to allocate memory to buffer.\n");
+        free(daf_tokens.type);
+        daf_tokens.type = ((void*)0);
+
+        return daf_tokens;
+    }
+
+    for(size_t i = 0; i < daf_tokens.length; i++) {
+        daf_get_next_token(source, &daf_tokens.type[i], token_value);
+        
+        daf_tokens.value[i] = (char*)malloc((size_t)(strlen(token_value) * sizeof(char)));
+        if (daf_tokens.value[i] == ((void*)0)) {
+            printf("MemoryAllocationError <module Lexer>\nHeap was corrupted. Unable to allocate memory to buffer.\n");
+
+            daf_tokens.length = i;
+            daf_free_tokens(&daf_tokens);
+            daf_tokens.type = ((void*)0);
+            daf_tokens.value = ((void*)0);
+
+            return daf_tokens;
+        }
+
+        strcpy(daf_tokens.value[i], token_value);
+    }
+
+    return daf_tokens;
+}
+
+void daf_free_tokens(DafTokens* daf_tokens) {
+    for (size_t i = 0; i < daf_tokens->length; i++) {
+        free(daf_tokens->value[i]);
+    }
+    
+    free(daf_tokens->value);
+    free(daf_tokens->type);
 }
