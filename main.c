@@ -4,7 +4,7 @@
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        printf("No input file");
+        printf("No input file\nUse:\n\tdaf <filename>\n");
         return -1;
     }
 
@@ -13,15 +13,15 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    DafTokenType token_type;
-    char token_value[2048];
+    DafTokens token_array = daf_parse_tokens(&source);
 
-    while (source.pointer != source.length) {
-        daf_get_next_token(&source, &token_type, token_value);
-
-        printf("%d: %s\n", token_type, token_value);
+    char tabs[10] = { '\0' };
+    int c = 0;
+    for(size_t i = 0; i < token_array.length; i++) {
+        printf("[%d: '%s']", token_array.type[i], token_array.value[i]);
     }
 
+    daf_free_tokens(&token_array);
     daf_free_string(source.source_text);
 
     return 0;
