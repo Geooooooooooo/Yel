@@ -6,22 +6,14 @@
 #define __DEPENDECIES_H__
 
 typedef enum DafTokenType {
-    variable,
-    number,
-    string,
-    operator,
-    rparentheses,
-    lparentheses,
-    rbrackets,
-    lbrackets,
-    rcurlybrace,
-    lcurlybrace
+    tok_undefined = -1,
+    tok_name,
+    tok_number,
+    tok_string,
+    tok_binary_op,
+    tok_unary_op,
+    tok_op
 } DafTokenType;
-
-typedef struct DafToken {
-    DafTokenType token_type;
-    char* token_value;
-} DafToken;
 
 typedef struct Source {
     char* source_text;
@@ -29,4 +21,4 @@ typedef struct Source {
     size_t length;
 } Source;
 
-#endif // __DEPENDECIES_H__
+#endif // __DEPENDECIES_H_
