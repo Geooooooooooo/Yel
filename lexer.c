@@ -5,7 +5,8 @@
 #define cur_len     source->length
 #define cur_char    cur_src[cur_ptr]
 
-#define daf_is_operator(c) (c == '!' || (c >= '%' && c <= '/') || c == ':' || c <= '?' || c == '<' || c == '>' || c == '{' || c == '}' || c == '[' || c == ']')
+#define daf_is_op(c) (c == '(' || c == ')' || c == '{' || c == '}' || c == '[' || c == ']' || c == ';' || c == ',')
+#define daf_is_bin_op(c) (c == '*' || c == '+' || c == '-' || c == '/' || c == '>' || c == '<' || c == '=')
 #define daf_is_alpha(c) ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_')
 #define daf_is_number(c) (c >= '0' && c <= '9')
 
@@ -14,12 +15,12 @@ void daf_get_next_token(Source* source, DafTokenType* t_token_type, char* token_
     size_t token_value_counter = 0;
 
 _start_:
-    while ((cur_ptr <= cur_len) && (cur_char == ' ' || cur_char == '\n')) 
+    while ((cur_ptr < cur_len) && (cur_char == ' ' || cur_char == '\n')) 
         ++cur_ptr;
 
     // comments
     if (cur_char == '/' && cur_src[cur_ptr + 1] == '/') {
-        while ((cur_ptr <= cur_len) && cur_char != '\n') 
+        while ((cur_ptr < cur_len) && cur_char != '\n') 
             ++cur_ptr;
 
         goto _start_;
@@ -27,16 +28,15 @@ _start_:
     else if (cur_char == '/' && cur_src[cur_ptr + 1] == '*') {
         _Bool close_comment = 0;
 
-        while (cur_ptr <= cur_len) {
+        while (cur_ptr < cur_len) {
             if (cur_char == '*' && cur_src[cur_ptr + 1] == '/') {
                 close_comment = 1;
                 cur_ptr += 2;
-                break;
+                
+                goto _start_;
             }
 
             ++cur_ptr;
-
-            goto _start_;
         }
 
         if (!close_comment) {
@@ -65,7 +65,7 @@ _start_:
                 token_value[token_value_counter++] = cur_char;
             }
             else {
-                if (cur_char == ' ' || daf_is_operator(cur_char)) {
+                if (cur_char == ' ' || daf_is_bin_op(cur_char) || daf_is_op(cur_char)) {
                     break;
                 }
                 else {
@@ -76,14 +76,10 @@ _start_:
 
             ++cur_ptr;
         }
-        *t_token_type = (DafTokenType)number;
-        ++cur_ptr;
+        *t_token_type = (DafTokenType)tok_number;
 
         goto _end_;
     }
-
-    while ((cur_ptr <= cur_len) && (cur_char == ' ' || cur_char == '\n')) 
-        ++cur_ptr;
 
     // var
     if (daf_is_alpha(cur_char)) {
@@ -91,20 +87,17 @@ _start_:
             if (daf_is_alpha(cur_char)) {
                 token_value[token_value_counter++] = cur_char;
             }
-            else if (cur_char == ' ' || daf_is_operator(cur_char)) {
+            else if (cur_char == ' ' || daf_is_bin_op(cur_char) || daf_is_op(cur_char)) {
                 break;
             }
 
             ++cur_ptr;
         }
 
-        *t_token_type = (DafTokenType)variable;
+        *t_token_type = (DafTokenType)tok_name;
 
         goto _end_;
     }
-
-    while ((cur_ptr <= cur_len) && (cur_char == ' ' || cur_char == '\n')) 
-        ++cur_ptr;
 
     // string
     if (cur_char == '\'' || cur_char == '\"') {
@@ -112,37 +105,10 @@ _start_:
         token_value[token_value_counter++] = cur_src[cur_ptr++];
 
         while (cur_ptr <= cur_len) {
-            if (cur_char == '\\') {
-                char next_char = cur_src[cur_ptr + 1];
-
-                if (next_char == 'r')
-                    token_value[token_value_counter++] = '\r';
-                else if (next_char == 'n')
-                    token_value[token_value_counter++] = '\n';
-                else if (next_char == 't')
-                    token_value[token_value_counter++] = '\t';
-                else if (next_char == 'a')
-                    token_value[token_value_counter++] = '\a';
-                else if (next_char == 'v')
-                    token_value[token_value_counter++] = '\v';
-                else if (next_char == '\'')
-                    token_value[token_value_counter++] = '\'';
-                else if (next_char == '\\')
-                    token_value[token_value_counter++] = '\\';
-                else if (next_char == '?')
-                    token_value[token_value_counter++] = '\?';
-                else {
-                    token_value[token_value_counter++] = '\\';
-                    token_value[token_value_counter++] = next_char;
-                }
-
-                cur_ptr += 2;
-                continue;
-            }
-            else if (cur_char == b) {
+            if (cur_char == b) {
                 token_value[token_value_counter++] = cur_src[cur_ptr++];
 
-                *t_token_type = (DafTokenType)string;
+                *t_token_type = (DafTokenType)tok_string;
 
                 goto _end_;
             }
@@ -154,24 +120,32 @@ _start_:
         }
 
         printf("LexerError unclosed string\n");
+
+        goto _end_;
     }
 
-    while ((cur_ptr <= cur_len) && (cur_char == ' ' || cur_char == '\n')) 
-        ++cur_ptr;
+    // binary operators
+    if (daf_is_bin_op(cur_char)) {
+        *t_token_type = (DafTokenType)tok_binary_op;
 
-    // operators
-    if (daf_is_operator(cur_char)) {
-        *t_token_type = (DafTokenType)operator;
-
-        if ((cur_char == '<' || cur_char == '>') && (cur_src[cur_ptr + 1] == '=')) {
+        if (cur_char == '=') {
+            token_value[token_value_counter++] = cur_src[cur_ptr++];            
+        }
+        else if (cur_src[cur_ptr + 1] == '=') {
             token_value[token_value_counter++] = cur_src[cur_ptr++];
             token_value[token_value_counter++] = cur_src[cur_ptr];
             cur_ptr += 2;
-            source->pointer++;
-
-            goto _end_;
+        }
+        else {
+            printf("%c\n", cur_char);
+            token_value[token_value_counter++] = cur_src[cur_ptr++];
         }
 
+        goto _end_;
+    }
+
+    if (daf_is_op(cur_char)) {
+        *t_token_type = (DafTokenType)tok_op;
         token_value[token_value_counter++] = cur_src[cur_ptr++];
     }
 
@@ -179,6 +153,6 @@ _end_:
     while (token_value[token_value_counter] != '\0') 
         token_value[token_value_counter++] = '\0';
 
-    while ((cur_ptr <= cur_len) && (cur_char == ' ' || cur_char == '\n')) 
+    while ((cur_ptr < cur_len) && (cur_char == ' ' || cur_char == '\n')) 
         ++cur_ptr;
 }
