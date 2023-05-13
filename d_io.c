@@ -7,7 +7,7 @@ Source daf_stdio_read_file(char* filename) {
     
     FILE *file_p;
     if ((file_p = fopen(filename, "r")) == ((void*)0)) {
-        printf("IStreamError: Unable to open the file '%s'\n", filename);
+        printf("IStreamError <File '%s'>\nUnable to open the file\n", filename);
         return (Source){0, 0, 0};
     }
 
@@ -15,9 +15,9 @@ Source daf_stdio_read_file(char* filename) {
     source.length = (size_t)ftell(file_p);
     fseek(file_p, 0L, SEEK_SET);
 
-    source.source_text = (char*)malloc((source.length * sizeof(char) + 1));
+    source.source_text = (char*)malloc((size_t)((source.length + 2) * sizeof(char)));
     if (source.source_text == NULL) {
-        printf("MemoryAllocationError: Unable to allocate memory to buffer. File '%s'\n", filename);
+        printf("MemoryAllocationError <File '%s'>\nUnable to allocate memory to buffer.\n", filename);
         return (Source){0, 0, 0};
     }
 
