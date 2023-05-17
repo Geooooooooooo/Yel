@@ -5,13 +5,17 @@
 #define cur_len     source->length
 #define cur_char    cur_src[cur_ptr]
 
-#define daf_is_op(c) (c == '(' || c == ')' || c == '{' || c == '}' || c == '[' || c == ']' || c == ';' || c == ',')
-#define daf_is_bin_op(c) (c == '*' || c == '+' || c == '-' || c == '/' || c == '>' || c == '<' || c == '=')
-#define daf_is_alpha(c) ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_')
-#define daf_is_number(c) (c >= '0' && c <= '9')
+#define yel_is_op(c) (c == '(' || c == ')' || c == '{' || c == '}' || c == '[' || c == ']' || c == ';' || c == ':')
+#define yel_is_bin_op(c) (c == '*' || c == '+' || c == '-' || c == '/' || c == '>' || c == '<' || c == '=' || c == ',')
+#define yel_is_alpha(c) ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_')
+#define yel_is_number(c) (c >= '0' && c <= '9')
 
+const int yel_keywords_length = 9;
+const const char* yel_keywords[] = {
+    "int", "string", "__bytecode", "return", "defer", "func", "float", "noreturn", "any"
+};
 
-void daf_get_next_token(Source* source, DafTokenType* t_token_type, char* token_value) {
+void yel_get_next_token(Source* source, YelTokenType* t_token_type, char* token_value) {
     size_t token_value_counter = 0;
 
 _start_:
@@ -46,7 +50,7 @@ _start_:
     }
 
     // num
-    if (daf_is_number(cur_char) || cur_char == '.') {
+    if (yel_is_number(cur_char) || cur_char == '.') {
         _Bool dot = ((cur_char == '.') ? (
             1, token_value[token_value_counter++] = cur_src[cur_ptr++]
         ) : 0);
@@ -61,11 +65,11 @@ _start_:
                 token_value[token_value_counter++] = cur_char;
                 dot = 1;
             }
-            else if(daf_is_number(cur_char)) {
+            else if(yel_is_number(cur_char)) {
                 token_value[token_value_counter++] = cur_char;
             }
             else {
-                if (cur_char == ' ' || daf_is_bin_op(cur_char) || daf_is_op(cur_char)) {
+                if (cur_char == ' ' || yel_is_bin_op(cur_char) || yel_is_op(cur_char)) {
                     break;
                 }
                 else {
@@ -75,26 +79,28 @@ _start_:
             }
 
             ++cur_ptr;
+
         }
-        *t_token_type = (DafTokenType)tok_number;
+        *t_token_type = (YelTokenType)tok_number;
 
         goto _end_;
     }
 
     // var
-    if (daf_is_alpha(cur_char)) {
+    if (yel_is_alpha(cur_char)) {
         while (1) {
-            if (daf_is_alpha(cur_char)) {
+            if (yel_is_alpha(cur_char)) {
                 token_value[token_value_counter++] = cur_char;
             }
-            else if (cur_char == ' ' || daf_is_bin_op(cur_char) || daf_is_op(cur_char)) {
+            else if (cur_char == ' ' || yel_is_bin_op(cur_char) || yel_is_op(cur_char)) {
                 break;
             }
 
             ++cur_ptr;
+
         }
 
-        *t_token_type = (DafTokenType)tok_name;
+        *t_token_type = (YelTokenType)tok_name;
 
         goto _end_;
     }
@@ -102,13 +108,13 @@ _start_:
     // string
     if (cur_char == '\'' || cur_char == '\"') {
         char b = cur_char;
-        token_value[token_value_counter++] = cur_src[cur_ptr++];
+        ++cur_ptr;
 
         while (cur_ptr <= cur_len) {
             if (cur_char == b) {
-                token_value[token_value_counter++] = cur_src[cur_ptr++];
+                ++cur_ptr;
 
-                *t_token_type = (DafTokenType)tok_string;
+                *t_token_type = (YelTokenType)tok_string;
 
                 goto _end_;
             }
@@ -125,16 +131,18 @@ _start_:
     }
 
     // binary operators
-    if (daf_is_bin_op(cur_char)) {
-        *t_token_type = (DafTokenType)tok_binary_op;
+    if (yel_is_bin_op(cur_char)) {
+        *t_token_type = (YelTokenType)tok_binary_op;
 
-        if (cur_char == '=') {
-            token_value[token_value_counter++] = cur_src[cur_ptr++];            
-        }
-        else if (cur_src[cur_ptr + 1] == '=') {
-            token_value[token_value_counter++] = cur_src[cur_ptr++];
+        if (cur_src[cur_ptr + 1] == '=') {
             token_value[token_value_counter++] = cur_src[cur_ptr];
+            token_value[token_value_counter++] = cur_src[++cur_ptr];
             cur_ptr += 2;
+        }
+        else if (cur_src[cur_ptr] == '-' && cur_src[cur_ptr + 1] == '>') {
+            token_value[token_value_counter++] = cur_src[cur_ptr];
+            token_value[token_value_counter++] = cur_src[++cur_ptr];
+            ++cur_ptr;
         }
         else {
             token_value[token_value_counter++] = cur_src[cur_ptr++];
@@ -143,8 +151,8 @@ _start_:
         goto _end_;
     }
 
-    if (daf_is_op(cur_char)) {
-        *t_token_type = (DafTokenType)tok_op;
+    if (yel_is_op(cur_char)) {
+        *t_token_type = (YelTokenType)tok_op;
         token_value[token_value_counter++] = cur_src[cur_ptr++];
     }
 
@@ -152,54 +160,71 @@ _end_:
     while (token_value[token_value_counter] != '\0') 
         token_value[token_value_counter++] = '\0';
 
+    if (*t_token_type == (YelTokenType)tok_name) {
+        for (int i = 0; i < yel_keywords_length; i++) {
+            if (__builtin_strcmp(yel_keywords[i], token_value) == 0) {
+                *t_token_type = (YelTokenType)tok_word;
+                break;
+            }
+        }
+    }
+
     while ((cur_ptr < cur_len) && (cur_char == ' ' || cur_char == '\n')) 
         ++cur_ptr;
 }
 
-DafTokens daf_parse_tokens(Source* source) {
-    DafTokens daf_tokens = { 0 };
+YelTokens yel_parse_tokens(Source* source) {
+    YelTokens yel_tokens = { 0 };
+    YelTokenType token_type;
 
-    DafTokenType token_type;
     char token_value[2048];
     
-    daf_tokens.type = (DafTokenType*)malloc((size_t)(sizeof(DafTokenType)));
-    if (daf_tokens.type = ((void*)0)) {
+    yel_tokens.type = (YelTokenType*)__builtin_malloc((size_t)(sizeof(YelTokenType)));
+    if (yel_tokens.type = NULL) {
         printf("MemoryAllocationError <module Lexer>\n\tHeap was corrupted. Unable to allocate memory to buffer.\n");
-        return daf_tokens;
+        return yel_tokens;
     }
 
-    daf_tokens.value = (char**)malloc((size_t)(sizeof(char*)));
-    if (daf_tokens.value = ((void*)0)) {
+    yel_tokens.value = (char**)__builtin_malloc((size_t)(sizeof(char*)));
+    if (yel_tokens.value = NULL) {
         printf("MemoryAllocationError <module Lexer>\n\tHeap was corrupted. Unable to allocate memory to buffer.\n");
-        return daf_tokens;
+        return yel_tokens;
     }
 
-    daf_tokens.length = 0;
+    yel_tokens.length = 0;
     while (source->pointer < source->length) {
-        daf_tokens.type = (DafTokenType*)realloc(daf_tokens.type, (size_t)((daf_tokens.length + 2) * sizeof(DafTokenType)));
-        daf_tokens.value = (char**)realloc(daf_tokens.value, (size_t)((daf_tokens.length + 2) * sizeof(char*)));
+        yel_tokens.type = (YelTokenType*)__builtin_realloc(yel_tokens.type, (size_t)((yel_tokens.length + 2) * sizeof(YelTokenType)));
+        yel_tokens.value = (char**)__builtin_realloc(yel_tokens.value, (size_t)((yel_tokens.length + 2) * sizeof(char*)));
 
-        daf_get_next_token(source, &daf_tokens.type[daf_tokens.length], token_value);
+        yel_get_next_token(source, &yel_tokens.type[yel_tokens.length], token_value);
         
-        daf_tokens.value[daf_tokens.length] = (char*)malloc((size_t)(strlen(token_value) * sizeof(char)));
-        if (daf_tokens.value[daf_tokens.length] == ((void*)0)) {
+        yel_tokens.value[yel_tokens.length] = (char*)__builtin_malloc((size_t)(__builtin_strlen(token_value) * sizeof(char)));
+        if (yel_tokens.value[yel_tokens.length] == NULL) {
             printf("MemoryAllocationError <module Lexer>\n\tHeap was corrupted. Unable to allocate memory to buffer.\n");
-            return daf_tokens;
+            
+            yel_free_tokens(&yel_tokens);
+            
+            return yel_tokens;
         }
 
-        strcpy(daf_tokens.value[daf_tokens.length], token_value);
+        // strcpy ();
+        size_t l = __builtin_strlen(token_value);
+        for (size_t i = 0; i < l; i++) {
+            yel_tokens.value[yel_tokens.length][i] = token_value[i];
+        }
+        yel_tokens.value[yel_tokens.length][l] = '\0';
         
-        ++daf_tokens.length;
+        ++yel_tokens.length;
     }
 
-    return daf_tokens;
+    return yel_tokens;
 }
 
-void daf_free_tokens(DafTokens* daf_tokens) {
-    for (size_t i = 0; i < daf_tokens->length; i++) {
-        free(daf_tokens->value[i]);
+void yel_free_tokens(YelTokens* yel_tokens) {
+    while (yel_tokens->length) {
+        __builtin_free(yel_tokens->value[yel_tokens->length--]);
     }
     
-    free(daf_tokens->value);
-    free(daf_tokens->type);
+    __builtin_free(yel_tokens->value);
+    __builtin_free(yel_tokens->type);
 }

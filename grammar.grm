@@ -1,0 +1,28 @@
+expr ::=
+    | NAME
+    | NUMBER
+    | expr bin_op expr
+    | unary_op expr
+
+bin_op ::=
+    | *
+    | /
+    | *=
+    | /=
+    | +
+    | -
+    | +=
+    | -=
+    | =
+    | ==
+    | !=
+    | <
+    | <=
+    | >
+    | >=
+
+unary_op ::=
+    | +
+    | -
+    | !
+    | +-
