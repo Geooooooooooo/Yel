@@ -25,13 +25,37 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             return;
         }
         else if (next[0] == '*' || next[0] == '/') {
-            printf("%s %s %s ", cur, yel_tokens->value[i+2], next);
+            if (yel_tokens->value[i+2][0] == '(') {
+                printf("%s ", cur);
+                size_t tmp_i = i + 1;
+                i += 3;
+                ++brakets;
 
-            i += 2;
+                yel_parse_expression(yel_tokens);
+
+                printf("%s ", yel_tokens->value[tmp_i]);
+                continue;
+            }
+            else {
+                printf("%s %s %s ", cur, yel_tokens->value[i+2], next);
+                i += 2;
+            }
         }
         else if(cur[0] == '*' || cur[0] == '/') {
-            printf("%s %s ", next, cur);
-            ++i;
+            if (next[0] == '(') {
+                size_t tmp_i = i;
+                i += 2;
+                ++brakets;
+
+                yel_parse_expression(yel_tokens);
+
+                printf("%s ", yel_tokens->value[tmp_i]);
+                continue;
+            }
+            else {
+                printf("%s %s ", next, cur);
+                ++i;
+            }
         }
         else if (next[0] == '+' || next[0] == '-') {
             if (recursive_descent) {
