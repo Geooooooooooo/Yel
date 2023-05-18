@@ -1,1 +1,5 @@
-a = 9 * 7 - 9 + 8 * 7 * 9;
+func:int add(x: int, y: int) {
+   return (x + y);
+}
+
+a = add(1, 6);
