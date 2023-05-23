@@ -10,13 +10,14 @@
 #define yel_is_alpha(c) ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_')
 #define yel_is_number(c) (c >= '0' && c <= '9')
 
-const int yel_keywords_length = 9;
+const int yel_keywords_length = 8;
 const const char* yel_keywords[] = {
-    "int", "string", "__bytecode", "return", "defer", "func", "float", "noreturn", "any"
+    "return", "defer", "func", 
+    "noreturn", "int", "float", "string", "any",
 };
 
 void yel_get_next_token(Source* source, YelTokenType* t_token_type, char* token_value) {
-    size_t token_value_counter = 0;
+    register size_t token_value_counter = 0;
 
 _start_:
     while ((cur_ptr < cur_len) && (cur_char == ' ' || cur_char == '\n')) 
@@ -70,10 +71,6 @@ _start_:
             }
             else {
                 if (cur_char == ' ' || yel_is_bin_op(cur_char) || yel_is_op(cur_char)) {
-                    break;
-                }
-                else {
-                    printf("LexerError '%c'\n", cur_char);
                     break;
                 }
             }
@@ -175,6 +172,7 @@ _end_:
 
 YelTokens yel_parse_tokens(Source* source) {
     YelTokens yel_tokens = { 0 };
+    yel_tokens.pointer = 0;
     YelTokenType token_type;
 
     char token_value[2048];

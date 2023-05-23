@@ -1,5 +1,1 @@
-func:int add(x: int, y: int) {
-   return (x + y);
-}
-
-a = add(1, 6);
+a:int = 10;

@@ -1,1 +1,1 @@
-gcc syntaxer.c lexer.c d_io.c main.c -o run -O2
+gcc parser.c syntaxer.c lexer.c d_io.c main.c -o run -O2

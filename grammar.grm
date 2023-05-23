@@ -1,10 +1,23 @@
-expr ::=
-    | NAME
-    | NUMBER
-    | expr bin_op expr
-    | unary_op expr
+<decl> ::=
+    | tok_word.(func) tok_name '(' <expr> ')' '{' ... '}'
 
-bin_op ::=
+<stmt> ::=
+    | tok_name '=' <expr>
+    | tok_word.(return) <expr>
+    | tok_word.(break)
+    | '{' ... '}'
+
+<expr> ::=
+    | ';' -> expr.(end)
+    | tok_name
+    | tok_number
+    | <expr> <bin_op> <expr>
+    | <unary_op> <expr>
+    | tok_name '(' <expr> ')'
+    | <expr> ',' <expr>
+    | tok_word.(func) '(' <expr> ')' -> '{' ... '}'
+
+<bin_op> ::=
     | *
     | /
     | *=
@@ -21,8 +34,17 @@ bin_op ::=
     | >
     | >=
 
-unary_op ::=
+<unary_op> ::=
     | +
     | -
     | !
     | +-
+
+<operator> ::=
+    | ;
+    | (
+    | )
+    | {
+    | }
+    | [
+    | ]
