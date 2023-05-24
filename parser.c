@@ -59,6 +59,10 @@ void yel_parse_statement(YelTokens* yel_tokens) {
 void yel_parse_expression(YelTokens* yel_tokens) {
     while (yel_tokens->pointer < yel_tokens->length) {
         if (yel_tokens->value[yel_tokens->pointer][0] == ';') {
+            if (brakets) {
+                printf("Syntax error: expected ')'\n");
+                exit(-1);
+            }
             return;
         }
 
@@ -70,19 +74,44 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             yel_parse_expression(yel_tokens);
 
             printf("call %s\n", yel_tokens->value[tmp_i]);
+            continue;
         }
         else if (cur[0] == '(') {
             ++yel_tokens->pointer;
             ++brakets;
             yel_parse_expression(yel_tokens);
+
+            continue;
         }
         else if (cur[0] == ')') {
+            if (brakets == 0) {
+                printf("Syntax error: expected '('\n");
+                exit(-1);
+            }
+
             ++yel_tokens->pointer;
             --brakets;
             return;
         }
         else if (next[0] == '*' || next[0] == '/') {
-            if (yel_tokens->value[yel_tokens->pointer+2][0] == '(') {
+            if (yel_tokens->value[yel_tokens->pointer+2][0] == ';') {
+                printf("Syntax error: expected expression after '%s'\n", yel_tokens->value[yel_tokens->pointer+1]);
+                exit(-1);
+            }
+            if (yel_tokens->value[yel_tokens->pointer+3][0] == '(') {
+                printf("push %s\n", cur);
+
+                size_t tmp_i = yel_tokens->pointer + 1;
+                ++recursive_descent;
+                yel_tokens->pointer += 2;
+
+                yel_parse_expression(yel_tokens);
+
+                printf("%s\n", yel_tokens->value[tmp_i]);
+                ++yel_tokens->pointer;
+                continue;
+            }
+            else if (yel_tokens->value[yel_tokens->pointer+2][0] == '(') {
                 printf("push %s\n", cur);
                 size_t tmp_i = yel_tokens->pointer + 1;
                 yel_tokens->pointer += 3;
@@ -99,7 +128,20 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             }
         }
         else if(cur[0] == '*' || cur[0] == '/') {
-            if (next[0] == '(') {
+            if (yel_tokens->value[yel_tokens->pointer+1][0] == ';') {
+                printf("Syntax error: expected expression after '%s'\n", yel_tokens->value[yel_tokens->pointer]);
+                exit(-1);
+            }
+
+            if (yel_tokens->type[yel_tokens->pointer+1] == tok_name && yel_tokens->value[yel_tokens->pointer+2][0] == '(') {
+                size_t tmp_i = yel_tokens->pointer;
+                ++yel_tokens->pointer;
+                yel_parse_expression(yel_tokens);
+
+                printf("%s\n", yel_tokens->value[tmp_i]);
+                continue;
+            }
+            else if (next[0] == '(') {
                 size_t tmp_i = yel_tokens->pointer;
                 yel_tokens->pointer += 2;
                 ++brakets;
@@ -120,9 +162,24 @@ void yel_parse_expression(YelTokens* yel_tokens) {
                 return;
             }
 
+            if (yel_tokens->value[yel_tokens->pointer+2][0] == ';') {
+                printf("Syntax error: expected expression after '%s'\n", yel_tokens->value[yel_tokens->pointer+1]);
+                exit(-1);
+            }
+
             size_t gTmp_i = yel_tokens->pointer+3;
 
-            if (yel_tokens->value[yel_tokens->pointer+2][0] == '(') {
+            if (yel_tokens->value[yel_tokens->pointer+3][0] == '(') {
+                size_t tmp_i = yel_tokens->pointer + 1;
+                printf("push %s\n", cur);
+
+                yel_tokens->pointer += 2;
+                ++recursive_descent;
+                yel_parse_expression(yel_tokens);
+
+                printf("%s\n", yel_tokens->value[tmp_i]);
+            }
+            else if (yel_tokens->value[yel_tokens->pointer+2][0] == '(') {
                 printf("push %s\n", cur);
                 size_t tmp_i = yel_tokens->pointer + 1;
 
@@ -162,8 +219,22 @@ void yel_parse_expression(YelTokens* yel_tokens) {
                 --recursive_descent;
                 return;
             }
+
+            if (yel_tokens->value[yel_tokens->pointer+1][0] == ';') {
+                printf("Syntax error: expected expression after '%s'\n", yel_tokens->value[yel_tokens->pointer]);
+                exit(-1);
+            }
+
+            if (yel_tokens->value[yel_tokens->pointer+2][0] == '(') {
+                size_t tmp_i = yel_tokens->pointer;
+                ++yel_tokens->pointer;
+                yel_parse_expression(yel_tokens);
+
+                printf("%s\n", yel_tokens->value[tmp_i]);
+                continue;
+            }
             // expr + ( expr )
-            if (next[0] == '(') {
+            else if (next[0] == '(') {
                 size_t tmp_i = yel_tokens->pointer;
                 yel_tokens->pointer += 2;
                 ++brakets;

@@ -1,4 +1,4 @@
-#include "d_io.h"
+#include "io.h"
 #include "dependencies.h"
 
 Source yel_stdio_read_file(char* filename) {

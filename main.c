@@ -1,4 +1,4 @@
-#include "d_io.h"
+#include "io.h"
 #include "lexer.h"
 #include "syntaxer.h"
 #include "dependencies.h"
@@ -16,12 +16,6 @@ int main(int argc, char* argv[]) {
 
     YelTokens token_array = yel_parse_tokens(&source);
 
-    /*puts("Lexer:\n");
-    for(size_t i = 0; i < token_array.length; i++) {
-        printf("[%d: '%s']\n", token_array.type[i], token_array.value[i]);
-    }*/
-
-    //puts("\nParser:\n");
     yel_gen_parse_tree(&token_array);
 
     yel_free_tokens(&token_array);

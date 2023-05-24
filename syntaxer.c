@@ -21,33 +21,35 @@ typedef struct __YelToken {
 
 YelEntities yel_define_next_entity(YelTokens* yel_tokens) {
     register size_t i = yel_tokens->pointer;
+    static YelTokenType last_type = en_end;
 
     while (i < yel_tokens->length) {
         if (__builtin_strcmp(yel_tokens->value[i], ";") == 0) {
-            return en_end;
+            return last_type;
         }
 
-        // a ...
+        // tok_name ...
         if (yel_tokens->type[i] == tok_name) {
-            if (__builtin_strcmp(yel_tokens->value[i + 1], ":") == 0) {
-                if (yel_tokens->type[i+2] != tok_name && yel_tokens->type[i+2] != tok_number) {
-                    printf("Syntax error: after ':' a type or class is expected\n");
-                    return en_end;
-                }
-            }
-
-            // a bin_op
+            // tok_name bin_op
             if (yel_tokens->type[i + 1] == tok_binary_op) {
-
-                // a = ...
+                // tok_name = ...
                 if (__builtin_strcmp(yel_tokens->value[i + 1], "=") == 0) {
                     return en_stmt;
                 }
 
-                // a bin_op ...
-                else {
+                // tok_name bin_op ...
+                
+                last_type = en_expr;
+                size_t tmp_i = i;
+
+                ++yel_tokens->pointer;
+                if (yel_define_next_entity(yel_tokens) == en_expr) {
+                    yel_tokens->pointer = i;
                     return en_expr;
                 }
+
+                printf("Syntax error: invalid expression\n");
+                return en_end;
             }
 
             // a op ...
@@ -55,19 +57,16 @@ YelEntities yel_define_next_entity(YelTokens* yel_tokens) {
 
                 // a ( ...
                 if (__builtin_strcmp(yel_tokens->value[i + 1], "(") == 0) {
-                    return en_expr;
+                    return last_type = en_expr;
                 }
 
                 else if (__builtin_strcmp(yel_tokens->value[i + 1], ";") == 0) {
-                    return en_expr;
+                    return last_type = en_expr;
                 }  
-                else if (__builtin_strcmp(yel_tokens->value[i + 1], ":") == 0) {
-                    if (yel_tokens->type[i+2] != tok_name && yel_tokens->type[i+2] != tok_number) {
-                        printf("Syntax error: after ':' a type or class is expected\n");
-                    }
-
-                    return en_stmt;
-                }
+            }
+            else {
+                printf("Syntax error: expression is expected: %s\n", yel_tokens->value[i+1]);
+                exit(-1);
             }
         }
 
@@ -76,22 +75,39 @@ YelEntities yel_define_next_entity(YelTokens* yel_tokens) {
             if (__builtin_strcmp(yel_tokens->value[i + 1], "=") == 0) {
                 // error
                 printf("Syntax error: expression must be non-literal or modifiable\n");
+                exit(-1);
+            }
+            else if (yel_tokens->type[i+1] != tok_binary_op && __builtin_strcmp(yel_tokens->value[i+1], ";") != 0) {
+                printf("Syntax error: expression is expected: %s\n", yel_tokens->value[i+1]);
+                exit(-1);
             }
 
-            return en_expr;
+            last_type = en_expr;
+            size_t tmp_i = i;
+            ++yel_tokens->pointer;
+            if (yel_define_next_entity(yel_tokens) == en_expr) {
+                yel_tokens->pointer = i;
+                return en_expr;
+            }
+
+            printf("Syntax error: invalid expression\n");
+            return en_end;
         }
 
         else if (yel_tokens->type[i] == tok_word) {
 
             // return ...
             if (__builtin_strcmp(yel_tokens->value[i], "return") == 0) {
-                return en_stmt;
+                return last_type = en_stmt;
             }
 
             // break ...
             else if (__builtin_strcmp(yel_tokens->value[i], "break") == 0) {
-                return en_stmt;
+                return last_type = en_stmt;
             }
+        }
+        else if (yel_tokens->type[i] == tok_string) {
+            return last_type = en_expr;
         }
 
         ++i;
@@ -102,18 +118,14 @@ void yel_gen_parse_tree(YelTokens* yel_tokens) {
     while (yel_tokens->pointer < yel_tokens->length) {
         switch (yel_define_next_entity(yel_tokens)) {
         case (YelEntities)en_stmt: 
-            //puts("en_stmt");
             yel_parse_statement(yel_tokens);
             break;
         case (YelEntities)en_decl: 
-            puts("en_decl");
             break;
         case (YelEntities)en_expr: 
-            //puts("en_expr");
             yel_parse_expression(yel_tokens);
             break;
         case (YelEntities)en_end: 
-            puts("en_end");
             break;
         }
 

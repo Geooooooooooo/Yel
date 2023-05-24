@@ -10,6 +10,9 @@
 #define yel_is_alpha(c) ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_')
 #define yel_is_number(c) (c >= '0' && c <= '9')
 
+// {}
+size_t f_brk = 0;
+
 const int yel_keywords_length = 8;
 const const char* yel_keywords[] = {
     "return", "defer", "func", 
@@ -72,6 +75,9 @@ _start_:
             else {
                 if (cur_char == ' ' || yel_is_bin_op(cur_char) || yel_is_op(cur_char)) {
                     break;
+                }
+                else {
+                    printf("LexerError '%c'\n", cur_char);
                 }
             }
 
@@ -149,6 +155,11 @@ _start_:
     }
 
     if (yel_is_op(cur_char)) {
+        switch (cur_char) {
+            case '{': ++f_brk; break;
+            case '}': --f_brk; break;
+        }
+
         *t_token_type = (YelTokenType)tok_op;
         token_value[token_value_counter++] = cur_src[cur_ptr++];
     }
@@ -213,6 +224,10 @@ YelTokens yel_parse_tokens(Source* source) {
         yel_tokens.value[yel_tokens.length][l] = '\0';
         
         ++yel_tokens.length;
+    }
+
+    if (f_brk != 0) {
+        printf("Lexer error: unclosed block\n");
     }
 
     return yel_tokens;
