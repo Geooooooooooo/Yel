@@ -110,6 +110,21 @@ YelEntities yel_define_next_entity(YelTokens* yel_tokens) {
             return last_type = en_expr;
         }
 
+        else if(yel_tokens->type[i] == tok_op) {
+            if (__builtin_strcmp(yel_tokens->value[i], "(") == 0) {
+                last_type = en_expr;
+                size_t tmp_i = i;
+                ++yel_tokens->pointer;
+                if (yel_define_next_entity(yel_tokens) == en_expr) {
+                    yel_tokens->pointer = i;
+                    return en_expr;
+                }
+
+                printf("Syntax error: invalid expression\n");
+                return en_end;
+            }
+        }
+
         ++i;
     }
 }
@@ -119,11 +134,13 @@ void yel_gen_parse_tree(YelTokens* yel_tokens) {
         switch (yel_define_next_entity(yel_tokens)) {
         case (YelEntities)en_stmt: 
             yel_parse_statement(yel_tokens);
+            recursive_descent = 0;
             break;
         case (YelEntities)en_decl: 
             break;
         case (YelEntities)en_expr: 
             yel_parse_expression(yel_tokens);
+            recursive_descent = 0;
             break;
         case (YelEntities)en_end: 
             break;

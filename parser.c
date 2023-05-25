@@ -90,6 +90,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
         else if (cur[0] == '(') {
             ++yel_tokens->pointer;
             ++brakets;
+
             yel_parse_expression(yel_tokens);
 
             continue;
@@ -114,8 +115,8 @@ void yel_parse_expression(YelTokens* yel_tokens) {
                 printf("push %s\n", cur);
 
                 size_t tmp_i = yel_tokens->pointer + 1;
-                ++recursive_descent;
                 yel_tokens->pointer += 2;
+                ++recursive_descent;
                 yel_parse_expression(yel_tokens);
 
                 printf("%s\n", yel_tokens->value[tmp_i]);
@@ -146,8 +147,8 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             if (yel_tokens->type[yel_tokens->pointer+1] == tok_name && yel_tokens->value[yel_tokens->pointer+2][0] == '(') {
                 size_t tmp_i = yel_tokens->pointer;
                 ++yel_tokens->pointer;
-                ++recursive_descent;
                 
+                ++recursive_descent;
                 yel_parse_expression(yel_tokens);
 
                 printf("%s\n", yel_tokens->value[tmp_i]);
@@ -181,11 +182,15 @@ void yel_parse_expression(YelTokens* yel_tokens) {
 
             register size_t gTmp_i = yel_tokens->pointer+3;
 
-            if (yel_tokens->value[gTmp_i][0] == '(') {
+            if (yel_tokens->type[yel_tokens->pointer+2] == tok_name && yel_tokens->value[gTmp_i][0] == '(') {
                 size_t tmp_i = yel_tokens->pointer + 1;
                 printf("push %s\n", cur);
 
                 yel_tokens->pointer += 2;
+
+                ++recursive_descent;
+                yel_parse_expression(yel_tokens);
+
                 ++recursive_descent;
                 yel_parse_expression(yel_tokens);
 
@@ -209,7 +214,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
 
                 continue;
             }
-            else if (yel_tokens->value[gTmp_i][0] == ';' || yel_tokens->value[gTmp_i][0] == '+' || yel_tokens->value[gTmp_i][0] == '-'|| yel_tokens->value[gTmp_i][0] == ')') {
+            else if (yel_tokens->value[gTmp_i][0] == ';' || yel_tokens->value[gTmp_i][0] == '+' || yel_tokens->value[gTmp_i][0] == '-'|| yel_tokens->value[gTmp_i][0] == ')' || yel_tokens->value[gTmp_i][0] == ',') {
                 printf("push %s \npush %s\n%s\n", cur, yel_tokens->value[yel_tokens->pointer+2], next);
 
                 yel_tokens->pointer += 2;
@@ -241,9 +246,9 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             if (yel_tokens->value[yel_tokens->pointer+2][0] == '(') {
                 size_t tmp_i = yel_tokens->pointer;
                 ++yel_tokens->pointer;
-                ++recursive_descent;
 
                 // read function call
+                ++recursive_descent;
                 yel_parse_expression(yel_tokens);
 
                 ++recursive_descent;
@@ -265,7 +270,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
                 printf("%s\n", yel_tokens->value[tmp_i]);
                 continue;
             }
-            else if (yel_tokens->value[yel_tokens->pointer+2][0] == ';' || yel_tokens->value[yel_tokens->pointer+2][0] == '+' || yel_tokens->value[yel_tokens->pointer+2][0] == '-'|| yel_tokens->value[yel_tokens->pointer+2][0] == ')') {
+            else if (yel_tokens->value[yel_tokens->pointer+2][0] == ';' || yel_tokens->value[yel_tokens->pointer+2][0] == '+' || yel_tokens->value[yel_tokens->pointer+2][0] == '-'|| yel_tokens->value[yel_tokens->pointer+2][0] == ')' || yel_tokens->value[yel_tokens->pointer+2][0] == ',') {
                 printf("push %s\n%s\n", next, cur);
                 ++yel_tokens->pointer;
             }
