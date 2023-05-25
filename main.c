@@ -20,10 +20,10 @@ int main(int argc, char* argv[]) {
     //    printf("[%d, %s, %lu:%lu]\n", token_array.type[i], token_array.value[i], token_array.line[i], token_array.start_symbol[i]);
     //}
 
-    //yel_gen_parse_tree(&token_array);
+    yel_gen_parse_tree(&token_array);
 
     yel_free_tokens(&token_array);
-    yel_free_string(source.source_text);
+    __builtin_free(source.source_text);
 
     return 0;
 }

@@ -23,6 +23,7 @@ typedef struct __YelTokens {
     size_t* start_symbol;   // trace
     YelTokenType* type;
     char** value;
+    char* file_name;
 } YelTokens;
 
 typedef struct __Source {

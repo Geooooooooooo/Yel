@@ -7,13 +7,13 @@ Source yel_stdio_read_file(char* filename) {
 
     source.file_name = (char*)malloc((size_t)(strlen(filename) * sizeof(char)));
     if (source.file_name == NULL) {
-        printf("MemoryAllocationError <File '%s'>\nUnable to allocate memory to buffer.\n", filename);
+        printf("Error: <module IO, File '%s'>\n--> Unable to allocate memory to buffer.\n\n", filename);
         return (Source){0, 0, 0, 0};
     }
     
     FILE *file_p;
     if ((file_p = fopen(filename, "r")) == NULL) {
-        printf("IStreamError <File '%s'>\nUnable to open the file\n", filename);
+        printf("Error: <module IO, File '%s'>\n--> Unable to open the file\n\n", filename);
         return (Source){0, 0, 0, 0};
     }
 
@@ -23,7 +23,7 @@ Source yel_stdio_read_file(char* filename) {
 
     source.source_text = (char*)__builtin_malloc((size_t)((source.length + 2) * sizeof(char)));
     if (source.source_text == NULL) {
-        printf("MemoryAllocationError <File '%s'>\nUnable to allocate memory to buffer.\n", filename);
+        printf("Error: <module IO, File '%s'>\n--> Unable to allocate memory to buffer.\n\n", filename);
         return (Source){0, 0, 0, 0};
     }
     
@@ -41,9 +41,4 @@ Source yel_stdio_read_file(char* filename) {
     } source.file_name[l] = '\0';
 
     return source;
-}
-
-// __builtin_free(void* __ptr)
-void yel_free_string(char* string) {
-    __builtin_free(string);
 }

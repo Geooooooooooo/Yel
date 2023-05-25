@@ -66,7 +66,7 @@ _start_:
         }
 
         if (!close_comment) {
-            printf("Error: <module Lexer, File %s>\n--> unclosed comment at %lu:%lu\n\n", 
+            printf("Error: <module Lexer, File '%s'>\n--> unclosed comment at %lu:%lu\n\n", 
                 source->file_name, com_start[0], com_start[1]);
             goto _end_;
         }
@@ -87,7 +87,7 @@ _start_:
         while (1) {
             if (cur_char == '.') {
                 if (dot) {
-                    printf("Error: <module Lexer, File %s>\n--> invalid character '%c' in a numeric literal at %lu:%lu\n\n", 
+                    printf("Error: <module Lexer, File '%s'>\n--> invalid character '%c' in a numeric literal at %lu:%lu\n\n", 
                     source->file_name, cur_char, cur_line, cur_line_symbol);
                     break;
                 }
@@ -103,7 +103,7 @@ _start_:
                     break;
                 }
                 else {
-                    printf("Error: <module Lexer, File %s>\n--> invalid character '%c' in a numeric literal at %lu:%lu\n\n", 
+                    printf("Error: <module Lexer, File '%s'>\n--> invalid character '%c' in a numeric literal at %lu:%lu\n\n", 
                     source->file_name, cur_char, cur_line, cur_line_symbol);
                 }
             }
@@ -157,8 +157,7 @@ _start_:
                 goto _end_;
             }
             else if (cur_char == '\n') {
-                //printf("LexerError '%c'\n", cur_char);
-                printf("Error: <module Lexer, File %s>\n--> a new line when reading a string literal at %lu:%lu\n\n", 
+                printf("Error: <module Lexer, File '%s'>\n--> a new line when reading a string literal at %lu:%lu\n\n", 
                     source->file_name, cur_line, cur_line_symbol);
             }
 
@@ -167,8 +166,7 @@ _start_:
             ++cur_line_symbol;
         }
 
-        //printf("LexerError unclosed string\n");
-        printf("Error: <module Lexer, File %s>\n--> unclosed string at %lu:%lu\n\n", 
+        printf("Error: <module Lexer, File '%s'>\n--> unclosed string at %lu:%lu\n\n", 
                 source->file_name, com_start[0], com_start[1]);
 
         goto _end_;
@@ -236,6 +234,7 @@ _end_:
 YelTokens yel_parse_tokens(Source* source) {
     YelTokens yel_tokens = { 0 };
     yel_tokens.pointer = 0;
+    yel_tokens.file_name = source->file_name;
 
     YelTokenType token_type;
 
@@ -243,25 +242,25 @@ YelTokens yel_parse_tokens(Source* source) {
     
     yel_tokens.type = (YelTokenType*)__builtin_malloc((size_t)(sizeof(YelTokenType)));
     if (yel_tokens.type = NULL) {
-        printf("MemoryAllocationError <module Lexer>\n--> Heap was corrupted. Unable to allocate memory to buffer.\n");
+        printf("MemoryAllocationError <module Lexer>\n--> Heap was corrupted. Unable to allocate memory to buffer.\n\n");
         return yel_tokens;
     }
 
     yel_tokens.value = (char**)__builtin_malloc((size_t)(sizeof(char*)));
     if (yel_tokens.value = NULL) {
-        printf("MemoryAllocationError <module Lexer>\n--> Heap was corrupted. Unable to allocate memory to buffer.\n");
+        printf("MemoryAllocationError <module Lexer>\n--> Heap was corrupted. Unable to allocate memory to buffer.\n\n");
         return yel_tokens;
     }
 
     yel_tokens.start_symbol = (size_t*)__builtin_malloc((size_t)(sizeof(size_t)));
     if (yel_tokens.start_symbol = NULL) {
-        printf("MemoryAllocationError <module Lexer>\n--> Heap was corrupted. Unable to allocate memory to buffer.\n");
+        printf("MemoryAllocationError <module Lexer>\n--> Heap was corrupted. Unable to allocate memory to buffer.\n\n");
         return yel_tokens;
     }
 
     yel_tokens.line = (size_t*)__builtin_malloc((size_t)(sizeof(size_t)));
     if (yel_tokens.line = NULL) {
-        printf("MemoryAllocationError <module Lexer>\n--> Heap was corrupted. Unable to allocate memory to buffer.\n");
+        printf("MemoryAllocationError <module Lexer>\n--> Heap was corrupted. Unable to allocate memory to buffer.\n\n");
         return yel_tokens;
     }
 
@@ -278,19 +277,16 @@ YelTokens yel_parse_tokens(Source* source) {
 
         yel_tokens.line[yel_tokens.length] = cur_line;
         yel_tokens.start_symbol[yel_tokens.length] = start_symbol;
-
-        //printf("start_symbol = %lu\n", yel_tokens.start_symbol[yel_tokens.length]);
         
         yel_tokens.value[yel_tokens.length] = (char*)__builtin_malloc((size_t)(__builtin_strlen(token_value) * sizeof(char)));
         if (yel_tokens.value[yel_tokens.length] == NULL) {
-            printf("MemoryAllocationError <module Lexer>\n--> Heap was corrupted. Unable to allocate memory to buffer.\n");
+            printf("MemoryAllocationError <module Lexer>\n--> Heap was corrupted. Unable to allocate memory to buffer.\n\n");
             
             yel_free_tokens(&yel_tokens);
             
             return yel_tokens;
         }
 
-        // strcpy ();
         size_t l = __builtin_strlen(token_value);
         for (size_t i = 0; i < l; i++) {
             yel_tokens.value[yel_tokens.length][i] = token_value[i];

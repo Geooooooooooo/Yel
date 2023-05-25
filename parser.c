@@ -14,8 +14,8 @@ void yel_parse_statement(YelTokens* yel_tokens) {
                 yel_tokens->pointer += 2;
 
                 if (yel_define_next_entity(yel_tokens) != en_expr) {
-                    // error
-                    printf("Syntax error: expected expression after '='\n");
+                    printf("Error: <module Parser, File '%s'>\n--> expected expression after '=' at %lu:%lu\n\n", 
+                    yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
                 }
 
                 yel_parse_expression(yel_tokens);
@@ -30,8 +30,8 @@ void yel_parse_statement(YelTokens* yel_tokens) {
                 YelEntities next_en = yel_define_next_entity(yel_tokens);
 
                 if (next_en != en_expr && next_en != en_end) {
-                    // error
-                    printf("Syntax error: expected expression or ';' after return\n");
+                    printf("Error: <module Parser, File '%s'>\n--> expected expression or ';' after return at %lu:%lu\n\n", 
+                        yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
                     return;
                 }
 
@@ -41,8 +41,8 @@ void yel_parse_statement(YelTokens* yel_tokens) {
             }
             else if (__builtin_strcmp(yel_tokens->value[yel_tokens->pointer + 1], "break") == 0) {
                 if (yel_define_next_entity(yel_tokens) != en_end) {
-                    // error
-                    printf("Syntax error: expected ';' after break\n");
+                    printf("Error: <module Parser, File '%s'>\n--> expected ';' after break at %lu:%lu\n\n", 
+                        yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
                     return;
                 }
 
@@ -58,7 +58,8 @@ void yel_parse_expression(YelTokens* yel_tokens) {
     while (yel_tokens->pointer < yel_tokens->length) {
         if (yel_tokens->value[yel_tokens->pointer][0] == ';') {
             if (brakets) {
-                printf("Syntax error: expected ')'\n");
+                printf("Error: <module Parser, File '%s'>\n--> expected ')' at %lu:%lu\n\n", 
+                        yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
                 exit(-1);
             }
 
@@ -97,7 +98,8 @@ void yel_parse_expression(YelTokens* yel_tokens) {
         }
         else if (cur[0] == ')') {
             if (brakets == 0) {
-                printf("Syntax error: expected '(': %s%s\n", yel_tokens->value[yel_tokens->pointer-2], prev);
+                printf("Error: <module Parser, File '%s'>\n--> expected '(' at %lu:%lu\n\n", 
+                    yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
                 exit(-1);
             }
 
@@ -107,7 +109,9 @@ void yel_parse_expression(YelTokens* yel_tokens) {
         }
         else if (next[0] == '*' || next[0] == '/') {
             if (yel_tokens->value[yel_tokens->pointer+2][0] == ';') {
-                printf("Syntax error: expected expression after '%s'\n", yel_tokens->value[yel_tokens->pointer+1]);
+                printf("Error: <module Parser, File '%s'>\n--> expected expression after '%s' at %lu:%lu\n\n", 
+                    yel_tokens->file_name, next, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
+
                 exit(-1);
             }
 
@@ -140,7 +144,9 @@ void yel_parse_expression(YelTokens* yel_tokens) {
         }
         else if(cur[0] == '*' || cur[0] == '/') {
             if (yel_tokens->value[yel_tokens->pointer+1][0] == ';') {
-                printf("Syntax error: expected expression after '%s'\n", yel_tokens->value[yel_tokens->pointer]);
+                printf("Error: <module Parser, File '%s'>\n--> expected expression after '%s' at %lu:%lu\n\n", 
+                    yel_tokens->file_name, cur, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
+
                 exit(-1);
             }
 
@@ -176,7 +182,9 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             }
 
             if (yel_tokens->value[yel_tokens->pointer+2][0] == ';') {
-                printf("Syntax error: expected expression after '%s'\n", yel_tokens->value[yel_tokens->pointer+1]);
+                printf("Error: <module Parser, File '%s'>\n--> expected expression after '%s' at %lu:%lu\n\n", 
+                    yel_tokens->file_name, next, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
+                
                 exit(-1);
             }
 
@@ -239,7 +247,8 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             }
 
             if (yel_tokens->value[yel_tokens->pointer+1][0] == ';') {
-                printf("Syntax error: expected expression after '%s'\n", yel_tokens->value[yel_tokens->pointer]);
+                printf("Error: <module Parser, File '%s'>\n--> expected expression after '%s' at %lu:%lu\n\n", 
+                    yel_tokens->file_name, cur, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
                 exit(-1);
             }
 
