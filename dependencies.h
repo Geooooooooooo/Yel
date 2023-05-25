@@ -19,12 +19,15 @@ typedef enum __YelTokenType {
 typedef struct __YelTokens {
     size_t length;
     size_t pointer;
+    size_t *line;            // trace 
+    size_t* start_symbol;   // trace
     YelTokenType* type;
     char** value;
 } YelTokens;
 
 typedef struct __Source {
     char* source_text;
+    char* file_name;        // trace   
     size_t pointer;
     size_t length;
 } Source;

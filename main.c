@@ -16,7 +16,11 @@ int main(int argc, char* argv[]) {
 
     YelTokens token_array = yel_parse_tokens(&source);
 
-    yel_gen_parse_tree(&token_array);
+    //for (size_t i = 0; i < token_array.length; i++) {
+    //    printf("[%d, %s, %lu:%lu]\n", token_array.type[i], token_array.value[i], token_array.line[i], token_array.start_symbol[i]);
+    //}
+
+    //yel_gen_parse_tree(&token_array);
 
     yel_free_tokens(&token_array);
     yel_free_string(source.source_text);
