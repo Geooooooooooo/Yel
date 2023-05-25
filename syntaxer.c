@@ -29,7 +29,6 @@ YelEntities yel_define_next_entity(YelTokens* yel_tokens) {
                 }
 
                 // tok_name bin_op ...
-                
                 last_type = en_expr;
                 size_t tmp_i = i;
 
@@ -39,8 +38,7 @@ YelEntities yel_define_next_entity(YelTokens* yel_tokens) {
                     return en_expr;
                 }
 
-                //printf("Syntax error: invalid expression\n");
-                printf("Error: <module Parser, File '%s'>\n--> invalid expression at %lu:%lu\n", 
+                printf("Error: <module Parser, File '%s'>\n--> invalid expression at %lu:%lu\n\n", 
                     yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
                 return en_end;
             }
@@ -58,7 +56,7 @@ YelEntities yel_define_next_entity(YelTokens* yel_tokens) {
                 }  
             }
             else {
-                printf("Error: <module Parser, File '%s'>\n--> expression is expected: '%s' at %lu:%lu\n", 
+                printf("Error: <module Parser, File '%s'>\n--> expression is expected: '%s' at %lu:%lu\n\n", 
                     yel_tokens->file_name, next, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
                 exit(-1);
             }
@@ -72,7 +70,7 @@ YelEntities yel_define_next_entity(YelTokens* yel_tokens) {
                 exit(-1);
             }
             else if (yel_tokens->type[i+1] != tok_binary_op && __builtin_strcmp(yel_tokens->value[i+1], ";") != 0) {
-                printf("Error: <module Parser, File '%s'>\n--> expression is expected after '%s' at %lu:%lu\n", 
+                printf("Error: <module Parser, File '%s'>\n--> expression is expected after '%s' at %lu:%lu\n\n", 
                     yel_tokens->file_name, next, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
                 exit(-1);
             }
@@ -80,12 +78,13 @@ YelEntities yel_define_next_entity(YelTokens* yel_tokens) {
             last_type = en_expr;
             size_t tmp_i = i;
             ++yel_tokens->pointer;
+
             if (yel_define_next_entity(yel_tokens) == en_expr) {
                 yel_tokens->pointer = i;
                 return en_expr;
             }
 
-            printf("Error: <module Parser, File '%s'>\n--> invalid expression at %lu:%lu\n", 
+            printf("Error: <module Parser, File '%s'>\n--> invalid expression at %lu:%lu\n\n", 
                 yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
 
             return en_end;
@@ -116,11 +115,23 @@ YelEntities yel_define_next_entity(YelTokens* yel_tokens) {
                     yel_tokens->pointer = i;
                     return en_expr;
                 }
-
-                printf("Error: <module Parser, File '%s'>\n--> invalid expression at %lu:%lu\n", 
+                printf("Error: <module Parser, File '%s'>\n--> invalid expression at %lu:%lu\n\n", 
                     yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
                 return en_end;
             }
+            else if (__builtin_strcmp(yel_tokens->value[i], "(") == 0) {
+                
+                return last_type;
+            }
+        }
+        else if(yel_tokens->type[i] == tok_binary_op) {
+            if (yel_tokens->value[i+1][0] == ';' || (yel_tokens->type[i+1] != tok_name && yel_tokens->type[i+1] != tok_number)) {
+                printf("Error: <module Parser, File '%s'>\n--> expression is expected after '%s' at %lu:%lu\n\n", 
+                    yel_tokens->file_name, next, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
+                return en_end;
+            }
+
+            return en_expr;
         }
 
         ++i;
