@@ -30,7 +30,8 @@ Source yel_stdio_read_file(char* filename) {
     for (size_t i = 0; i < source.length; i++) {
         source.source_text[i] = fgetc(file_p);
     }
-    source.source_text[source.length] = '\0';
+    source.source_text[source.length] = '\n';
+    source.source_text[source.length + 1] = '\0';
 
     fclose(file_p);
 

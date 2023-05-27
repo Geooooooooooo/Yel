@@ -83,7 +83,7 @@ YelEntities yel_define_next_entity(YelTokens* yel_tokens) {
             }
             else if (yel_tokens->type[i+1] != tok_binary_op && __builtin_strcmp(yel_tokens->value[i+1], ";") != 0) {
                 printf("Syntax Error: <File '%s'>\n--> expression is expected after '%s' at %lu:%lu\n|\n|", 
-                    yel_tokens->file_name, next, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
+                    yel_tokens->file_name, cur, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
 
                 yel_print_error(yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
 
@@ -151,7 +151,7 @@ YelEntities yel_define_next_entity(YelTokens* yel_tokens) {
         else if(yel_tokens->type[i] == tok_binary_op) {
             if (yel_tokens->value[i+1][0] == ';' || (yel_tokens->type[i+1] != tok_name && yel_tokens->type[i+1] != tok_number)) {
                 printf("Syntax Error: <File '%s'>\n--> expression is expected after '%s' at %lu:%lu\n|\n|", 
-                    yel_tokens->file_name, next, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
+                    yel_tokens->file_name, cur, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
 
                 yel_print_error(yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
 

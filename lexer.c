@@ -67,9 +67,8 @@ _start_:
         }
 
         if (!close_comment) {
-            printf("Lexical Error: <File '%s'>\n--> unclosed comment at %lu:%lu\n|\n|", 
+            printf("Lexical Error: <File '%s'>\n--> unclosed comment at %lu:%lu\n\n", 
                 source->file_name, com_start[0], com_start[1]);
-            yel_print_error(source, com_start[0], com_start[1]);
 
             *t_token_type = tok_undefined;
             return;

@@ -10,12 +10,14 @@ void yel_print_error(Source* src, size_t line, size_t symbol) {
             size_t i_start = i;
             size_t i_end = i;
 
+            while (src->source_text[i_end] == ' ') ++i_end;
+
             while (1) {
-                if ((src->source_text[i_end] == ';' && symbol_counter >= symbol) || src->source_text[i] == '\n' ) {
+                if ((src->source_text[i_end] == ';' && symbol_counter >= symbol) || src->source_text[i_end] == '\n' || src->source_text[i_end] == '\0') {
                     ++i_end;
                     break;
                 }
-                else if (src->source_text[i_end] == ';') {
+                else if (src->source_text[i_end] == ';' || (src->source_text[i_end - 1] == '*' && src->source_text[i_end] == '/')) {
                     i_start = i_end + 1;
                 }
 
@@ -46,16 +48,8 @@ void yel_print_error(Source* src, size_t line, size_t symbol) {
                 else printf("~");
             }
 
-            printf("\n|");
-
-            size_t bottom = 25 + strlen(src->file_name);
-            while (bottom) {
-                printf("-");
-                --bottom;
-            }
-
+            
             puts("\n");
-
             return;
         }
 
