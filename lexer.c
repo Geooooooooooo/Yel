@@ -1,4 +1,5 @@
 #include "lexer.h"
+#include "error.h"
 
 #define cur_src     source->source_text
 #define cur_ptr     source->pointer
@@ -66,9 +67,12 @@ _start_:
         }
 
         if (!close_comment) {
-            printf("Error: <module Lexer, File '%s'>\n--> unclosed comment at %lu:%lu\n\n", 
+            printf("Lexical Error: <File '%s'>\n--> unclosed comment at %lu:%lu\n|\n|", 
                 source->file_name, com_start[0], com_start[1]);
-            goto _end_;
+            yel_print_error(source, com_start[0], com_start[1]);
+
+            *t_token_type = tok_undefined;
+            return;
         }
     }
 
@@ -87,9 +91,11 @@ _start_:
         while (1) {
             if (cur_char == '.') {
                 if (dot) {
-                    printf("Error: <module Lexer, File '%s'>\n--> invalid character '%c' in a numeric literal at %lu:%lu\n\n", 
-                    source->file_name, cur_char, cur_line, cur_line_symbol);
-                    break;
+                    printf("Lexical Error: <File '%s'>\n--> invalid character '%c' in a numeric literal at %lu:%lu\n|\n|", 
+                        source->file_name, cur_char, cur_line, cur_line_symbol);
+                    yel_print_error(source, cur_line, cur_line_symbol);
+                    *t_token_type = tok_undefined;
+                    return;
                 }
 
                 token_value[token_value_counter++] = cur_char;
@@ -103,8 +109,11 @@ _start_:
                     break;
                 }
                 else {
-                    printf("Error: <module Lexer, File '%s'>\n--> invalid character '%c' in a numeric literal at %lu:%lu\n\n", 
-                    source->file_name, cur_char, cur_line, cur_line_symbol);
+                    printf("Lexical Error: <File '%s'>\n--> invalid character in a numeric literal at %lu:%lu\n|\n|", 
+                        source->file_name, cur_line, cur_line_symbol);
+                    yel_print_error(source, cur_line, cur_line_symbol);
+                    *t_token_type = tok_undefined;
+                    return;
                 }
             }
 
@@ -122,11 +131,18 @@ _start_:
         start_symbol = cur_line_symbol;
 
         while (1) {
-            if (yel_is_alpha(cur_char)) {
+            if (yel_is_alpha(cur_char) || (cur_char >= '0' && cur_char <= '9')) {
                 token_value[token_value_counter++] = cur_char;
             }
             else if (cur_char == ' ' || yel_is_bin_op(cur_char) || yel_is_op(cur_char)) {
                 break;
+            }
+            else if (cur_char == '.') {
+                printf("Lexical Error: <File '%s'>\n--> invalid character at %lu:%lu\n|\n|", 
+                        source->file_name, cur_line, cur_line_symbol);
+                yel_print_error(source, cur_line, cur_line_symbol);
+                *t_token_type = tok_undefined;
+                return;
             }
 
             ++cur_ptr;
@@ -157,8 +173,11 @@ _start_:
                 goto _end_;
             }
             else if (cur_char == '\n') {
-                printf("Error: <module Lexer, File '%s'>\n--> a new line when reading a string literal at %lu:%lu\n\n", 
+                printf("Lexical Error: <File '%s'>\n--> a new line when reading a string literal at %lu:%lu\n|\n|", 
                     source->file_name, cur_line, cur_line_symbol);
+                yel_print_error(source, cur_line, cur_line_symbol);
+                *t_token_type = tok_undefined;
+                return;
             }
 
             token_value[token_value_counter++] = cur_src[cur_ptr];
@@ -166,8 +185,11 @@ _start_:
             ++cur_line_symbol;
         }
 
-        printf("Error: <module Lexer, File '%s'>\n--> unclosed string at %lu:%lu\n\n", 
+        printf("Lexical Error: <File '%s'>\n--> unclosed string at %lu:%lu\n|\n|", 
                 source->file_name, com_start[0], com_start[1]);
+            yel_print_error(source, cur_line, cur_line_symbol);
+        *t_token_type = tok_undefined;
+        return;
 
         goto _end_;
     }
@@ -235,6 +257,8 @@ YelTokens yel_parse_tokens(Source* source) {
     YelTokens yel_tokens = { 0 };
     yel_tokens.pointer = 0;
     yel_tokens.file_name = source->file_name;
+    yel_tokens.error = 0;
+    yel_tokens.src_ptr = source;
 
     YelTokenType token_type;
 
@@ -242,32 +266,32 @@ YelTokens yel_parse_tokens(Source* source) {
     
     yel_tokens.type = (YelTokenType*)__builtin_malloc((size_t)(sizeof(YelTokenType)));
     if (yel_tokens.type = NULL) {
-        printf("MemoryAllocationError <module Lexer>\n--> Heap was corrupted. Unable to allocate memory to buffer.\n\n");
+        printf("MemoryAllocationError <module Lexer>\n--> Heap was corrupted. Unable to allocate memory to buffer.\n|\n|");
         return yel_tokens;
     }
 
     yel_tokens.value = (char**)__builtin_malloc((size_t)(sizeof(char*)));
     if (yel_tokens.value = NULL) {
-        printf("MemoryAllocationError <module Lexer>\n--> Heap was corrupted. Unable to allocate memory to buffer.\n\n");
+        printf("MemoryAllocationError <module Lexer>\n--> Heap was corrupted. Unable to allocate memory to buffer.\n|\n|");
         return yel_tokens;
     }
 
     yel_tokens.start_symbol = (size_t*)__builtin_malloc((size_t)(sizeof(size_t)));
     if (yel_tokens.start_symbol = NULL) {
-        printf("MemoryAllocationError <module Lexer>\n--> Heap was corrupted. Unable to allocate memory to buffer.\n\n");
+        printf("MemoryAllocationError <module Lexer>\n--> Heap was corrupted. Unable to allocate memory to buffer.\n|\n|");
         return yel_tokens;
     }
 
     yel_tokens.line = (size_t*)__builtin_malloc((size_t)(sizeof(size_t)));
     if (yel_tokens.line = NULL) {
-        printf("MemoryAllocationError <module Lexer>\n--> Heap was corrupted. Unable to allocate memory to buffer.\n\n");
+        printf("MemoryAllocationError <module Lexer>\n--> Heap was corrupted. Unable to allocate memory to buffer.\n|\n|");
         return yel_tokens;
     }
 
     yel_tokens.length = 0;
     while (source->pointer < source->length) {
         yel_tokens.type = (YelTokenType*)__builtin_realloc(yel_tokens.type, (size_t)((yel_tokens.length + 1) * sizeof(YelTokenType)));
-        yel_tokens.value = (char**)__builtin_realloc(yel_tokens.value, (size_t)((yel_tokens.length + 2) * sizeof(char*)));
+        yel_tokens.value = (char**)__builtin_realloc(yel_tokens.value, (size_t)((yel_tokens.length + 1) * sizeof(char*)));
         yel_tokens.start_symbol = (size_t*)__builtin_realloc(yel_tokens.start_symbol, (size_t)((yel_tokens.length + 1) * sizeof(size_t)));
         yel_tokens.line = (size_t*)__builtin_realloc(yel_tokens.line, (size_t)((yel_tokens.length + 1) * sizeof(size_t)));
 
@@ -275,14 +299,19 @@ YelTokens yel_parse_tokens(Source* source) {
             source, &yel_tokens.type[yel_tokens.length], token_value
         );
 
+        if (yel_tokens.type[yel_tokens.length] == tok_undefined) {
+            yel_tokens.error = 1;
+            return yel_tokens;
+        }
+
         yel_tokens.line[yel_tokens.length] = cur_line;
         yel_tokens.start_symbol[yel_tokens.length] = start_symbol;
         
         yel_tokens.value[yel_tokens.length] = (char*)__builtin_malloc((size_t)(__builtin_strlen(token_value) * sizeof(char)));
         if (yel_tokens.value[yel_tokens.length] == NULL) {
-            printf("MemoryAllocationError <module Lexer>\n--> Heap was corrupted. Unable to allocate memory to buffer.\n\n");
+            printf("MemoryAllocationError <module Lexer>\n--> Heap was corrupted. Unable to allocate memory to buffer.\n|\n|");
             
-            yel_free_tokens(&yel_tokens);
+            yel_tokens.error = 1;
             
             return yel_tokens;
         }
@@ -297,7 +326,8 @@ YelTokens yel_parse_tokens(Source* source) {
     }
 
     if (f_brk != 0) {
-        printf("Error: <module Lexer, File %s>\n--> unclosed block\n\n", source->file_name);
+        printf("Lexical Error: <File '%s'>\n--> unclosed block\n\n", source->file_name);
+        yel_tokens.error = 1;
     }
 
     return yel_tokens;
@@ -305,7 +335,7 @@ YelTokens yel_parse_tokens(Source* source) {
 
 void yel_free_tokens(YelTokens* yel_tokens) {
     while (yel_tokens->length) {
-        __builtin_free(yel_tokens->value[yel_tokens->length--]);
+        __builtin_free(yel_tokens->value[--yel_tokens->length]);
     }
     
     __builtin_free(yel_tokens->line);

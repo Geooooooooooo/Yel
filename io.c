@@ -7,14 +7,14 @@ Source yel_stdio_read_file(char* filename) {
 
     source.file_name = (char*)malloc((size_t)(strlen(filename) * sizeof(char)));
     if (source.file_name == NULL) {
-        printf("Error: <module IO, File '%s'>\n--> Unable to allocate memory to buffer.\n\n", filename);
-        return (Source){0, 0, 0, 0};
+        printf("System Error: <File '%s'>\n--> Unable to allocate memory to buffer.\n\n", filename);
+        return (Source){NULL, NULL, 0, 0};
     }
     
     FILE *file_p;
     if ((file_p = fopen(filename, "r")) == NULL) {
-        printf("Error: <module IO, File '%s'>\n--> Unable to open the file\n\n", filename);
-        return (Source){0, 0, 0, 0};
+        printf("System Error: <File '%s'>\n--> Unable to open the file\n\n", filename);
+        return (Source){NULL, NULL, 0, 0};
     }
 
     fseek(file_p, 0L, SEEK_END);
@@ -23,8 +23,8 @@ Source yel_stdio_read_file(char* filename) {
 
     source.source_text = (char*)__builtin_malloc((size_t)((source.length + 2) * sizeof(char)));
     if (source.source_text == NULL) {
-        printf("Error: <module IO, File '%s'>\n--> Unable to allocate memory to buffer.\n\n", filename);
-        return (Source){0, 0, 0, 0};
+        printf("System Error: <File '%s'>\n--> Unable to allocate memory to buffer.\n\n", filename);
+        return (Source){NULL, NULL, 0, 0};
     }
     
     for (size_t i = 0; i < source.length; i++) {

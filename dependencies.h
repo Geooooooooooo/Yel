@@ -17,6 +17,7 @@ typedef enum __YelTokenType {
 } YelTokenType;
 
 typedef struct __YelTokens {
+    _Bool error;
     size_t length;
     size_t pointer;
     size_t *line;            // trace 
@@ -24,6 +25,8 @@ typedef struct __YelTokens {
     YelTokenType* type;
     char** value;
     char* file_name;
+
+    struct __Source* src_ptr;
 } YelTokens;
 
 typedef struct __Source {
@@ -42,5 +45,9 @@ typedef enum __YelEntities {
 
 #define __dbreak() printf("debug call in <File: %s:%d>", __FILE__, __LINE__);getchar()
 #define print_cur() printf("\ncur = %s\n", cur)
+#define print_tokens() puts("tokens = {");\
+    for (size_t i = 0; i < token_array.length; i++) {\
+        printf("   [%d, '%s', %lu:%lu]\n", token_array.type[i], token_array.value[i], token_array.line[i], token_array.start_symbol[i]);\
+    } puts("}")
 
 #endif // __DEPENDECIES_H_

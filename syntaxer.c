@@ -1,5 +1,7 @@
 #include "syntaxer.h"
 #include "parser.h"
+#include "lexer.h"
+#include "error.h"
 
 #define next yel_tokens->value[yel_tokens->pointer+1]
 #define prev yel_tokens->value[yel_tokens->pointer-1]
@@ -38,8 +40,10 @@ YelEntities yel_define_next_entity(YelTokens* yel_tokens) {
                     return en_expr;
                 }
 
-                printf("Error: <module Parser, File '%s'>\n--> invalid expression at %lu:%lu\n\n", 
+                printf("Syntax Error: <File '%s'>\n--> invalid expression at %lu:%lu\n|\n|", 
                     yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
+                yel_print_error(yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
+                yel_tokens->error = 1;
                 return en_end;
             }
 
@@ -56,23 +60,35 @@ YelEntities yel_define_next_entity(YelTokens* yel_tokens) {
                 }  
             }
             else {
-                printf("Error: <module Parser, File '%s'>\n--> expression is expected: '%s' at %lu:%lu\n\n", 
+                printf("Syntax Error: <File '%s'>\n--> expression is expected: '%s' at %lu:%lu\n|\n|", 
                     yel_tokens->file_name, next, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
-                exit(-1);
+
+                yel_print_error(yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
+                
+                yel_tokens->error = 1;
+                return en_end;
             }
         }
 
         // 1 ...
         else if (yel_tokens->type[i] == tok_number) {
             if (__builtin_strcmp(yel_tokens->value[i + 1], "=") == 0) {
-                printf("Error: <module Parser, File '%s'>\n--> expression must be non-literal or modifiable at %lu:%lu\n\n",
+                printf("Syntax Error: <File '%s'>\n--> expression must be non-literal or modifiable at %lu:%lu\n|\n|",
                     yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
-                exit(-1);
+
+                yel_print_error(yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
+
+                yel_tokens->error = 1;
+                return en_end;
             }
             else if (yel_tokens->type[i+1] != tok_binary_op && __builtin_strcmp(yel_tokens->value[i+1], ";") != 0) {
-                printf("Error: <module Parser, File '%s'>\n--> expression is expected after '%s' at %lu:%lu\n\n", 
+                printf("Syntax Error: <File '%s'>\n--> expression is expected after '%s' at %lu:%lu\n|\n|", 
                     yel_tokens->file_name, next, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
-                exit(-1);
+
+                yel_print_error(yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
+
+                yel_tokens->error = 1;
+                return en_end;
             }
 
             last_type = en_expr;
@@ -84,9 +100,13 @@ YelEntities yel_define_next_entity(YelTokens* yel_tokens) {
                 return en_expr;
             }
 
-            printf("Error: <module Parser, File '%s'>\n--> invalid expression at %lu:%lu\n\n", 
+            printf("Syntax Error: <File '%s'>\n--> invalid expression at %lu:%lu\n|\n|", 
                 yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
 
+
+            yel_print_error(yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
+
+            yel_tokens->error = 1;
             return en_end;
         }
 
@@ -115,8 +135,12 @@ YelEntities yel_define_next_entity(YelTokens* yel_tokens) {
                     yel_tokens->pointer = i;
                     return en_expr;
                 }
-                printf("Error: <module Parser, File '%s'>\n--> invalid expression at %lu:%lu\n\n", 
+                printf("Syntax Error: <File '%s'>\n--> invalid expression at %lu:%lu\n|\n|", 
                     yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
+
+                yel_print_error(yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
+
+                yel_tokens->error = 1;
                 return en_end;
             }
             else if (__builtin_strcmp(yel_tokens->value[i], "(") == 0) {
@@ -126,8 +150,12 @@ YelEntities yel_define_next_entity(YelTokens* yel_tokens) {
         }
         else if(yel_tokens->type[i] == tok_binary_op) {
             if (yel_tokens->value[i+1][0] == ';' || (yel_tokens->type[i+1] != tok_name && yel_tokens->type[i+1] != tok_number)) {
-                printf("Error: <module Parser, File '%s'>\n--> expression is expected after '%s' at %lu:%lu\n\n", 
+                printf("Syntax Error: <File '%s'>\n--> expression is expected after '%s' at %lu:%lu\n|\n|", 
                     yel_tokens->file_name, next, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
+
+                yel_print_error(yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
+
+                yel_tokens->error = 1;
                 return en_end;
             }
 
@@ -152,6 +180,9 @@ void yel_gen_parse_tree(YelTokens* yel_tokens) {
             recursive_descent = 0;
             break;
         case (YelEntities)en_end: 
+            if (yel_tokens->error) {
+                return;
+            }
             break;
         }
 
