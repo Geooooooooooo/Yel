@@ -1,1 +1,0 @@
-gcc error.c parser.c syntaxer.c lexer.c io.c main.c -o run -O2
