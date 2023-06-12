@@ -1,2 +1,3 @@
 add = func:Int (x:Int, y:Int) -> x + y;
-
+// or
+add2 = func (x, y) -> x + y;
