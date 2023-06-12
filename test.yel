@@ -1,6 +1,2 @@
-a = 10;
-b = 20;
+add = func:Int (x:Int, y:Int) -> x + y;
 
-// hello
-
-d = d--d;
