@@ -85,9 +85,7 @@ _start_:
             ++token_value_counter;
             start_symbol = cur_line_symbol;
             ++cur_line_symbol;
-        } 
-        else 
-            start_symbol = cur_line_symbol;
+        } else start_symbol = cur_line_symbol;
 
         while (1) {
             if (cur_char == '.') {
@@ -199,9 +197,18 @@ _start_:
         goto _end_;
     }
 
+    start_symbol = cur_line_symbol;
     // binary operators
     switch (cur_char)
     {
+    case '%':
+        if (cur_src[cur_ptr+1] == '=') {
+            *t_token_type = (YelTokenType)tok_binary_op_percent_assign;
+            goto _count_bin_operator2;
+        } else {
+            *t_token_type = (YelTokenType)tok_binary_op_percent;
+            goto _count_bin_operator1;
+        }
     case '=':
         if (cur_src[cur_ptr+1] == '=') {
             *t_token_type = (YelTokenType)tok_binary_op_eq;
@@ -230,6 +237,9 @@ _start_:
         } else if (cur_src[cur_ptr+1] == '-') {
             *t_token_type = (YelTokenType)tok_unary_op_dec;
             goto _count_bin_operator2;
+        } else if (cur_src[cur_ptr+1] == '>') {
+            *t_token_type = (YelTokenType)tok_op_follow;
+            goto _count_bin_operator2;
         } else {
             *t_token_type = (YelTokenType)tok_binary_op_minus;
             goto _count_bin_operator1;
@@ -238,6 +248,9 @@ _start_:
     case '*':
         if (cur_src[cur_ptr+1] == '=') {
             *t_token_type = (YelTokenType)tok_binary_op_mul_assign;
+            goto _count_bin_operator2;
+        } else if (cur_src[cur_ptr+1] == '*') {
+            *t_token_type = (YelTokenType)tok_binary_op_pow;
             goto _count_bin_operator2;
         } else {
             *t_token_type = (YelTokenType)tok_binary_op_mul;
@@ -346,16 +359,18 @@ _count_bin_operator3:
     cur_line_symbol += 4;
     goto _end_;
 
+
 _op:
+    start_symbol = cur_line_symbol;
     switch (cur_char) {
-    case '(': *t_token_type = (YelTokenType)tok_op_rpar;
+    case '(': *t_token_type = (YelTokenType)tok_op_lpar;
         break;
-    case ')': *t_token_type = (YelTokenType)tok_op_lpar;
+    case ')': *t_token_type = (YelTokenType)tok_op_rpar;
         break;
-    case '{': *t_token_type = (YelTokenType)tok_op_frbrk;
+    case '{': *t_token_type = (YelTokenType)tok_op_flbrk;
         ++f_brk; 
         break;
-    case '}': *t_token_type = (YelTokenType)tok_op_flbrk;
+    case '}': *t_token_type = (YelTokenType)tok_op_frbrk;
         --f_brk;
         break;
     case ';': *t_token_type = (YelTokenType)tok_semicolon;

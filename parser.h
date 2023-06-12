@@ -1,7 +1,7 @@
 #ifndef __PARSER_H__
 #define __PARSER_H__
 
-#include "dependencies.h"
+#include "../Dependencies/dependencies.h"
 
 static int brakets = 0;
 static int recursive_descent = 0;
