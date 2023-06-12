@@ -1,5 +1,5 @@
-#include "lexer.h"
-#include "error.h"
+#include "../Lexer/lexer.h"
+#include "../Errors/error.h"
 
 #define cur_src     source->source_text
 #define cur_ptr     source->pointer
@@ -21,7 +21,7 @@ size_t start_symbol = 1;
 const int yel_keywords_length = 8;
 const const char* yel_keywords[] = {
     "return", "defer", "func", 
-    "noreturn", "int", "float", "string", "any",
+    "noreturn", "Int", "Flt", "Str", "Any",
 };
 
 void yel_get_next_token(Source* source, YelTokenType* t_token_type, char* token_value) {
@@ -80,7 +80,9 @@ _start_:
         _Bool dot = 0;
         
         if (cur_char == '.') {
-            1, token_value[token_value_counter++] = cur_src[cur_ptr++];
+            1, token_value[token_value_counter] = cur_src[cur_ptr];
+            ++cur_ptr;
+            ++token_value_counter;
             start_symbol = cur_line_symbol;
             ++cur_line_symbol;
         } 
@@ -97,11 +99,13 @@ _start_:
                     return;
                 }
 
-                token_value[token_value_counter++] = cur_char;
+                token_value[token_value_counter] = cur_char;
+                ++token_value_counter;
                 dot = 1;
             }
             else if(yel_is_number(cur_char)) {
-                token_value[token_value_counter++] = cur_char;
+                token_value[token_value_counter] = cur_char;
+                ++token_value_counter;
             }
             else {
                 if (cur_char == ' ' || yel_is_bin_op(cur_char) || yel_is_op(cur_char)) {
@@ -131,7 +135,8 @@ _start_:
 
         while (1) {
             if (yel_is_alpha(cur_char) || (cur_char >= '0' && cur_char <= '9')) {
-                token_value[token_value_counter++] = cur_char;
+                token_value[token_value_counter] = cur_char;
+                ++token_value_counter;
             }
             else if (cur_char == ' ' || yel_is_bin_op(cur_char) || yel_is_op(cur_char)) {
                 break;
@@ -179,7 +184,8 @@ _start_:
                 return;
             }
 
-            token_value[token_value_counter++] = cur_src[cur_ptr];
+            token_value[token_value_counter] = cur_src[cur_ptr];
+            ++token_value_counter;
             ++cur_ptr;
             ++cur_line_symbol;
         }
@@ -194,44 +200,179 @@ _start_:
     }
 
     // binary operators
-    if (yel_is_bin_op(cur_char)) {
-        start_symbol = cur_line_symbol;
-        *t_token_type = (YelTokenType)tok_binary_op;
-
-        if (cur_src[cur_ptr + 1] == '=') {
-            token_value[token_value_counter++] = cur_src[cur_ptr];
-            token_value[token_value_counter++] = cur_src[++cur_ptr];
-            cur_ptr += 2;
-            cur_line_symbol += 3;
-        }
-        else if (cur_src[cur_ptr] == '-' && cur_src[cur_ptr + 1] == '>') {
-            token_value[token_value_counter++] = cur_src[cur_ptr];
-            token_value[token_value_counter++] = cur_src[++cur_ptr];
-            ++cur_ptr;
-            cur_line_symbol += 2;
-        }
-        else {
-            token_value[token_value_counter++] = cur_src[cur_ptr];
-            ++cur_ptr;
-            ++cur_line_symbol;
+    switch (cur_char)
+    {
+    case '=':
+        if (cur_src[cur_ptr+1] == '=') {
+            *t_token_type = (YelTokenType)tok_binary_op_eq;
+            goto _count_bin_operator2;
+        } else {
+            *t_token_type = (YelTokenType)tok_binary_op_assign;
+            goto _count_bin_operator1;
         }
 
+    case '+':
+        if (cur_src[cur_ptr+1] == '=') {
+            *t_token_type = (YelTokenType)tok_binary_op_plus_assign;
+            goto _count_bin_operator2;
+        } else if (cur_src[cur_ptr+1] == '+') {
+            *t_token_type = (YelTokenType)tok_unary_op_inc;
+            goto _count_bin_operator2;
+        } else {
+            *t_token_type = (YelTokenType)tok_binary_op_plus;
+            goto _count_bin_operator1;
+        }
+
+    case '-':
+        if (cur_src[cur_ptr+1] == '=') {
+            *t_token_type = (YelTokenType)tok_binary_op_minus_assign;
+            goto _count_bin_operator2;
+        } else if (cur_src[cur_ptr+1] == '-') {
+            *t_token_type = (YelTokenType)tok_unary_op_dec;
+            goto _count_bin_operator2;
+        } else {
+            *t_token_type = (YelTokenType)tok_binary_op_minus;
+            goto _count_bin_operator1;
+        }
+
+    case '*':
+        if (cur_src[cur_ptr+1] == '=') {
+            *t_token_type = (YelTokenType)tok_binary_op_mul_assign;
+            goto _count_bin_operator2;
+        } else {
+            *t_token_type = (YelTokenType)tok_binary_op_mul;
+            goto _count_bin_operator1;
+        }
+
+    case '/':
+        if (cur_src[cur_ptr+1] == '=') {
+            *t_token_type = (YelTokenType)tok_binary_op_div_assign;
+            goto _count_bin_operator2;
+        } else {
+            *t_token_type = (YelTokenType)tok_binary_op_div;
+            goto _count_bin_operator1;
+        }
+
+    case '>':
+        if (cur_src[cur_ptr+1] == '=') {
+            *t_token_type = (YelTokenType)tok_binary_op_more_eq;
+            goto _count_bin_operator2;
+        } else if(cur_src[cur_ptr+1] == '>') {
+            if (cur_src[cur_ptr+2] == '=') {
+                *t_token_type = (YelTokenType)tok_binary_op_rsh_assign;
+                goto _count_bin_operator3;
+            } else {
+                *t_token_type = (YelTokenType)tok_binary_op_rsh;
+                goto _count_bin_operator2;
+            }
+        } else {
+            *t_token_type = (YelTokenType)tok_binary_op_more;
+            goto _count_bin_operator1;
+        }
+
+    case '<':
+        if (cur_src[cur_ptr+1] == '=') {
+            *t_token_type = (YelTokenType)tok_binary_op_less_eq;
+            goto _count_bin_operator2;
+        } else if(cur_src[cur_ptr+1] == '<') {
+            if (cur_src[cur_ptr+2] == '=') {
+                *t_token_type = (YelTokenType)tok_binary_op_lsh_assign;
+                goto _count_bin_operator3;
+            } else {
+                *t_token_type = (YelTokenType)tok_binary_op_lsh;
+                goto _count_bin_operator2;
+            }
+        } else {
+            *t_token_type = (YelTokenType)tok_binary_op_less;
+            goto _count_bin_operator1;
+        }
+
+    case '!':
+        if (cur_src[cur_ptr+1] == '=') {
+            *t_token_type = (YelTokenType)tok_binary_op_not_eq;
+            goto _count_bin_operator2;
+        } else {
+            *t_token_type = (YelTokenType)tok_unary_op_not;
+            goto _count_bin_operator1;
+        }
+
+    case '&':
+        if (cur_src[cur_ptr+1] == '&') {
+            *t_token_type = (YelTokenType)tok_binary_op_and;
+            goto _count_bin_operator2;
+        } else if (cur_src[cur_ptr+1] == '=') {
+            *t_token_type = (YelTokenType)tok_binary_op_log_and_assign;
+            goto _count_bin_operator2;
+        } else {
+            *t_token_type = (YelTokenType)tok_binary_op_log_and;
+            goto _count_bin_operator1;
+        }
+
+    case '|':
+        if (cur_src[cur_ptr+1] == '|') {
+            *t_token_type = (YelTokenType)tok_binary_op_or;
+            goto _count_bin_operator2;
+        } else if (cur_src[cur_ptr+1] == '=') {
+            *t_token_type = (YelTokenType)tok_binary_op_log_or_assign;
+            goto _count_bin_operator2;
+        } else {
+            *t_token_type = (YelTokenType)tok_binary_op_log_or;
+            goto _count_bin_operator1;
+        }
+    }
+
+goto _op;
+_count_bin_operator1:
+    token_value[token_value_counter] = cur_src[cur_ptr];
+    ++token_value_counter;
+    ++cur_ptr;
+    ++cur_line_symbol;
+    goto _end_;
+
+_count_bin_operator2:
+    token_value[token_value_counter] = cur_src[cur_ptr];
+    token_value[++token_value_counter] = cur_src[++cur_ptr];
+    ++token_value_counter;
+    cur_ptr += 1;
+    cur_line_symbol += 3;
+    goto _end_;
+
+_count_bin_operator3:
+    token_value[token_value_counter] = cur_src[cur_ptr];
+    token_value[++token_value_counter] = cur_src[++cur_ptr];
+    token_value[++token_value_counter] = cur_src[++cur_ptr];
+    ++token_value_counter;
+    ++cur_ptr;
+    cur_line_symbol += 4;
+    goto _end_;
+
+_op:
+    switch (cur_char) {
+    case '(': *t_token_type = (YelTokenType)tok_op_rpar;
+        break;
+    case ')': *t_token_type = (YelTokenType)tok_op_lpar;
+        break;
+    case '{': *t_token_type = (YelTokenType)tok_op_frbrk;
+        ++f_brk; 
+        break;
+    case '}': *t_token_type = (YelTokenType)tok_op_flbrk;
+        --f_brk;
+        break;
+    case ';': *t_token_type = (YelTokenType)tok_semicolon;
+        break;
+    case ':': *t_token_type = (YelTokenType)tok_colon;
+        break;
+    case ',': *t_token_type = (YelTokenType)tok_comma;
+        break;
+    default: 
         goto _end_;
+        break;
     }
-
-    if (yel_is_op(cur_char)) {
-        start_symbol = cur_line_symbol;
-
-        switch (cur_char) {
-            case '{': ++f_brk; break;
-            case '}': --f_brk; break;
-        }
-
-        *t_token_type = (YelTokenType)tok_op;
-        token_value[token_value_counter++] = cur_src[cur_ptr];
-        ++cur_ptr;
-        ++cur_line_symbol;
-    }
+    
+    token_value[token_value_counter] = cur_src[cur_ptr];
+    ++token_value_counter;
+    ++cur_ptr;
+    ++cur_line_symbol;
 
 _end_:
     while (token_value[token_value_counter] != '\0') 
@@ -245,11 +386,6 @@ _end_:
             }
         }
     }
-
-    //while ((cur_ptr < cur_len) && (cur_char == ' ' || cur_char == '\n')) {
-    //    if (cur_char == '\n') ++cur_line;
-    //    ++cur_ptr;
-    //}
 }
 
 YelTokens yel_parse_tokens(Source* source) {

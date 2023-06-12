@@ -1,4 +1,4 @@
-#include "dependencies.h"
+#include "../Dependencies/dependencies.h"
 
 #ifndef __LEXER_H__
 #define __LEXER_H__
