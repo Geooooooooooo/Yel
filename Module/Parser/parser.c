@@ -70,26 +70,30 @@ void yel_parse_expression(YelTokens* yel_tokens) {
         else if (nexttype == tok_binary_op_pow) {
             printf("push %s\n", cur);
 
-            ++simple_expr;
             yel_tokens->pointer += 2;
+            ++simple_expr;
             unary = 1;
-
+                
             yel_parse_expression(yel_tokens);
-
+                
             --simple_expr;
 
+            unary = 0;
             puts("pow");
+            if (simple_expr) return;
         }
         else if (curtype == tok_binary_op_pow) {
-            ++simple_expr;
             ++yel_tokens->pointer;
+            ++simple_expr;
             unary = 1;
 
             yel_parse_expression(yel_tokens);
 
             --simple_expr;
 
+            unary = 0;
             puts("pow");
+            if (simple_expr) return;
         }
 
         // LPAR '('
@@ -156,6 +160,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
         // LVL 5
         else if(nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || nexttype == tok_binary_op_percent) {
             printf("push %s\n", cur);
+            if (simple_expr) return;
 
             size_t tmp_i = yel_tokens->pointer + 1;
             yel_tokens->pointer += 2;
@@ -212,6 +217,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
         // LVL 6
         else if (nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus) {
             printf("push %s\n", cur);
+            if (simple_expr) return;
 
             size_t tmp_i = yel_tokens->pointer + 1;
             yel_tokens->pointer += 2;
@@ -236,7 +242,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             else if (yel_tokens->type[tmp_i] == tok_binary_op_minus)
                 puts("sub");
             
-            if (simple_expr) return;
+            //if (simple_expr) return;
 
             continue;        
         }
