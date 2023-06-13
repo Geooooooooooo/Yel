@@ -189,7 +189,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
         }
         
         // +, -
-        else if (nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus && (
+        else if (nexttype >= tok_binary_op_plus || nexttype == tok_binary_op_minus && (
                 nexttype < tok_binary_op_more && nexttype > tok_binary_op_less_eq)) {
             printf("push %s\n", cur);
             if (simple_expr) return;
@@ -203,21 +203,18 @@ void yel_parse_expression(YelTokens* yel_tokens) {
 
             --simple_expr;
 
-            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || nexttype == tok_binary_op_percent) {
+            if (nexttype >= tok_binary_op_pow && nexttype <= tok_binary_op_percent) {
                 ++simple_expr;
                 ++yel_tokens->pointer;
                 yel_parse_expression(yel_tokens);
                 --simple_expr;
             }
 
-            // Release version
-            // op-code = curtype
             if (yel_tokens->type[tmp_i] == tok_binary_op_plus)
                 puts("add");
             else if (yel_tokens->type[tmp_i] == tok_binary_op_minus)
                 puts("sub");
             
-            //if (simple_expr) return;
         }
         else if (curtype == tok_binary_op_plus || curtype == tok_binary_op_minus) {
             size_t tmp_i = yel_tokens->pointer;
@@ -229,22 +226,19 @@ void yel_parse_expression(YelTokens* yel_tokens) {
 
             --simple_expr;
 
-            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || nexttype == tok_binary_op_percent) {
+            if (nexttype >= tok_binary_op_pow && nexttype <= tok_binary_op_percent) {
                 ++simple_expr;
                 ++yel_tokens->pointer;
                 yel_parse_expression(yel_tokens);
                 --simple_expr;
             }
 
-            // Release version
-            // op-code = curtype
             if (yel_tokens->type[tmp_i] == tok_binary_op_plus)
                 puts("add");
             else if (yel_tokens->type[tmp_i] == tok_binary_op_minus)
                 puts("sub");
 
             if (simple_expr) return;
-
             continue; 
         }
         
@@ -263,22 +257,17 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             --simple_expr;
 
             unary = 0;
-            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
-                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus) {
+            if (nexttype >= tok_binary_op_pow && nexttype <= tok_binary_op_minus) {
                 ++simple_expr;
                 ++yel_tokens->pointer;
                 yel_parse_expression(yel_tokens);
                 --simple_expr;
             }
 
-            // Release version
-            // op-code = curtype
-            if (yel_tokens->type[tmp_i] == tok_binary_op_rsh) {
+            if (yel_tokens->type[tmp_i] == tok_binary_op_rsh)
                 puts("rsh");
-            }
-            else if (yel_tokens->type[tmp_i] == tok_binary_op_lsh) {
+            else if (yel_tokens->type[tmp_i] == tok_binary_op_lsh)
                 puts("lsh");
-            }
         }
         else if (curtype == tok_binary_op_rsh || curtype == tok_binary_op_lsh) {
             size_t tmp_i = yel_tokens->pointer;
@@ -291,22 +280,17 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             --simple_expr;
 
             unary = 0;
-            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
-                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus) {
+            if (nexttype >= tok_binary_op_pow && nexttype <= tok_binary_op_minus) {
                 ++simple_expr;
                 ++yel_tokens->pointer;
                 yel_parse_expression(yel_tokens);
                 --simple_expr;
             }
 
-            // Release version
-            // op-code = curtype
-            if (yel_tokens->type[tmp_i] == tok_binary_op_rsh) {
+            if (yel_tokens->type[tmp_i] == tok_binary_op_rsh)
                 puts("rsh");
-            }
-            else if (yel_tokens->type[tmp_i] == tok_binary_op_lsh) {
+            else if (yel_tokens->type[tmp_i] == tok_binary_op_lsh)
                 puts("lsh");
-            }
         }
 
         // <, <=, >, >=
@@ -324,29 +308,21 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             --simple_expr;
 
             unary = 0;
-            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
-                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
-                nexttype == tok_binary_op_rsh || nexttype == tok_binary_op_lsh) {
+            if (nexttype >= tok_binary_op_pow && nexttype <= tok_binary_op_lsh) {
                 ++simple_expr;
                 ++yel_tokens->pointer;
                 yel_parse_expression(yel_tokens);
                 --simple_expr;
             }
 
-            // Release version
-            // op-code = curtype
-            if (yel_tokens->type[tmp_i] == tok_binary_op_more) {
+            if (yel_tokens->type[tmp_i] == tok_binary_op_more) 
                 puts("more");
-            }
-            else if (yel_tokens->type[tmp_i] == tok_binary_op_less) {
+            else if (yel_tokens->type[tmp_i] == tok_binary_op_less) 
                 puts("less");
-            }
-            else if (yel_tokens->type[tmp_i] == tok_binary_op_more_eq) {
+            else if (yel_tokens->type[tmp_i] == tok_binary_op_more_eq)
                 puts("more_eq");
-            }
-            else if (yel_tokens->type[tmp_i] == tok_binary_op_less_eq) {
+            else if (yel_tokens->type[tmp_i] == tok_binary_op_less_eq)
                 puts("less_eq");
-            }
         }
         else if (curtype >= tok_binary_op_more && curtype <= tok_binary_op_less_eq) {
             size_t tmp_i = yel_tokens->pointer;
@@ -359,29 +335,21 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             --simple_expr;
 
             unary = 0;
-            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
-                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
-                nexttype == tok_binary_op_rsh || nexttype == tok_binary_op_lsh) {
+            if (nexttype >= tok_binary_op_pow && nexttype <= tok_binary_op_lsh) {
                 ++simple_expr;
                 ++yel_tokens->pointer;
                 yel_parse_expression(yel_tokens);
                 --simple_expr;
             }
 
-            // Release version
-            // op-code = curtype
-            if (yel_tokens->type[tmp_i] == tok_binary_op_more) {
+            if (yel_tokens->type[tmp_i] == tok_binary_op_more) 
                 puts("more");
-            }
-            else if (yel_tokens->type[tmp_i] == tok_binary_op_less) {
+            else if (yel_tokens->type[tmp_i] == tok_binary_op_less) 
                 puts("less");
-            }
-            else if (yel_tokens->type[tmp_i] == tok_binary_op_more_eq) {
+            else if (yel_tokens->type[tmp_i] == tok_binary_op_more_eq) 
                 puts("more_eq");
-            }
-            else if (yel_tokens->type[tmp_i] == tok_binary_op_less_eq) {
+            else if (yel_tokens->type[tmp_i] == tok_binary_op_less_eq)
                 puts("less_eq");
-            }
         }
 
         // ==, !=
@@ -399,11 +367,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             --simple_expr;
 
             unary = 0;
-            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
-                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
-                nexttype == tok_binary_op_rsh || nexttype == tok_binary_op_lsh || (
-                    nexttype >= tok_binary_op_more && nexttype <= tok_binary_op_less_eq
-                )) {
+            if (nexttype >= tok_binary_op_pow && nexttype <= tok_binary_op_less_eq) {
                 ++simple_expr;
                 ++yel_tokens->pointer;
                 yel_parse_expression(yel_tokens);
@@ -412,8 +376,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
 
             if (yel_tokens->type[tmp_i] == tok_binary_op_eq)
                 puts("eq");
-            else
-                puts("not_eq");
+            else puts("not_eq");
         }
         else if (curtype == tok_binary_op_eq || curtype == tok_binary_op_not_eq) {
             size_t tmp_i = yel_tokens->pointer;
@@ -426,20 +389,16 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             --simple_expr;
 
             unary = 0;
-            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
-                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
-                nexttype == tok_binary_op_rsh || nexttype == tok_binary_op_lsh || (
-                    nexttype >= tok_binary_op_more && nexttype <= tok_binary_op_less_eq
-                )) {
+            if (nexttype >= tok_binary_op_pow && nexttype <= tok_binary_op_less_eq) {
                 ++simple_expr;
                 ++yel_tokens->pointer;
                 yel_parse_expression(yel_tokens);
                 --simple_expr;
             }
+
             if (yel_tokens->type[tmp_i] == tok_binary_op_eq)
                 puts("eq");
-            else
-                puts("not_eq");
+            else puts("not_eq");
         }
 
         // &
@@ -455,11 +414,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             --simple_expr;
 
             unary = 0;
-            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
-                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
-                nexttype == tok_binary_op_rsh || nexttype == tok_binary_op_lsh || (
-                    nexttype >= tok_binary_op_more && nexttype <= tok_binary_op_less_eq
-                ) || nexttype == tok_binary_op_eq || nexttype == tok_binary_op_not_eq) {
+            if (nexttype >= tok_binary_op_pow && nexttype <= tok_binary_op_not_eq) {
                 ++simple_expr;
                 ++yel_tokens->pointer;
                 yel_parse_expression(yel_tokens);
@@ -478,11 +433,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             --simple_expr;
 
             unary = 0;
-            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
-                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
-                nexttype == tok_binary_op_rsh || nexttype == tok_binary_op_lsh || (
-                    nexttype >= tok_binary_op_more && nexttype <= tok_binary_op_less_eq
-                ) || nexttype == tok_binary_op_eq || nexttype == tok_binary_op_not_eq) {
+            if (nexttype >= tok_binary_op_pow && nexttype <= tok_binary_op_not_eq) {
                 ++simple_expr;
                 ++yel_tokens->pointer;
                 yel_parse_expression(yel_tokens);
@@ -506,12 +457,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             --simple_expr;
 
             unary = 0;
-            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
-                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
-                nexttype == tok_binary_op_rsh || nexttype == tok_binary_op_lsh || (
-                    nexttype >= tok_binary_op_more && nexttype <= tok_binary_op_less_eq
-                ) || nexttype == tok_binary_op_eq || nexttype == tok_binary_op_not_eq ||
-                nexttype == tok_binary_op_log_and) {
+            if (nexttype >= tok_binary_op_pow && nexttype <= tok_binary_op_log_and) {
                 ++simple_expr;
                 ++yel_tokens->pointer;
                 yel_parse_expression(yel_tokens);
@@ -530,12 +476,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             --simple_expr;
 
             unary = 0;
-            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
-                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
-                nexttype == tok_binary_op_rsh || nexttype == tok_binary_op_lsh || (
-                    nexttype >= tok_binary_op_more && nexttype <= tok_binary_op_less_eq
-                ) || nexttype == tok_binary_op_eq || nexttype == tok_binary_op_not_eq ||
-                nexttype == tok_binary_op_log_and) {
+            if (nexttype >= tok_binary_op_pow && nexttype <= tok_binary_op_log_and) {
                 ++simple_expr;
                 ++yel_tokens->pointer;
                 yel_parse_expression(yel_tokens);
@@ -559,12 +500,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             --simple_expr;
 
             unary = 0;
-            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
-                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
-                nexttype == tok_binary_op_rsh || nexttype == tok_binary_op_lsh || (
-                    nexttype >= tok_binary_op_more && nexttype <= tok_binary_op_less_eq
-                ) || nexttype == tok_binary_op_eq || nexttype == tok_binary_op_not_eq || 
-                nexttype == tok_binary_op_log_and || nexttype == tok_binary_op_log_or) {
+            if (nexttype >= tok_binary_op_pow && nexttype <= tok_binary_op_log_or) {
                 ++simple_expr;
                 ++yel_tokens->pointer;
                 yel_parse_expression(yel_tokens);
@@ -583,12 +519,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             --simple_expr;
 
             unary = 0;
-            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
-                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
-                nexttype == tok_binary_op_rsh || nexttype == tok_binary_op_lsh || (
-                    nexttype >= tok_binary_op_more && nexttype <= tok_binary_op_less_eq
-                ) || nexttype == tok_binary_op_eq || nexttype == tok_binary_op_not_eq || 
-                nexttype == tok_binary_op_log_and || nexttype == tok_binary_op_log_or) {
+            if (nexttype >= tok_binary_op_pow && nexttype <= tok_binary_op_log_or) {
                 ++simple_expr;
                 ++yel_tokens->pointer;
                 yel_parse_expression(yel_tokens);
@@ -612,12 +543,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             --simple_expr;
 
             unary = 0;
-            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
-                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
-                nexttype == tok_binary_op_rsh || nexttype == tok_binary_op_lsh || (
-                    nexttype >= tok_binary_op_more && nexttype <= tok_binary_op_less_eq
-                ) || nexttype == tok_binary_op_eq || nexttype == tok_binary_op_not_eq || nexttype == tok_binary_op_and
-                || nexttype == tok_binary_op_log_and || nexttype == tok_binary_op_log_or) {
+            if (nexttype >= tok_binary_op_pow && nexttype <= tok_binary_op_and) {
                 ++simple_expr;
                 ++yel_tokens->pointer;
                 yel_parse_expression(yel_tokens);
@@ -636,12 +562,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             --simple_expr;
 
             unary = 0;
-            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
-                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
-                nexttype == tok_binary_op_rsh || nexttype == tok_binary_op_lsh || (
-                    nexttype >= tok_binary_op_more && nexttype <= tok_binary_op_less_eq
-                ) || nexttype == tok_binary_op_eq || nexttype == tok_binary_op_not_eq || nexttype == tok_binary_op_and || 
-                nexttype == tok_binary_op_log_and || nexttype == tok_binary_op_log_or) {
+            if (nexttype >= tok_binary_op_pow && nexttype <= tok_binary_op_and) {
                 ++simple_expr;
                 ++yel_tokens->pointer;
                 yel_parse_expression(yel_tokens);
@@ -737,288 +658,3 @@ void yel_parse_statement(YelTokens* yel_tokens) {
         ++yel_tokens->pointer;
     }
 }
-
-
-/*void yel_parse_expression(YelTokens* yel_tokens) {
-    while (yel_tokens->pointer < yel_tokens->length) {
-        if (yel_tokens->value[yel_tokens->pointer][0] == ';') {
-            if (brakets) {
-                printf("Syntax Error: <File '%s'>\n--> expected ')' at %lu:%lu\n|\n|", 
-                    yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
-                
-                yel_print_error(yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
-
-                yel_tokens->error = 1;
-                return;
-            }
-
-            recursive_descent = 0;
-            return;
-        }
-
-        if (yel_tokens->type[yel_tokens->pointer] == tok_name && next[0] == '(') {
-            size_t tmp_i = yel_tokens->pointer;
-            //print_cur();
-
-            yel_tokens->pointer += 2;
-            ++brakets;
-
-            int tmp_recursive_descent = recursive_descent;
-            recursive_descent = 0;
-            
-            //getchar();
-
-            yel_parse_expression(yel_tokens);
-
-            //getchar();
-            recursive_descent = tmp_recursive_descent;
-
-            printf("call %s\n", yel_tokens->value[tmp_i]);
-
-            if (recursive_descent) {
-                --recursive_descent;
-                return;
-            }
-            continue;
-        }
-        else if (cur[0] == '(') {
-            ++yel_tokens->pointer;
-            ++brakets;
-            
-            yel_parse_expression(yel_tokens);
-
-            continue;
-        }
-        else if (cur[0] == ')') {
-            if (brakets == 0) {
-                printf("Syntax Error: <File '%s'>\n--> expected '(' at %lu:%lu\n|\n|", 
-                    yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
-
-                yel_print_error(yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
-
-                yel_tokens->error = 1;
-                return;
-            }
-
-            ++yel_tokens->pointer;
-            --brakets;
-
-            return;
-        }
-        
-        else if (next[0] == '*' || next[0] == '/') {
-            if (yel_tokens->value[yel_tokens->pointer+2][0] == ';') {
-                printf("Syntax Error: <File '%s'>\n--> expected expression after '%s' at %lu:%lu\n|\n|", 
-                    yel_tokens->file_name, next, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
-                
-                yel_print_error(yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
-
-                yel_tokens->error = 1;
-                return;
-            }
-
-            if (yel_tokens->type[yel_tokens->pointer+2] == tok_name && yel_tokens->value[yel_tokens->pointer+3][0] == '(') {
-                printf("push %s\n", cur);
-
-                size_t tmp_i = yel_tokens->pointer + 1;
-                yel_tokens->pointer += 2;
-                ++recursive_descent;
-                yel_parse_expression(yel_tokens);
-
-                printf("%s\n", yel_tokens->value[tmp_i]);
-                continue;
-            }
-            else if (yel_tokens->value[yel_tokens->pointer+2][0] == '(') {
-                printf("push %s\n", cur);
-                size_t tmp_i = yel_tokens->pointer + 1;
-                yel_tokens->pointer += 3;
-                ++brakets;
-
-                yel_parse_expression(yel_tokens);
-
-                printf("%s\n", yel_tokens->value[tmp_i]);
-                continue;
-            }
-            else {
-                printf("push %s\npush %s\n%s\n", cur, yel_tokens->value[yel_tokens->pointer+2], next);
-                yel_tokens->pointer += 2;
-            }
-        }
-        else if(cur[0] == '*' || cur[0] == '/') {
-            if (yel_tokens->value[yel_tokens->pointer+1][0] == ';') {
-                printf("Syntax Error: <File '%s'>\n--> expected expression after '%s' at %lu:%lu\n|\n|", 
-                    yel_tokens->file_name, cur, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
-                
-                yel_print_error(yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
-
-                yel_tokens->error = 1;
-                return;
-            }
-
-            if (yel_tokens->type[yel_tokens->pointer+1] == tok_name && yel_tokens->value[yel_tokens->pointer+2][0] == '(') {
-                size_t tmp_i = yel_tokens->pointer;
-                ++yel_tokens->pointer;
-                
-                ++recursive_descent;
-                yel_parse_expression(yel_tokens);
-
-                printf("%s\n", yel_tokens->value[tmp_i]);
-                continue;
-            }
-            else if (next[0] == '(') {
-                size_t tmp_i = yel_tokens->pointer;
-                yel_tokens->pointer += 2;
-                ++brakets;
-
-                int tmp_recursive_descent = recursive_descent;
-                recursive_descent = 0;
-//print_cur();getchar();
-                yel_parse_expression(yel_tokens);print_cur();getchar();
-
-                recursive_descent = tmp_recursive_descent;
-
-                printf("%s\n", yel_tokens->value[tmp_i]);
-                continue;
-            }
-            else {
-                printf("push %s\n%s\n", next, cur);
-                ++yel_tokens->pointer;
-            }
-        }
-        else if (next[0] == '+' || next[0] == '-') {
-            if (recursive_descent) {
-                --recursive_descent;
-                return;
-            }
-
-            if (yel_tokens->value[yel_tokens->pointer+2][0] == ';') {
-                printf("Syntax Error: <File '%s'>\n--> expected expression after '%s' at %lu:%lu\n|\n|", 
-                    yel_tokens->file_name, next, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
-                
-                yel_print_error(yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
-
-                yel_tokens->error = 1;
-                return;
-            }
-
-            register size_t gTmp_i = yel_tokens->pointer+3;
-
-            if (yel_tokens->type[yel_tokens->pointer+2] == tok_name && yel_tokens->value[gTmp_i][0] == '(') {
-                size_t tmp_i = yel_tokens->pointer + 1;
-                printf("push %s\n", cur);
-
-                yel_tokens->pointer += 2;
-
-                ++recursive_descent;
-                yel_parse_expression(yel_tokens);print_cur();getchar();
-                yel_parse_expression(yel_tokens);print_cur();getchar();
-
-                printf("%s\n", yel_tokens->value[tmp_i]);
-                continue;
-            }
-            else if (yel_tokens->value[yel_tokens->pointer+2][0] == '(') {
-                printf("push %s\n", cur);
-                size_t tmp_i = yel_tokens->pointer + 1;
-
-                yel_tokens->pointer += 3;
-                ++brakets;
-                
-                yel_parse_expression(yel_tokens);
-
-                if (cur[0] == '*' || cur[0] == '/') {
-                    ++recursive_descent;
-                    yel_parse_expression(yel_tokens);
-                }
-
-                printf("%s\n", yel_tokens->value[tmp_i]);
-
-                continue;
-            }
-            else if (yel_tokens->value[gTmp_i][0] == ';' || yel_tokens->value[gTmp_i][0] == '+' || yel_tokens->value[gTmp_i][0] == '-'|| yel_tokens->value[gTmp_i][0] == ')' || yel_tokens->value[gTmp_i][0] == ',') {
-                printf("push %s \npush %s\n%s\n", cur, yel_tokens->value[yel_tokens->pointer+2], next);
-
-                yel_tokens->pointer += 2;
-            }
-            else if (yel_tokens->value[gTmp_i][0] == '*' || yel_tokens->value[gTmp_i][0] == '/') {
-                printf("push %s\n", cur);
-
-                size_t tmp_i = yel_tokens->pointer + 1;
-                yel_tokens->pointer += 2;
-                ++recursive_descent;
-
-                yel_parse_expression(yel_tokens);
-
-                printf("%s\n", yel_tokens->value[tmp_i]);
-            }
-        }
-        // cur = + or -
-        else if(cur[0] == '+' || cur[0] == '-') {
-            if (recursive_descent) {
-                --recursive_descent;
-                return;
-            }
-
-            if (yel_tokens->value[yel_tokens->pointer+1][0] == ';') {
-                printf("Syntax Error: <File '%s'>\n--> expected expression after '%s' at %lu:%lu\n|\n|", 
-                    yel_tokens->file_name, cur, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
-                
-                yel_print_error(yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
-
-                yel_tokens->error = 1;
-                return;
-            }
-
-            if (yel_tokens->value[yel_tokens->pointer+2][0] == '(') {
-                size_t tmp_i = yel_tokens->pointer;
-                ++yel_tokens->pointer;
-
-                // read function call
-                ++recursive_descent;
-                yel_parse_expression(yel_tokens);
-
-                ++recursive_descent;
-                yel_parse_expression(yel_tokens);
-
-                printf("%s\n", yel_tokens->value[tmp_i]);
-                continue;
-            }
-            // expr + ( expr )
-            else if (next[0] == '(') {
-                size_t tmp_i = yel_tokens->pointer;
-                yel_tokens->pointer += 2;
-                ++brakets;
-                yel_parse_expression(yel_tokens);
-
-                ++recursive_descent;
-                yel_parse_expression(yel_tokens);
-                
-                printf("%s\n", yel_tokens->value[tmp_i]);
-                continue;
-            }
-            else if (yel_tokens->value[yel_tokens->pointer+2][0] == ';' || yel_tokens->value[yel_tokens->pointer+2][0] == '+' || yel_tokens->value[yel_tokens->pointer+2][0] == '-'|| yel_tokens->value[yel_tokens->pointer+2][0] == ')' || yel_tokens->value[yel_tokens->pointer+2][0] == ',') {
-                printf("push %s\n%s\n", next, cur);
-                ++yel_tokens->pointer;
-            }
-            else if (yel_tokens->value[yel_tokens->pointer+2][0] == '*' || yel_tokens->value[yel_tokens->pointer+2][0] == '/') {
-                size_t tmp_i = yel_tokens->pointer;
-                ++yel_tokens->pointer;
-                ++recursive_descent;
-                yel_parse_expression(yel_tokens);
-
-                printf("%s\n", yel_tokens->value[tmp_i]);
-            }
-        }
-        else if (yel_tokens->type[yel_tokens->pointer] == tok_number) {
-            printf("push %s\n", cur);
-        }
-        else if (yel_tokens->type[yel_tokens->pointer] == tok_name) {
-            printf("push %s\n", cur);
-        }
-        else if (yel_tokens->type[yel_tokens->pointer] == tok_string) {
-            printf("push '%s'\n", cur);
-        }
-
-        ++yel_tokens->pointer;
-    }
-}
-*/
