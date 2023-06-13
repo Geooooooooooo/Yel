@@ -20,7 +20,7 @@ size_t start_symbol = 1;
 
 const int yel_keywords_length = 8;
 const const char* yel_keywords[] = {
-    "return", "defer", "func", 
+    "func", "return", "defer", 
     "noreturn", "Int", "Flt", "Str", "Any",
 };
 
@@ -395,10 +395,20 @@ _end_:
 
     if (*t_token_type == (YelTokenType)tok_name) {
         for (int i = 0; i < yel_keywords_length; i++) {
-            if (__builtin_strcmp(yel_keywords[i], token_value) == 0) {
-                *t_token_type = (YelTokenType)tok_word;
+           if (__builtin_strcmp(yel_keywords[i], token_value) == 0) {
+                *t_token_type = (YelTokenType)((int)tok_word+i+1);
                 break;
             }
+        }
+
+        if (__builtin_strcmp("and", token_value) == 0) {
+            *t_token_type = (YelTokenType)tok_binary_op_and;
+        }
+        else if (__builtin_strcmp("or", token_value) == 0) {
+            *t_token_type = (YelTokenType)tok_binary_op_or;
+        }
+        else if (__builtin_strcmp("not", token_value) == 0) {
+            *t_token_type = (YelTokenType)tok_unary_op_not;
         }
     }
 }
