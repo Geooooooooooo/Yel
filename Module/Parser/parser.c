@@ -37,7 +37,6 @@ int brackets_par = 0;
 void yel_parse_expression(YelTokens* yel_tokens) {
     while (yel_tokens->pointer < yel_tokens->length) {
         // UNARY OPERATOR
-        // LVL 1
         if (unary && (
             curtype == tok_binary_op_plus || curtype == tok_binary_op_minus ||
             (curtype >= tok_unary_op_not && curtype <= tok_unary_op_dec)
@@ -66,9 +65,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             if (simple_expr) return;
         }
 
-        // LVL 2
-
-        // LPAR '('
+        // (
         else if (curtype == tok_op_lpar) {
             ++brackets_par;
             ++yel_tokens->pointer;
@@ -81,9 +78,6 @@ void yel_parse_expression(YelTokens* yel_tokens) {
 
             if (simple_expr) return;
         }
-
-        // LVL 3
-        // RPAR ')'
         else if (curtype == tok_op_rpar) {
             if (brackets_par == 0) {
                 printf(
@@ -106,6 +100,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             return;
         }
 
+        // **
         else if (nexttype == tok_binary_op_pow) {
             printf("push %s\n", cur);
 
@@ -135,21 +130,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             if (simple_expr) return;
         }
 
-        /*// LVL 4
-        else if(curtype == tok_name && simple_expr) {
-            printf("push %s\n", cur);
-            return;
-        }
-        else if(curtype == tok_number && simple_expr) {
-            printf("push %s\n", cur);
-            return;
-        }
-        else if(curtype == tok_string && simple_expr) {
-            printf("push %s\n", cur);
-            return;
-        }*/
-
-        // LVL 5
+        // *, /, %
         else if(nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || nexttype == tok_binary_op_percent) {
             printf("push %s\n", cur);
             if (simple_expr) return;
@@ -206,7 +187,8 @@ void yel_parse_expression(YelTokens* yel_tokens) {
                 puts("mod");
 
         }
-        // LVL 6
+        
+        // +, -
         else if (nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus && (
                 nexttype < tok_binary_op_more && nexttype > tok_binary_op_less_eq)) {
             printf("push %s\n", cur);
@@ -265,9 +247,9 @@ void yel_parse_expression(YelTokens* yel_tokens) {
 
             continue; 
         }
-
-        // LVL 7
-        else if (nexttype >= tok_binary_op_more && nexttype <= tok_binary_op_less_eq) {
+        
+        // <<, >>
+        else if (nexttype == tok_binary_op_rsh || nexttype == tok_binary_op_lsh) {
             printf("push %s\n", cur);
             if (simple_expr) return;
 
@@ -283,6 +265,68 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             unary = 0;
             if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
                 nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus) {
+                ++simple_expr;
+                ++yel_tokens->pointer;
+                yel_parse_expression(yel_tokens);
+                --simple_expr;
+            }
+
+            // Release version
+            // op-code = curtype
+            if (yel_tokens->type[tmp_i] == tok_binary_op_rsh) {
+                puts("rsh");
+            }
+            else if (yel_tokens->type[tmp_i] == tok_binary_op_lsh) {
+                puts("lsh");
+            }
+        }
+        else if (curtype == tok_binary_op_rsh || curtype == tok_binary_op_lsh) {
+            size_t tmp_i = yel_tokens->pointer;
+            ++yel_tokens->pointer;
+            ++simple_expr;
+            unary = 1;
+
+            yel_parse_expression(yel_tokens);
+
+            --simple_expr;
+
+            unary = 0;
+            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
+                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus) {
+                ++simple_expr;
+                ++yel_tokens->pointer;
+                yel_parse_expression(yel_tokens);
+                --simple_expr;
+            }
+
+            // Release version
+            // op-code = curtype
+            if (yel_tokens->type[tmp_i] == tok_binary_op_rsh) {
+                puts("rsh");
+            }
+            else if (yel_tokens->type[tmp_i] == tok_binary_op_lsh) {
+                puts("lsh");
+            }
+        }
+
+        // <, <=, >, >=
+        else if (nexttype >= tok_binary_op_more && nexttype <= tok_binary_op_less_eq) {
+            printf("push %s\n", cur);
+            if (simple_expr) return;
+
+            size_t tmp_i = yel_tokens->pointer + 1;
+            yel_tokens->pointer += 2;
+            ++simple_expr;
+            unary = 1;
+
+            yel_parse_expression(yel_tokens);
+
+            --simple_expr;
+
+            unary = 0;
+            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
+                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
+                nexttype == tok_binary_op_rsh || nexttype == tok_binary_op_lsh) {
                 ++simple_expr;
                 ++yel_tokens->pointer;
                 yel_parse_expression(yel_tokens);
@@ -316,7 +360,8 @@ void yel_parse_expression(YelTokens* yel_tokens) {
 
             unary = 0;
             if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
-                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus) {
+                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
+                nexttype == tok_binary_op_rsh || nexttype == tok_binary_op_lsh) {
                 ++simple_expr;
                 ++yel_tokens->pointer;
                 yel_parse_expression(yel_tokens);
@@ -339,6 +384,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             }
         }
 
+        // ==, !=
         else if (nexttype == tok_binary_op_eq || nexttype == tok_binary_op_not_eq) {
             printf("push %s\n", cur);
             if (simple_expr) return;
@@ -354,7 +400,10 @@ void yel_parse_expression(YelTokens* yel_tokens) {
 
             unary = 0;
             if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
-                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus) {
+                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
+                nexttype == tok_binary_op_rsh || nexttype == tok_binary_op_lsh || (
+                    nexttype >= tok_binary_op_more && nexttype <= tok_binary_op_less_eq
+                )) {
                 ++simple_expr;
                 ++yel_tokens->pointer;
                 yel_parse_expression(yel_tokens);
@@ -377,8 +426,11 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             --simple_expr;
 
             unary = 0;
-            if (curtype == tok_binary_op_pow || curtype == tok_binary_op_div || curtype == tok_binary_op_mul || 
-                curtype == tok_binary_op_percent || curtype == tok_binary_op_plus || curtype == tok_binary_op_minus) {
+            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
+                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
+                nexttype == tok_binary_op_rsh || nexttype == tok_binary_op_lsh || (
+                    nexttype >= tok_binary_op_more && nexttype <= tok_binary_op_less_eq
+                )) {
                 ++simple_expr;
                 ++yel_tokens->pointer;
                 yel_parse_expression(yel_tokens);
@@ -390,7 +442,215 @@ void yel_parse_expression(YelTokens* yel_tokens) {
                 puts("not_eq");
         }
 
-        // LVL 8
+        // &
+        else if (nexttype == tok_binary_op_log_and) {
+            printf("push %s\n", cur);
+            if (simple_expr) return;
+
+            yel_tokens->pointer += 2;
+            ++simple_expr;
+            unary = 1;
+
+            yel_parse_expression(yel_tokens);
+            --simple_expr;
+
+            unary = 0;
+            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
+                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
+                nexttype == tok_binary_op_rsh || nexttype == tok_binary_op_lsh || (
+                    nexttype >= tok_binary_op_more && nexttype <= tok_binary_op_less_eq
+                ) || nexttype == tok_binary_op_eq || nexttype == tok_binary_op_not_eq) {
+                ++simple_expr;
+                ++yel_tokens->pointer;
+                yel_parse_expression(yel_tokens);
+                --simple_expr;
+            }
+
+            puts("and");
+        }
+        else if (curtype == tok_binary_op_log_and) {
+            ++yel_tokens->pointer;
+            ++simple_expr;
+            unary = 1;
+
+            yel_parse_expression(yel_tokens);
+
+            --simple_expr;
+
+            unary = 0;
+            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
+                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
+                nexttype == tok_binary_op_rsh || nexttype == tok_binary_op_lsh || (
+                    nexttype >= tok_binary_op_more && nexttype <= tok_binary_op_less_eq
+                ) || nexttype == tok_binary_op_eq || nexttype == tok_binary_op_not_eq) {
+                ++simple_expr;
+                ++yel_tokens->pointer;
+                yel_parse_expression(yel_tokens);
+                --simple_expr;
+            }
+            
+            puts("and");
+        }
+        
+        // |
+        else if (nexttype == tok_binary_op_log_or) {
+            printf("push %s\n", cur);
+            if (simple_expr) return;
+
+            yel_tokens->pointer += 2;
+            ++simple_expr;
+            unary = 1;
+
+            yel_parse_expression(yel_tokens);
+
+            --simple_expr;
+
+            unary = 0;
+            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
+                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
+                nexttype == tok_binary_op_rsh || nexttype == tok_binary_op_lsh || (
+                    nexttype >= tok_binary_op_more && nexttype <= tok_binary_op_less_eq
+                ) || nexttype == tok_binary_op_eq || nexttype == tok_binary_op_not_eq ||
+                nexttype == tok_binary_op_log_and) {
+                ++simple_expr;
+                ++yel_tokens->pointer;
+                yel_parse_expression(yel_tokens);
+                --simple_expr;
+            }
+
+            puts("or");
+        }
+        else if (curtype == tok_binary_op_log_or) {
+            ++yel_tokens->pointer;
+            ++simple_expr;
+            unary = 1;
+
+            yel_parse_expression(yel_tokens);
+
+            --simple_expr;
+
+            unary = 0;
+            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
+                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
+                nexttype == tok_binary_op_rsh || nexttype == tok_binary_op_lsh || (
+                    nexttype >= tok_binary_op_more && nexttype <= tok_binary_op_less_eq
+                ) || nexttype == tok_binary_op_eq || nexttype == tok_binary_op_not_eq ||
+                nexttype == tok_binary_op_log_and) {
+                ++simple_expr;
+                ++yel_tokens->pointer;
+                yel_parse_expression(yel_tokens);
+                --simple_expr;
+            }
+            
+            puts("or");
+        }
+
+        // &&
+        else if (nexttype == tok_binary_op_and) {
+            printf("push %s\n", cur);
+            if (simple_expr) return;
+
+            yel_tokens->pointer += 2;
+            ++simple_expr;
+            unary = 1;
+
+            yel_parse_expression(yel_tokens);
+
+            --simple_expr;
+
+            unary = 0;
+            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
+                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
+                nexttype == tok_binary_op_rsh || nexttype == tok_binary_op_lsh || (
+                    nexttype >= tok_binary_op_more && nexttype <= tok_binary_op_less_eq
+                ) || nexttype == tok_binary_op_eq || nexttype == tok_binary_op_not_eq || 
+                nexttype == tok_binary_op_log_and || nexttype == tok_binary_op_log_or) {
+                ++simple_expr;
+                ++yel_tokens->pointer;
+                yel_parse_expression(yel_tokens);
+                --simple_expr;
+            }
+
+            puts("log_and");
+        }
+        else if (curtype == tok_binary_op_and) {
+            ++yel_tokens->pointer;
+            ++simple_expr;
+            unary = 1;
+
+            yel_parse_expression(yel_tokens);
+
+            --simple_expr;
+
+            unary = 0;
+            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
+                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
+                nexttype == tok_binary_op_rsh || nexttype == tok_binary_op_lsh || (
+                    nexttype >= tok_binary_op_more && nexttype <= tok_binary_op_less_eq
+                ) || nexttype == tok_binary_op_eq || nexttype == tok_binary_op_not_eq || 
+                nexttype == tok_binary_op_log_and || nexttype == tok_binary_op_log_or) {
+                ++simple_expr;
+                ++yel_tokens->pointer;
+                yel_parse_expression(yel_tokens);
+                --simple_expr;
+            }
+            
+            puts("log_and");
+        }
+        
+        // ||
+        else if (nexttype == tok_binary_op_or) {
+            printf("push %s\n", cur);
+            if (simple_expr) return;
+
+            yel_tokens->pointer += 2;
+            ++simple_expr;
+            unary = 1;
+
+            yel_parse_expression(yel_tokens);
+
+            --simple_expr;
+
+            unary = 0;
+            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
+                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
+                nexttype == tok_binary_op_rsh || nexttype == tok_binary_op_lsh || (
+                    nexttype >= tok_binary_op_more && nexttype <= tok_binary_op_less_eq
+                ) || nexttype == tok_binary_op_eq || nexttype == tok_binary_op_not_eq || nexttype == tok_binary_op_and
+                || nexttype == tok_binary_op_log_and || nexttype == tok_binary_op_log_or) {
+                ++simple_expr;
+                ++yel_tokens->pointer;
+                yel_parse_expression(yel_tokens);
+                --simple_expr;
+            }
+
+            puts("log_or");
+        }
+        else if (curtype == tok_binary_op_or) {
+            ++yel_tokens->pointer;
+            ++simple_expr;
+            unary = 1;
+
+            yel_parse_expression(yel_tokens);
+
+            --simple_expr;
+
+            unary = 0;
+            if (nexttype == tok_binary_op_pow || nexttype == tok_binary_op_div || nexttype == tok_binary_op_mul || 
+                nexttype == tok_binary_op_percent || nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
+                nexttype == tok_binary_op_rsh || nexttype == tok_binary_op_lsh || (
+                    nexttype >= tok_binary_op_more && nexttype <= tok_binary_op_less_eq
+                ) || nexttype == tok_binary_op_eq || nexttype == tok_binary_op_not_eq || nexttype == tok_binary_op_and || 
+                nexttype == tok_binary_op_log_and || nexttype == tok_binary_op_log_or) {
+                ++simple_expr;
+                ++yel_tokens->pointer;
+                yel_parse_expression(yel_tokens);
+                --simple_expr;
+            }
+            
+            puts("log_or");
+        }
+        
         else if(curtype == tok_name) {
             printf("push %s\n", cur);
 
