@@ -2,6 +2,7 @@
 #include "../Parser/syntaxer.h"
 #include "../Lexer/lexer.h"
 #include "../Errors/error.h"
+#include "../Dependencies/dependencies.h"
 
 #define curtype yel_tokens->type[yel_tokens->pointer]
 #define nexttype yel_tokens->type[yel_tokens->pointer+1]
@@ -11,26 +12,6 @@
 #define cur yel_tokens->value[yel_tokens->pointer]
 #define bstrcmp(a, b) (__builtin_strcmp(a, b) == 0)
 
-/*typedef struct _Expected {
-    int sz;
-    YelTokenType t[30];
-} Expected;
-
-Expected gExpected;
-
-inline void addExpected(int size, YelTokenType types[]) {
-    for (register int i = 0; i < size; i++) {
-        gExpected.t[i] = types[i];
-    } gExpected.sz = size;
-}
-
-inline _Bool inExpected(YelTokenType type) {
-    for (register int i = 0; i < gExpected.sz; i++) {
-        if (gExpected.t[i] == type) 
-            return 1;
-    } return 0;
-}*/
-
 // TODO error handling
 
 _Bool unary = 1;
@@ -38,8 +19,30 @@ int simple_expr = 0;
 int brackets_par = 0;
 void yel_parse_expression(YelTokens* yel_tokens) {
     while (yel_tokens->pointer < yel_tokens->length) {
+        if (curtype == tok_semicolon) {
+            if (brackets_par) {
+                printf(
+                    "Syntax Error: <File '%s'>\n--> expected ')' at %lu:%lu\n|\n|", 
+                    yel_tokens->file_name, 
+                    yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer-1]
+                );
+                yel_print_error(
+                    yel_tokens->src_ptr, 
+                    yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer-1]
+                );
+
+                yel_tokens->error = 1;
+            }
+
+            ++yel_tokens->pointer;
+
+            return;
+        }
+
         // UNARY OPERATOR
-        if (unary && (
+        else if (unary && (
             curtype == tok_binary_op_plus || curtype == tok_binary_op_minus ||
             (curtype >= tok_unary_op_not && curtype <= tok_unary_op_dec)
         )) {
@@ -97,6 +100,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
                 yel_tokens->error = 1;
             }
 
+            --brackets_par;
             unary = 0;
 
             return;
@@ -649,67 +653,68 @@ void yel_parse_expression(YelTokens* yel_tokens) {
 
 void yel_parse_statement(YelTokens* yel_tokens) {
     while (yel_tokens->pointer < yel_tokens->length) {
-        if (yel_tokens->type[yel_tokens->pointer] == tok_name) {
-            if (__builtin_strcmp(yel_tokens->value[yel_tokens->pointer + 1], "=") == 0) {
-                size_t tmp_i = yel_tokens->pointer; 
+        if (curtype == tok_name) {
+            if (nexttype == tok_binary_op_assign) {
+                size_t tmp_i = yel_tokens->pointer;
                 yel_tokens->pointer += 2;
 
-                if (yel_define_next_entity(yel_tokens) != en_expr) {
-                    printf("Syntax Error: <File '%s'>\n--> expected expression after '=' at %lu:%lu\n|\n|", 
-                        yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
-
-                    yel_print_error(yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
-
-                    yel_tokens->error = 1;
-                    return;
-                }
-
                 yel_parse_expression(yel_tokens);
+
                 printf("store %s\n", yel_tokens->value[tmp_i]);
-
-                return;
             }
-        }
+            else if (nexttype >= tok_binary_op_div_assign && nexttype <= tok_binary_op_or_assign) {
+                printf("push %s\n", cur);
 
-        else if (yel_tokens->type[yel_tokens->pointer] == tok_word) {
-            if (__builtin_strcmp(yel_tokens->value[yel_tokens->pointer + 1], "return") == 0) {
-                YelEntities next_en = yel_define_next_entity(yel_tokens);
+                size_t tmp_i = yel_tokens->pointer;
+                YelTokenType tmp_type = nexttype;
 
-                if (next_en != en_expr && next_en != en_end) {
-                    printf("Syntax Error: <File '%s'>\n--> expected expression or ';' after return at %lu:%lu\n|\n|", 
-                        yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
-                        
-                    yel_print_error(yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
-
-                    yel_tokens->error = 1;
-                    return;
-                }
+                yel_tokens->pointer += 2;
 
                 yel_parse_expression(yel_tokens);
-                printf("ret\n");
-                return;
-            }
-            else if (__builtin_strcmp(yel_tokens->value[yel_tokens->pointer + 1], "break") == 0) {
-                if (yel_define_next_entity(yel_tokens) != en_end) {
-                    printf("Syntax Error: <File '%s'>\n--> expected ';' after break at %lu:%lu\n|\n|", 
-                        yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
-                    
-                    yel_print_error(yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], yel_tokens->start_symbol[yel_tokens->pointer]);
 
-                    yel_tokens->error = 1;
-                    return;
+                switch (tmp_type) {
+                case tok_binary_op_div_assign:      puts("div"); break;
+                case tok_binary_op_mul_assign:      puts("mul"); break;
+                case tok_binary_op_percent_assign:  puts("mod"); break;
+                case tok_binary_op_plus_assign:     puts("add"); break;
+                case tok_binary_op_minus_assign:    puts("sub"); break;
+                case tok_binary_op_rsh_assign:      puts("rsh"); break;
+                case tok_binary_op_lsh_assign:      puts("lsh"); break;
+                case tok_binary_op_and_assign:      puts("and"); break;
+                case tok_binary_op_or_assign:       puts("or"); break;
                 }
 
-                printf("break\n");
+                printf("store %s\n", yel_tokens->value[tmp_i]);
+            }
+        }
+        else if (curtype == tok_word_return) {
+            size_t tmp_i = yel_tokens->pointer;
+            ++yel_tokens->pointer;
+            yel_parse_expression(yel_tokens);
+            printf("ret\n");
+        }
+        else if (curtype == tok_word_defer) {
+            // TODO
+        }
+        else if (curtype == tok_word_break) {
+            if (nexttype != tok_semicolon) {
+                printf(
+                    "Syntax Error: <File '%s'>\n--> %lu:%lu: expected ';' \n|\n|", 
+                    yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer+1]
+                );
+                yel_print_error(
+                    yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer+1]
+                );
+
+                yel_tokens->error = 1;
                 return;
             }
+
+            puts("brk");
         }
 
-        else if (yel_tokens->type[yel_tokens->pointer] == tok_op) {
-            if (yel_tokens->value[yel_tokens->pointer][0] == '{') {
-                yel_parse_expression(yel_tokens);
-            }
-        }
         ++yel_tokens->pointer;
     }
 }
