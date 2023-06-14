@@ -7,58 +7,67 @@
 
 typedef enum __YelTokenType {
     tok_undefined   = -1,
-    tok_name        = 100, // obj
-    tok_number      = 200, // const numeric literal - CNL
-    tok_string      = 300, // const string literal - CSL
+    tok_name = 100, // obj
+    tok_number,     // const numeric literal - CNL
+    tok_string,     // const string literal - CSL
 
-    tok_binary_op               = 400,
-    tok_binary_op_plus          = 401, // +
-    tok_binary_op_minus         = 402, // -
-    tok_binary_op_plus_assign   = 403, // +=
-    tok_binary_op_minus_assign  = 404, // -=
-    tok_binary_op_div           = 405, // /
-    tok_binary_op_mul           = 406, // *
-    tok_binary_op_div_assign    = 407, // /=
-    tok_binary_op_mul_assign    = 408, // *=
-    tok_binary_op_more          = 409, // >
-    tok_binary_op_less          = 410, // <
-    tok_binary_op_more_eq       = 411, // >=
-    tok_binary_op_less_eq       = 412, // <=
-    tok_binary_op_assign        = 413, // =
-    tok_binary_op_eq            = 414, // ==
-    tok_binary_op_not_eq        = 415, // !=
-    tok_binary_op_log_and       = 416, // &
-    tok_binary_op_and           = 417, // &&
-    tok_binary_op_log_or        = 418, // |
-    tok_binary_op_or            = 419, // ||
-    tok_binary_op_rsh           = 420, // >>
-    tok_binary_op_lsh           = 421, // <<
-    tok_binary_op_rsh_assign    = 420, // >>=
-    tok_binary_op_lsh_assign    = 421, // <<=
-    tok_binary_op_log_and_assign= 422, // &=
-    tok_binary_op_log_or_assign = 423, // |=
-    tok_binary_op_pow           = 424, // **
-    tok_binary_op_percent       = 423, // %
-    tok_binary_op_percent_assign= 423, // %=
+    tok_binary_op = 400,
+    tok_binary_op_pow,                  // **
+    tok_binary_op_div,                  // /
+    tok_binary_op_mul,                  // *
+    tok_binary_op_percent,              // %
+    tok_binary_op_plus,                 // +
+    tok_binary_op_minus,                // -
+    tok_binary_op_rsh,                  // >>
+    tok_binary_op_lsh,                  // <<
+    tok_binary_op_more,                 // >
+    tok_binary_op_less,                 // <
+    tok_binary_op_more_eq,              // >=
+    tok_binary_op_less_eq,              // <=
+    tok_binary_op_eq,                   // ==
+    tok_binary_op_not_eq,               // !=
+    tok_binary_op_and,                  // &
+    tok_binary_op_or,                   // |
+    tok_binary_op_log_and,              // &&
+    tok_binary_op_log_or,               // ||
+    tok_binary_op_div_assign = 422,     // /=
+    tok_binary_op_mul_assign,           // *=
+    tok_binary_op_percent_assign,       // %=
+    tok_binary_op_plus_assign,          // +=
+    tok_binary_op_minus_assign,         // -=
+    tok_binary_op_rsh_assign,           // >>=
+    tok_binary_op_lsh_assign,           // <<=
+    tok_binary_op_and_assign = 435,     // &=
+    tok_binary_op_or_assign,            // |=
+    tok_binary_op_assign,               // =
 
-    tok_unary_op                = 500,
-    tok_unary_op_pos            = tok_binary_op_plus,
-    tok_unary_op_neg            = tok_binary_op_minus,
-    tok_unary_op_not            = 503, // !
-    tok_unary_op_inc            = 504, // ++obj or obj++
-    tok_unary_op_dec            = 505, // --obj or obj--
+    tok_unary_op = 500,
+    tok_unary_op_pos    = tok_binary_op_plus,
+    tok_unary_op_neg    = tok_binary_op_minus,
+    tok_unary_op_not = 501,     // !
+    tok_unary_op_inc,           // ++obj or obj++
+    tok_unary_op_dec,           // --obj or obj--
 
-    tok_op          = 600, 
-    tok_op_lpar     = 601, // (
-    tok_op_rpar     = 602, // )
-    tok_op_flbrk    = 603, // {
-    tok_op_frbrk    = 604, // }
-    tok_semicolon   = 605, // ;
-    tok_colon       = 606, // :
-    tok_comma       = 607, // ,
-    tok_op_follow   = 608, // ->
+    tok_op = 600, 
+    tok_op_lpar,        // (
+    tok_op_rpar,        // )
+    tok_op_flbrk,       // {
+    tok_op_frbrk,       // }
+    tok_semicolon,      // ;
+    tok_colon,          // :
+    tok_comma,          // ,
+    tok_op_follow,     // ->
 
-    tok_word        = 700
+    tok_word = 700,
+    tok_word_func,      // func
+    tok_word_return,    // return
+    tok_word_defer,     // defer
+    tok_word_break,     // break
+    tok_word_noreturn,  // noreturn
+    tok_word_Int,       // Int
+    tok_word_Flt,       // Flt
+    tok_word_Str,       // Str
+    tok_word_Any,       // Any
 } YelTokenType;
 
 typedef struct __YelTokens {
