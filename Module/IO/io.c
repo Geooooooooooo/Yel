@@ -1,5 +1,4 @@
 #include "io.h"
-#include "dependencies.h"
 
 Source yel_stdio_read_file(char* filename) {
     Source source;
@@ -7,13 +6,13 @@ Source yel_stdio_read_file(char* filename) {
 
     source.file_name = (char*)malloc((size_t)(strlen(filename) * sizeof(char)));
     if (source.file_name == NULL) {
-        printf("System Error: <File '%s'>\n--> Unable to allocate memory to buffer.\n\n", filename);
+        printf("System Error: module %s\n--> Unable to allocate memory to buffer.\n\n", filename);
         return (Source){NULL, NULL, 0, 0};
-    }
+    } 
     
     FILE *file_p;
     if ((file_p = fopen(filename, "r")) == NULL) {
-        printf("System Error: <File '%s'>\n--> Unable to open the file\n\n", filename);
+        printf("System Error: module %s\n--> Unable to open the file\n\n", filename);
         return (Source){NULL, NULL, 0, 0};
     }
 
@@ -23,7 +22,7 @@ Source yel_stdio_read_file(char* filename) {
 
     source.source_text = (char*)__builtin_malloc((size_t)((source.length + 2) * sizeof(char)));
     if (source.source_text == NULL) {
-        printf("System Error: <File '%s'>\n--> Unable to allocate memory to buffer.\n\n", filename);
+        printf("System Error: module %s\n--> Unable to allocate memory to buffer.\n\n", filename);
         return (Source){NULL, NULL, 0, 0};
     }
     
