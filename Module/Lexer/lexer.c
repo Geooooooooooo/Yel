@@ -18,9 +18,9 @@ size_t cur_line = 1;
 size_t cur_line_symbol = 1;
 size_t start_symbol = 1;
 
-const int yel_keywords_length = 8;
+const int yel_keywords_length = 9;
 const const char* yel_keywords[] = {
-    "func", "return", "defer", 
+    "func", "return", "defer", "break",
     "noreturn", "Int", "Flt", "Str", "Any",
 };
 
@@ -67,7 +67,7 @@ _start_:
         }
 
         if (!close_comment) {
-            printf("Lexical Error: <File '%s'>\n--> unclosed comment at %lu:%lu\n\n", 
+            printf("Lexical Error: module %s\n--> unclosed comment at %lu:%lu\n\n", 
                 source->file_name, com_start[0], com_start[1]);
 
             *t_token_type = tok_undefined;
@@ -90,7 +90,7 @@ _start_:
         while (1) {
             if (cur_char == '.') {
                 if (dot) {
-                    printf("Lexical Error: <File '%s'>\n--> invalid character '%c' in a numeric literal at %lu:%lu\n|\n|", 
+                    printf("Lexical Error: module %s\n--> invalid character '%c' in a numeric literal at %lu:%lu\n|\n|", 
                         source->file_name, cur_char, cur_line, cur_line_symbol);
                     yel_print_error(source, cur_line, cur_line_symbol);
                     *t_token_type = tok_undefined;
@@ -110,7 +110,7 @@ _start_:
                     break;
                 }
                 else {
-                    printf("Lexical Error: <File '%s'>\n--> invalid character in a numeric literal at %lu:%lu\n|\n|", 
+                    printf("Lexical Error: module %s\n--> invalid character in a numeric literal at %lu:%lu\n|\n|", 
                         source->file_name, cur_line, cur_line_symbol);
                     yel_print_error(source, cur_line, cur_line_symbol);
                     *t_token_type = tok_undefined;
@@ -140,7 +140,7 @@ _start_:
                 break;
             }
             else if (cur_char == '.') {
-                printf("Lexical Error: <File '%s'>\n--> invalid character at %lu:%lu\n|\n|", 
+                printf("Lexical Error: module %s\n--> invalid character at %lu:%lu\n|\n|", 
                         source->file_name, cur_line, cur_line_symbol);
                 yel_print_error(source, cur_line, cur_line_symbol);
                 *t_token_type = tok_undefined;
@@ -175,7 +175,7 @@ _start_:
                 goto _end_;
             }
             else if (cur_char == '\n') {
-                printf("Lexical Error: <File '%s'>\n--> a new line when reading a string literal at %lu:%lu\n|\n|", 
+                printf("Lexical Error: module %s\n--> a new line when reading a string literal at %lu:%lu\n|\n|", 
                     source->file_name, cur_line, cur_line_symbol);
                 yel_print_error(source, cur_line, cur_line_symbol);
                 *t_token_type = tok_undefined;
@@ -188,7 +188,7 @@ _start_:
             ++cur_line_symbol;
         }
 
-        printf("Lexical Error: <File '%s'>\n--> unclosed string at %lu:%lu\n|\n|", 
+        printf("Lexical Error: module %s\n--> unclosed string at %lu:%lu\n|\n|", 
                 source->file_name, com_start[0], com_start[1]);
             yel_print_error(source, cur_line, cur_line_symbol);
         *t_token_type = tok_undefined;
@@ -314,7 +314,7 @@ _start_:
             *t_token_type = (YelTokenType)tok_binary_op_and;
             goto _count_bin_operator2;
         } else if (cur_src[cur_ptr+1] == '=') {
-            *t_token_type = (YelTokenType)tok_binary_op_log_and_assign;
+            *t_token_type = (YelTokenType)tok_binary_op_and_assign;
             goto _count_bin_operator2;
         } else {
             *t_token_type = (YelTokenType)tok_binary_op_log_and;
@@ -326,7 +326,7 @@ _start_:
             *t_token_type = (YelTokenType)tok_binary_op_or;
             goto _count_bin_operator2;
         } else if (cur_src[cur_ptr+1] == '=') {
-            *t_token_type = (YelTokenType)tok_binary_op_log_or_assign;
+            *t_token_type = (YelTokenType)tok_binary_op_or_assign;
             goto _count_bin_operator2;
         } else {
             *t_token_type = (YelTokenType)tok_binary_op_log_or;
@@ -486,7 +486,7 @@ YelTokens yel_parse_tokens(Source* source) {
     }
 
     if (f_brk != 0) {
-        printf("Lexical Error: <File '%s'>\n--> unclosed block\n\n", source->file_name);
+        printf("Lexical Error: module %s\n--> unclosed block\n\n", source->file_name);
         yel_tokens.error = 1;
     }
 
