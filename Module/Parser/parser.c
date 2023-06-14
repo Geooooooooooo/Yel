@@ -22,7 +22,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
         if (curtype == tok_semicolon) {
             if (brackets_par) {
                 printf(
-                    "Syntax Error: <File '%s'>\n--> expected ')' at %lu:%lu\n|\n|", 
+                    "Syntax Error: module %s\n--> expected ')' at %lu:%lu\n|\n|", 
                     yel_tokens->file_name, 
                     yel_tokens->line[yel_tokens->pointer], 
                     yel_tokens->start_symbol[yel_tokens->pointer-1]
@@ -86,7 +86,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
         else if (curtype == tok_op_rpar) {
             if (brackets_par == 0) {
                 printf(
-                    "Syntax Error: <File '%s'>\n--> expected '(' at %lu:%lu\n|\n|", 
+                    "Syntax Error: module %s\n--> expected '(' at %lu:%lu\n|\n|", 
                     yel_tokens->file_name, 
                     yel_tokens->line[yel_tokens->pointer], 
                     yel_tokens->start_symbol[yel_tokens->pointer]
@@ -699,7 +699,7 @@ void yel_parse_statement(YelTokens* yel_tokens) {
         else if (curtype == tok_word_break) {
             if (nexttype != tok_semicolon) {
                 printf(
-                    "Syntax Error: <File '%s'>\n--> %lu:%lu: expected ';' \n|\n|", 
+                    "Syntax Error: module %s\n--> %lu:%lu: expected ';' \n|\n|", 
                     yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
                     yel_tokens->start_symbol[yel_tokens->pointer+1]
                 );
