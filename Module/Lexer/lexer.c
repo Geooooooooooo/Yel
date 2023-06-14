@@ -122,7 +122,8 @@ _start_:
             ++cur_line_symbol;
 
         }
-        *t_token_type = (YelTokenType)tok_number;
+        if (dot) *t_token_type = (YelTokenType)tok_number_flt;
+        else *t_token_type = (YelTokenType)tok_number_int;
 
         goto _end_;
     }
