@@ -11,7 +11,7 @@
         printf("push_const (Flt) %s\n", cur);\
     else if (curtype == tok_string)\
         printf("push_const (Str) %s\n", cur);\
-    else printf("lval %s\n", cur);
+    else printf("load_fast %s\n", cur);
 
 #define curtype yel_tokens->type[yel_tokens->pointer]
 #define nexttype yel_tokens->type[yel_tokens->pointer+1]
@@ -84,7 +84,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
         // (
         else if (curtype == tok_op_lpar) {
             if (nexttype == tok_op_rpar) {
-                puts("push None");
+                puts("load_fast None");
             }
 
             ++brackets_par;
@@ -210,7 +210,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
         }
         
         // +, -
-        else if (nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus && (nexttype < tok_binary_op_more && nexttype > tok_binary_op_less_eq)) {
+        else if (nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus) {
             tmpPRINT_OPCODE();
 
             if (simple_expr) return;
@@ -235,7 +235,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
                 puts("add");
             else if (yel_tokens->type[tmp_i] == tok_binary_op_minus)
                 puts("sub");
-            
+
         }
         else if (curtype == tok_binary_op_plus || curtype == tok_binary_op_minus) {
             size_t tmp_i = yel_tokens->pointer;
@@ -682,22 +682,26 @@ void yel_parse_expression(YelTokens* yel_tokens) {
                 
                 puts("dup");
                 printf("store (Auto) %s\n", yel_tokens->value[tmp_i]);
+                if (simple_expr) return;
             }
             else {
-                printf("lval %s\n", cur);
+                printf("load_fast %s\n", cur);
+                unary = 0;
+                if (simple_expr) return;
             }
-
-            if (simple_expr) return;
         }
         else if(curtype == tok_number_int || curtype == tok_number_flt) {
             if (curtype == tok_number_int)
                 printf("push_const (Int) %s\n", cur);
             else if (curtype == tok_number_flt)
                 printf("push_const (Flt) %s\n", cur);
+
+            unary = 0;
             if (simple_expr) return;
         }
         else if(curtype == tok_string) {
             printf("push_const (Str) %s\n", cur);
+            unary = 0;
 
             if (simple_expr) return;
         }
@@ -722,7 +726,7 @@ void yel_parse_statement(YelTokens* yel_tokens) {
                     printf("push_const (Int) %s\n", cur);
                 else if (curtype == tok_number_flt)
                     printf("push_const (Flt) %s\n", cur);
-                else printf("lval (Auto) %s\n", cur);
+                else printf("load_fast (Auto) %s\n", cur);
 
                 size_t tmp_i = yel_tokens->pointer;
                 YelTokenType tmp_type = nexttype;
@@ -743,7 +747,7 @@ void yel_parse_statement(YelTokens* yel_tokens) {
                 case tok_binary_op_or_assign:       puts("or"); break;
                 }
 
-                printf("store %s\n", yel_tokens->value[tmp_i]);
+                printf("store (Auto) %s\n", yel_tokens->value[tmp_i]);
             }
             else if (nexttype == tok_colon) {
                 size_t tmp_i = yel_tokens->pointer;
@@ -778,21 +782,6 @@ void yel_parse_statement(YelTokens* yel_tokens) {
             printf("ret\n");
         }
         else if (curtype == tok_word_break) {
-            if (nexttype != tok_semicolon) {
-                printf(
-                    "Syntax Error: module %s\n--> %lu:%lu: expected ';' \n|\n|", 
-                    yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer+1]
-                );
-                yel_print_error(
-                    yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer+1]
-                );
-
-                yel_tokens->error = 1;
-                return;
-            }
-
             puts("brk");
         }
 
