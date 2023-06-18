@@ -9,6 +9,8 @@
 #define prev yel_tokens->value[yel_tokens->pointer-1]
 #define cur yel_tokens->value[yel_tokens->pointer]
 
+#define print_ystack() for(int i=0;i<size_t_stack;i++)printf("%d\n",t_stack[i]);
+
 YelTokenType t_stack[64];
 int size_t_stack = 0;
 _Bool gUnary = 1;
@@ -16,6 +18,7 @@ int pars = 0;
 int sp = 0;
 
 _Bool yel_check_expr_grammar(YelTokens* yel_tokens) {
+_start_:
     while (sp < size_t_stack) {
         if (t_stack[sp] == tok_en_expr && t_stack[sp+1] == tok_binary_op && t_stack[sp+2] == tok_en_expr) {
             register int tmp_sp = sp+1;
@@ -39,8 +42,22 @@ _Bool yel_check_expr_grammar(YelTokens* yel_tokens) {
 
             continue;
         }
+        else if (t_stack[sp] == tok_unary_op) {
+            if (t_stack[sp+1] == tok_en_expr) {
+                t_stack[sp] = tok_en_expr;
+                register int tmp_sp = sp+1;
+                --size_t_stack;
+
+                while (tmp_sp < size_t_stack) {
+                    t_stack[tmp_sp] = t_stack[tmp_sp+1];
+                    ++tmp_sp;
+                }
+
+                continue;
+            }
+        }
         else if (t_stack[sp] == tok_name && t_stack[sp+1] == tok_op_lpar) {
-            if (t_stack[sp+2] == tok_en_expr && t_stack[sp+3] == tok_op_rpar || t_stack[sp+2] == tok_op_rpar) {
+            if (t_stack[sp+2] == tok_en_expr && t_stack[sp+3] == tok_op_rpar) {
                 t_stack[sp] = tok_en_expr;
 
                 register int tmp_sp = sp+1;
@@ -49,9 +66,18 @@ _Bool yel_check_expr_grammar(YelTokens* yel_tokens) {
                 while (tmp_sp < size_t_stack) {
                     t_stack[tmp_sp] = t_stack[tmp_sp+3];
                     ++tmp_sp;
-                }
+                } continue;
+            }
+            else if (t_stack[sp+2] == tok_op_rpar) {
+                t_stack[sp] = tok_en_expr;
 
-                continue;
+                register int tmp_sp = sp+1;
+                size_t_stack -= 2;
+
+                while (tmp_sp < size_t_stack) {
+                    t_stack[tmp_sp] = t_stack[tmp_sp+2];
+                    ++tmp_sp;
+                } continue;
             }
             else {
                 int tmp_sp = sp;
@@ -60,6 +86,7 @@ _Bool yel_check_expr_grammar(YelTokens* yel_tokens) {
                 yel_check_expr_grammar(yel_tokens);
 
                 sp = tmp_sp;
+
                 continue;
             }
         }
@@ -70,12 +97,19 @@ _Bool yel_check_expr_grammar(YelTokens* yel_tokens) {
         ++sp;
     }
 
-    printf("%d\n", t_stack[0]);
+    //print_ystack();
+    if (size_t_stack > 1) {
+        sp = 0;
+        goto _start_;
+    }
+
+    print_ystack();
+    printf("<expr>\n");
     return 1;
 }
 
 _Bool yel_check_expr(YelTokens* yel_tokens) {
-    while (yel_tokens->pointer < yel_tokens->length) {
+   while (yel_tokens->pointer < yel_tokens->length) {
         if (curtype == tok_op_rpar) {
             if (pars == 0) {
                 printf("Syntax Error: module %s\n--> %lu:%lu: expected '(' \n|\n|",
@@ -93,44 +127,143 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
             --pars;
             t_stack[size_t_stack] = tok_op_rpar;
             ++size_t_stack;
+            gUnary = 0;
+            return 1;
         }
         else if (curtype == tok_semicolon){
+            if (pars != 0) {
+                printf("Syntax Error: module %s\n--> %lu:%lu: expected ')' \n|\n|",
+                    yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer]
+                );
+                yel_print_error(
+                    yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer]
+                );
+
+                return 0;
+            }
+
             break;
         }
         else if (curtype == tok_name) {    
             if (nexttype == tok_op_lpar) {
-                t_stack[size_t_stack] = tok_name;
-                ++size_t_stack;
-                t_stack[size_t_stack] = tok_op_lpar;
-                ++size_t_stack;
+                ++yel_tokens->pointer;
+                gUnary = 1;
 
-                ++pars;
-                yel_tokens->pointer += 2;
+                if (nexttype >= tok_name && nexttype <= tok_bool ||
+                nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
+                nexttype == tok_unary_op_not || nexttype == tok_op_lpar ||
+                nexttype == tok_op_rpar) {
+                    t_stack[size_t_stack] = tok_name;
+                    ++size_t_stack;
+                    t_stack[size_t_stack] = tok_op_lpar;
+                    ++size_t_stack;
 
-                if (!yel_check_expr(yel_tokens)) {
-                    // Error exit
+                    ++pars;
+                    ++yel_tokens->pointer;
+
+                    if (!yel_check_expr(yel_tokens)) {
+                        // Error exit
+                        exit(-1);
+                    }
+                }
+                else {
+                    printf("Syntax Error: module %s\n--> %lu:%lu: expected expression \n|\n|",
+                        yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
+                        yel_tokens->start_symbol[yel_tokens->pointer+1]
+                    );
+                    yel_print_error(
+                        yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
+                        yel_tokens->start_symbol[yel_tokens->pointer+1]
+                    );
+
                     exit(-1);
                 }
             }
-            else if (nexttype != tok_op_lpar) {
+            else if (nexttype >= tok_binary_op_pow && nexttype <= tok_binary_op_assign || 
+            nexttype == tok_comma || nexttype == tok_semicolon) {
                 t_stack[size_t_stack] = tok_en_expr;
                 ++size_t_stack;
             }
             else {
-                printf("else => nexttype = %d\n", nexttype);
+                printf("Syntax Error: module %s\n--> %lu:%lu: expected operator \n|\n|",
+                    yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer+1]
+                );
+                yel_print_error(
+                    yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer+1]
+                );
+
+                exit(-1);
             }
         }
-        else if (curtype == tok_number_int || curtype == tok_number_flt) {
-            t_stack[size_t_stack] = tok_en_expr;
+        else if (curtype == tok_number_int || curtype == tok_number_flt || curtype == tok_bool) {
+            if (nexttype >= tok_binary_op_pow && nexttype <= tok_binary_op_assign || 
+            nexttype == tok_comma || nexttype == tok_semicolon || nexttype == tok_op_rpar) {
+                t_stack[size_t_stack] = tok_en_expr;
+                ++size_t_stack;
+                gUnary = 0;
+            } 
+            else {
+                printf("Syntax Error: module %s\n--> %lu:%lu: expected operator \n|\n|",
+                    yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer+1]
+                );
+                yel_print_error(
+                    yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer+1]
+                );
+
+                exit(-1);
+            }
+        }
+        else if (curtype == tok_unary_op_not && gUnary) {
+            t_stack[size_t_stack] = tok_unary_op;
             ++size_t_stack;
         }
         else if (curtype >= tok_binary_op_pow && curtype <= tok_binary_op_assign) {
-            t_stack[size_t_stack] = tok_binary_op;
-            ++size_t_stack;
+            if (nexttype >= tok_name && nexttype <= tok_bool ||
+            nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
+            nexttype == tok_unary_op_not || nexttype == tok_op_lpar) {
+                if (gUnary) t_stack[size_t_stack] = tok_unary_op;
+                else t_stack[size_t_stack] = tok_binary_op;
+                ++size_t_stack;
+            }
+            else {
+                printf("Syntax Error: module %s\n--> %lu:%lu: expected expression \n|\n|",
+                    yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer+1]
+                );
+                yel_print_error(
+                    yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer+1]
+                );
+
+                exit(-1);
+            }
         }
         else if (curtype == tok_comma) {
-            t_stack[size_t_stack] = tok_comma;
-            ++size_t_stack;
+             if (nexttype >= tok_name && nexttype <= tok_bool ||
+            nexttype == tok_binary_op_plus || nexttype == tok_binary_op_minus ||
+            nexttype == tok_unary_op_not || nexttype == tok_op_lpar) {
+                t_stack[size_t_stack] = tok_comma;
+                ++size_t_stack;
+                gUnary = 1;
+            }
+            else {
+                printf("Syntax Error: module %s\n--> %lu:%lu: expected expression \n|\n|",
+                    yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer+1]
+                );
+                yel_print_error(
+                    yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer+1]
+                );
+
+                exit(-1);
+            }
         }
         else {
             printf("Syntax Error: module %s\n--> %lu:%lu: invalid syntax \n|\n|",
