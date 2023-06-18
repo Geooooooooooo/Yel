@@ -8,8 +8,10 @@
 typedef enum __YelTokenType {
     tok_undefined   = -1,
     tok_name = 100, // obj
-    tok_number,     // const numeric literal - CNL
+    tok_number_int, // const numeric integer literal - CNIL
+    tok_number_flt, // const numeric floating literal - CNFL
     tok_string,     // const string literal - CSL
+    tok_bool,       // const bool literal True or False
 
     tok_binary_op = 400,
     tok_binary_op_pow,                  // **
@@ -39,6 +41,7 @@ typedef enum __YelTokenType {
     tok_binary_op_lsh_assign,           // <<=
     tok_binary_op_and_assign = 435,     // &=
     tok_binary_op_or_assign,            // |=
+    tok_binary_op_pow_assign,           // **=
     tok_binary_op_assign,               // =
 
     tok_unary_op = 500,
@@ -68,6 +71,13 @@ typedef enum __YelTokenType {
     tok_word_Flt,       // Flt
     tok_word_Str,       // Str
     tok_word_Any,       // Any
+    tok_word_Bool,      // Bool
+    tok_word_Auto,      // 
+
+    tok_$,              // end of expression
+    tok_en_expr,
+    tok_en_stmt,
+    tok_en_decl,
 } YelTokenType;
 
 typedef struct __YelTokens {
@@ -91,7 +101,7 @@ typedef struct __Source {
 } Source;
 
 typedef enum __YelEntities {
-    en_end = -1,
+    en_end = 1000,
     en_expr,
     en_stmt,
     en_decl
@@ -103,5 +113,10 @@ typedef enum __YelEntities {
     for (size_t i = 0; i < token_array.length; i++) {\
         printf("   [%d, '%s', %lu:%lu]\n", token_array.type[i], token_array.value[i], token_array.line[i], token_array.start_symbol[i]);\
     } puts("}")
+
+#define _CurType    yel_tokens->type[yel_tokens->pointer]
+#define _NextType   yel_tokens->type[yel_tokens->pointer+1]
+#define _CurVal     yel_tokens->value[yel_tokens->pointer]
+#define _NextVal    yel_tokens->value[yel_tokens->pointer+1]
 
 #endif // __DEPENDECIES_H_
