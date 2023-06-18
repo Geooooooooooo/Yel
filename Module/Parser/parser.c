@@ -10,7 +10,9 @@
     else if (curtype == tok_number_flt)\
         printf("push_const (Flt) %s\n", cur);\
     else if (curtype == tok_string)\
-        printf("push_const (Str) %s\n", cur);\
+        printf("push_const (Str) '%s'\n", cur);\
+     else if (curtype == tok_bool)\
+        printf("push_const (Bool) %s\n", cur);\
     else printf("load_fast %s\n", cur);
 
 #define curtype yel_tokens->type[yel_tokens->pointer]
@@ -21,9 +23,10 @@
 #define cur yel_tokens->value[yel_tokens->pointer]
 #define bstrcmp(a, b) (__builtin_strcmp(a, b) == 0)
 
-// TODO: Int and Float
-// TODO: bytwice operations with Floats >>, <<, >>=, <<=
-// 
+// TODO: disable unary (where it needs)
+// TODO: create Lx parser
+
+// TODO: error with assignment operations (like a << b += c;)
 
 _Bool unary = 1;
 int simple_expr = 0;
@@ -33,14 +36,12 @@ void yel_parse_expression(YelTokens* yel_tokens) {
         if (curtype == tok_semicolon) {
             if (brackets_par) {
                 printf(
-                    "Syntax Error: module %s\n--> expected ')' at %lu:%lu\n|\n|", 
-                    yel_tokens->file_name, 
-                    yel_tokens->line[yel_tokens->pointer], 
+                    "Syntax Error: module %s\n--> %lu:%lu: expected ')' \n|\n|", 
+                    yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
                     yel_tokens->start_symbol[yel_tokens->pointer-1]
                 );
                 yel_print_error(
-                    yel_tokens->src_ptr, 
-                    yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
                     yel_tokens->start_symbol[yel_tokens->pointer-1]
                 );
 
@@ -101,7 +102,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
         else if (curtype == tok_op_rpar) {
             if (brackets_par == 0) {
                 printf(
-                    "Syntax Error: module %s\n--> expected '(' at %lu:%lu\n|\n|", 
+                    "Syntax Error: module %s\n--> %lu:%lu: expected '(' \n|\n|", 
                     yel_tokens->file_name, 
                     yel_tokens->line[yel_tokens->pointer], 
                     yel_tokens->start_symbol[yel_tokens->pointer]
@@ -622,6 +623,8 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             }
         }
         else if (curtype == tok_comma) {
+            if (simple_expr) return;
+
             ++yel_tokens->pointer;
             ++simple_expr;
             unary = 1;
@@ -677,18 +680,19 @@ void yel_parse_expression(YelTokens* yel_tokens) {
                 case tok_binary_op_lsh_assign:      puts("lsh"); break;
                 case tok_binary_op_and_assign:      puts("and"); break;
                 case tok_binary_op_or_assign:       puts("or"); break;
+                case tok_binary_op_pow_assign:      puts("pow");break;
                 case tok_binary_op_assign:break;
                 }
                 
                 puts("dup");
                 printf("store (Auto) %s\n", yel_tokens->value[tmp_i]);
-                if (simple_expr) return;
             }
             else {
                 printf("load_fast %s\n", cur);
                 unary = 0;
-                if (simple_expr) return;
             }
+
+            if (simple_expr) return;
         }
         else if(curtype == tok_number_int || curtype == tok_number_flt) {
             if (curtype == tok_number_int)
@@ -700,7 +704,13 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             if (simple_expr) return;
         }
         else if(curtype == tok_string) {
-            printf("push_const (Str) %s\n", cur);
+            printf("push_const (Str) '%s'\n", cur);
+            unary = 0;
+
+            if (simple_expr) return;
+        }
+        else if(curtype == tok_bool) {
+            printf("push_const (Bool) %s\n", cur);
             unary = 0;
 
             if (simple_expr) return;
@@ -721,11 +731,13 @@ void yel_parse_statement(YelTokens* yel_tokens) {
 
                 printf("store (Auto) %s\n", yel_tokens->value[tmp_i]);
             }
-            else if (nexttype >= tok_binary_op_div_assign && nexttype <= tok_binary_op_or_assign) {
+            else if (nexttype >= tok_binary_op_div_assign && nexttype <= tok_binary_op_pow_assign) {
                 if (curtype == tok_number_int)
                     printf("push_const (Int) %s\n", cur);
                 else if (curtype == tok_number_flt)
                     printf("push_const (Flt) %s\n", cur);
+                else if (curtype == tok_word_Bool)
+                    printf("push_const (Bool) %s\n", cur);
                 else printf("load_fast (Auto) %s\n", cur);
 
                 size_t tmp_i = yel_tokens->pointer;
@@ -745,6 +757,7 @@ void yel_parse_statement(YelTokens* yel_tokens) {
                 case tok_binary_op_lsh_assign:      puts("lsh"); break;
                 case tok_binary_op_and_assign:      puts("and"); break;
                 case tok_binary_op_or_assign:       puts("or"); break;
+                case tok_binary_op_pow_assign:      puts("pow");break;
                 }
 
                 printf("store (Auto) %s\n", yel_tokens->value[tmp_i]);
@@ -764,7 +777,8 @@ void yel_parse_statement(YelTokens* yel_tokens) {
                 case tok_word_Flt: printf("(Flt) ");break;
                 case tok_word_Str: printf("(Str) ");break;
                 case tok_word_Any: printf("(Any) ");break;
-                default: printf("utype(%s) ", yel_tokens->value[tmp_i2]);break;
+                case tok_word_Bool: printf("(Bool) ");break;
+                default: printf("[%s] ", yel_tokens->value[tmp_i2]);break;
                 }
                 
                 puts(yel_tokens->value[tmp_i]);
