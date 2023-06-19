@@ -48,6 +48,9 @@ _Bool yel_check_expr_grammar(YelTokens* yel_tokens) {
                     _ParserStack[tmp_sp] = _ParserStack[tmp_sp+2];
                     ++tmp_sp;
                 }
+
+                sp = 0;
+                continue;
             }
             else if (_ParserStack[sp+1] == tok_op_rpar) {
                 _ParserStack[sp] = tok_en_expr;
@@ -58,13 +61,10 @@ _Bool yel_check_expr_grammar(YelTokens* yel_tokens) {
                     _ParserStack[tmp_sp] = _ParserStack[tmp_sp+1];
                     ++tmp_sp;
                 }
-            }
-            else {
-                // INVALID SYNTAX
-            }
 
-            sp = 0;
-            continue;
+                sp = 0;
+                continue;
+            }
         }
         else if (_ParserStack[sp] == tok_unary_op) {
             if (_ParserStack[sp+1] == tok_en_expr) {
@@ -113,7 +113,7 @@ _Bool yel_check_expr_grammar(YelTokens* yel_tokens) {
             continue;
         }
         else if (_ParserStack[sp] == tok_op_rpar) {
-            return 1;
+            return RET_CODE_OK;
         }
             
         ++sp;
@@ -122,7 +122,7 @@ _Bool yel_check_expr_grammar(YelTokens* yel_tokens) {
     //puts("");
     //print_ystack();
     puts("<expr>");
-    return 1;
+    return RET_CODE_OK;
 }
 
 _Bool yel_check_expr(YelTokens* yel_tokens) {
@@ -141,14 +141,15 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
                         yel_tokens->start_symbol[yel_tokens->pointer]
                     );
 
-                    return 0;
+                    return RET_CODE_ERROR;
                 }
 
                 --_Parentheses;
                 _ParserStack[_ParserStackCounter] = tok_op_rpar;
                 ++_ParserStackCounter;
                 _Unary = 0;
-                return 1;
+
+                return RET_CODE_OK;
             }
             else {
                 printf("Syntax Error: module %s\n--> %lu:%lu: invalid syntax \n|\n|",
@@ -160,12 +161,12 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
                     yel_tokens->start_symbol[yel_tokens->pointer]
                 );
 
-                exit(-1);
+                return RET_CODE_ERROR;
             }
         }
         else if (_CurType == tok_op_lpar) {
             if (_NextType == tok_number_int || _NextType == tok_number_flt || 
-            _NextType == tok_bool || _NextType == tok_name || 
+            _NextType == tok_bool || _NextType == tok_name || _NextType == tok_string ||  
             _NextType == tok_binary_op_plus || _NextType == tok_binary_op_minus ||
             _NextType == tok_unary_op_not || _NextType == tok_op_lpar ||
             _NextType == tok_op_rpar) {
@@ -175,9 +176,8 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
                 ++_Parentheses;
                 ++yel_tokens->pointer;
 
-                if (!yel_check_expr(yel_tokens)) {
-                    // Error exit
-                    exit(-1);
+                if (yel_check_expr(yel_tokens) == RET_CODE_ERROR) {
+                    return RET_CODE_ERROR;
                 }
             }
             else {
@@ -190,7 +190,7 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
                     yel_tokens->start_symbol[yel_tokens->pointer+1]
                 );
 
-                exit(-1);
+                return RET_CODE_ERROR;
             }
         }
         else if (_CurType == tok_semicolon) {
@@ -204,7 +204,7 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
                     yel_tokens->start_symbol[yel_tokens->pointer]
                 );
 
-                return 0;
+                return RET_CODE_ERROR;
             }
 
             break;
@@ -226,9 +226,8 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
                     ++_Parentheses;
                     ++yel_tokens->pointer;
 
-                    if (!yel_check_expr(yel_tokens)) {
-                        // Error exit
-                        exit(-1);
+                    if (yel_check_expr(yel_tokens) == RET_CODE_ERROR) {
+                        return RET_CODE_ERROR;
                     }
 
                     _Unary = 0;
@@ -243,7 +242,7 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
                         yel_tokens->start_symbol[yel_tokens->pointer+1]
                     );
 
-                    exit(-1);
+                    return RET_CODE_ERROR;
                 }
             }
             else if (_NextType >= tok_binary_op_pow && _NextType <= tok_binary_op_assign || 
@@ -262,7 +261,7 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
                     yel_tokens->start_symbol[yel_tokens->pointer+1]
                 );
 
-                exit(-1);
+                return RET_CODE_ERROR;
             }
         }
         else if (_CurType == tok_number_int || _CurType == tok_number_flt || _CurType == tok_bool) {
@@ -282,7 +281,7 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
                     yel_tokens->start_symbol[yel_tokens->pointer+1]
                 );
 
-                exit(-1);
+                return RET_CODE_ERROR;
             }
         }
         else if (_CurType == tok_unary_op_not && _Unary) {
@@ -308,7 +307,7 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
                     yel_tokens->start_symbol[yel_tokens->pointer+1]
                 );
 
-                exit(-1);
+                return RET_CODE_ERROR;
             }
         }
         else if (_CurType == tok_comma) {
@@ -329,20 +328,20 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
                     yel_tokens->start_symbol[yel_tokens->pointer+1]
                 );
 
-                exit(-1);
+                return RET_CODE_ERROR;
             }
         }
         else {
             printf("Syntax Error: module %s\n--> %lu:%lu: invalid syntax \n|\n|",
-            yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
-            yel_tokens->start_symbol[yel_tokens->pointer]
+                yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
+                yel_tokens->start_symbol[yel_tokens->pointer]
             );
             yel_print_error(
                 yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
                 yel_tokens->start_symbol[yel_tokens->pointer]
             );
 
-            exit(-1);
+            return RET_CODE_ERROR;
         }
         
         ++yel_tokens->pointer;
@@ -361,11 +360,5 @@ YelEntities yel_define_next_entity(YelTokens* yel_tokens) {
         }
 
         ++yel_tokens->pointer;
-    }
-}
-
-void yel_gen__Parenthesese_tree(YelTokens* yel_tokens) {
-    while (yel_tokens->pointer < yel_tokens->length) {
-        printf("%d\n", yel_define_next_entity(yel_tokens));
     }
 }
