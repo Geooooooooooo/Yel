@@ -6,14 +6,14 @@
 
 #define tmpPRINT_OPCODE() \
     if (_CurType == tok_number_int)\
-        printf("push_const (Int) %s\n", _CurType);\
+        printf("push_const (Int) %s\n", _CurVal);\
     else if (_CurType == tok_number_flt)\
-        printf("push_const (Flt) %s\n", _CurType);\
+        printf("push_const (Flt) %s\n", _CurVal);\
     else if (_CurType == tok_string)\
-        printf("push_const (Str) '%s'\n", _CurType);\
+        printf("push_const (Str) '%s'\n", _CurVal);\
      else if (_CurType == tok_bool)\
-        printf("push_const (Bool) %s\n", _CurType);\
-    else printf("load_fast %s\n", _CurType);
+        printf("push_const (Bool) %s\n", _CurVal);\
+    else printf("load_fast %s\n", _CurVal);
 
 int          _SimpleExpr = 0;
 static int   _Parentheses = 0;
@@ -652,11 +652,8 @@ void yel_parse_expression(YelTokens* yel_tokens) {
                 YelTokenType tmp_type = _NextType;
 
                 yel_tokens->pointer += 2;
-                ++_SimpleExpr;
 
                 yel_parse_expression(yel_tokens);
-
-                --_SimpleExpr;
 
                 switch (tmp_type) {
                 case tok_binary_op_div_assign:      puts("div"); break;
@@ -676,29 +673,45 @@ void yel_parse_expression(YelTokens* yel_tokens) {
                 printf("store (Auto) %s\n", yel_tokens->value[tmp_i]);
             }
             else {
-                printf("load_fast %s\n", _CurType);
+                printf("load_fast %s\n", _CurVal);
                 _Unary = 0;
             }
 
             if (_SimpleExpr) return;
         }
         else if(_CurType == tok_number_int || _CurType == tok_number_flt) {
+            if (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) {
+                printf(
+                    "Syntax Error: module %s\n--> %lu:%lu: expression on the left should not be a constant \n|\n|", 
+                    yel_tokens->file_name, 
+                    yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer]
+                );
+                yel_print_error(
+                    yel_tokens->src_ptr, 
+                    yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer]
+                );
+
+                exit(-1);
+            }
+
             if (_CurType == tok_number_int)
-                printf("push_const (Int) %s\n", _CurType);
+                printf("push_const (Int) %s\n", _CurVal);
             else if (_CurType == tok_number_flt)
-                printf("push_const (Flt) %s\n", _CurType);
+                printf("push_const (Flt) %s\n", _CurVal);
 
             _Unary = 0;
             if (_SimpleExpr) return;
         }
         else if(_CurType == tok_string) {
-            printf("push_const (Str) '%s'\n", _CurType);
+            printf("push_const (Str) '%s'\n", _CurVal);
             _Unary = 0;
 
             if (_SimpleExpr) return;
         }
         else if(_CurType == tok_bool) {
-            printf("push_const (Bool) %s\n", _CurType);
+            printf("push_const (Bool) %s\n", _CurVal);
             _Unary = 0;
 
             if (_SimpleExpr) return;
@@ -721,12 +734,12 @@ void yel_parse_statement(YelTokens* yel_tokens) {
             }
             else if (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_pow_assign) {
                 if (_CurType == tok_number_int)
-                    printf("push_const (Int) %s\n", _CurType);
+                    printf("push_const (Int) %s\n", _CurVal);
                 else if (_CurType == tok_number_flt)
-                    printf("push_const (Flt) %s\n", _CurType);
+                    printf("push_const (Flt) %s\n", _CurVal);
                 else if (_CurType == tok_word_Bool)
-                    printf("push_const (Bool) %s\n", _CurType);
-                else printf("load_fast (Auto) %s\n", _CurType);
+                    printf("push_const (Bool) %s\n", _CurVal);
+                else printf("load_fast (Auto) %s\n", _CurVal);
 
                 size_t tmp_i = yel_tokens->pointer;
                 YelTokenType tmp_type = _NextType;
