@@ -18,10 +18,10 @@ size_t cur_line = 1;
 size_t cur_line_symbol = 1;
 size_t start_symbol = 1;
 
-const int yel_keywords_length = 9;
+const int yel_keywords_length = 10;
 const const char* yel_keywords[] = {
     "func", "return", "defer", "break",
-    "noreturn", "Int", "Flt", "Str", "Any",
+    "noreturn", "Int", "Flt", "Str", "Any", "Bool"
 };
 
 void yel_get_next_token(Source* source, YelTokenType* t_token_type, char* token_value) {
@@ -251,8 +251,13 @@ _start_:
             *t_token_type = (YelTokenType)tok_binary_op_mul_assign;
             goto _count_bin_operator2;
         } else if (cur_src[cur_ptr+1] == '*') {
-            *t_token_type = (YelTokenType)tok_binary_op_pow;
-            goto _count_bin_operator2;
+            if (cur_src[cur_ptr+2] == '=') {
+                *t_token_type = (YelTokenType)tok_binary_op_pow_assign;
+                goto _count_bin_operator3;
+            } else {
+                *t_token_type = (YelTokenType)tok_binary_op_pow;
+                goto _count_bin_operator2;
+            }
         } else {
             *t_token_type = (YelTokenType)tok_binary_op_mul;
             goto _count_bin_operator1;
@@ -410,6 +415,12 @@ _end_:
         }
         else if (__builtin_strcmp("not", token_value) == 0) {
             *t_token_type = (YelTokenType)tok_unary_op_not;
+        }
+        else if (__builtin_strcmp("True", token_value) == 0) {
+            *t_token_type = (YelTokenType)tok_bool;
+        }
+        else if (__builtin_strcmp("False", token_value) == 0) {
+            *t_token_type = (YelTokenType)tok_bool;
         }
     }
 }
