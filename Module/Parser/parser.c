@@ -21,22 +21,9 @@ static _Bool _Unary = 1;
 
 void yel_parse_expression(YelTokens* yel_tokens) {
     while (yel_tokens->pointer < yel_tokens->length) {
-        if (_CurType == tok_semicolon) {
-            if (_Parentheses) {
-                printf(
-                    "Syntax Error: module %s\n--> %lu:%lu: expected ')' \n|\n|", 
-                    yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer-1]
-                );
-                yel_print_error(
-                    yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer-1]
-                );
-
-                yel_tokens->error = 1;
-            }
-
+        if (_CurType == tok_semicolon) {            
             ++yel_tokens->pointer;
+            _SimpleExpr = 0;
 
             return;
         }
@@ -72,10 +59,6 @@ void yel_parse_expression(YelTokens* yel_tokens) {
 
         // (
         else if (_CurType == tok_op_lpar) {
-            if (_NextType == tok_op_rpar) {
-                puts("load_fast None");
-            }
-
             ++_Parentheses;
             ++yel_tokens->pointer;
             _Unary = 1;
@@ -633,15 +616,17 @@ void yel_parse_expression(YelTokens* yel_tokens) {
         // tok_name
         else if(_CurType == tok_name) {
             if (_NextType == tok_op_lpar) {
+                // MAKE 'CALLING CONVENTIONS'
+
                 size_t tmp_i = yel_tokens->pointer;
 
                 ++yel_tokens->pointer;
                 ++_SimpleExpr;
-
+                
                 yel_parse_expression(yel_tokens);
 
                 --_SimpleExpr;
-
+                
                 printf("call %s\n", yel_tokens->value[tmp_i]);
             }
             else if (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) {
@@ -651,9 +636,12 @@ void yel_parse_expression(YelTokens* yel_tokens) {
                 size_t tmp_i = yel_tokens->pointer;
                 YelTokenType tmp_type = _NextType;
 
+                ++_SimpleExpr;
                 yel_tokens->pointer += 2;
 
                 yel_parse_expression(yel_tokens);
+
+                --_SimpleExpr;
 
                 switch (tmp_type) {
                 case tok_binary_op_div_assign:      puts("div"); break;
@@ -671,11 +659,16 @@ void yel_parse_expression(YelTokens* yel_tokens) {
                 
                 puts("dup");
                 printf("store (Auto) %s\n", yel_tokens->value[tmp_i]);
+
+                //return;
             }
             else {
                 printf("load_fast %s\n", _CurVal);
                 _Unary = 0;
             }
+
+            //print_cur();
+            //getchar();
 
             if (_SimpleExpr) return;
         }
@@ -693,7 +686,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
                     yel_tokens->start_symbol[yel_tokens->pointer]
                 );
 
-                exit(-1);
+                yel_tokens->error = 1;
             }
 
             if (_CurType == tok_number_int)
@@ -718,6 +711,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
         }
 
         ++yel_tokens->pointer;
+        if (_NextType == tok_semicolon) return;
     }
 }
 

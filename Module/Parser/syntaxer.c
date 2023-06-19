@@ -121,7 +121,8 @@ _Bool yel_check_expr_grammar(YelTokens* yel_tokens) {
 
     //puts("");
     //print_ystack();
-    puts("<expr>");
+    //puts("<expr>");
+    _ParserStackCounter = 0;
     return RET_CODE_OK;
 }
 
@@ -129,7 +130,23 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
     size_t start_pointer = yel_tokens->pointer;
 
     while (yel_tokens->pointer < yel_tokens->length) {
-        if (_CurType == tok_op_rpar) {
+        if (_CurType == tok_semicolon) {
+            if (_Parentheses != 0) {
+                printf("Syntax Error: module %s\n--> %lu:%lu: expected ')' \n|\n|",
+                    yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer-1]
+                );
+                yel_print_error(
+                    yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer-1]
+                );
+
+                return RET_CODE_ERROR;
+            }
+
+            break;
+        }
+        else if (_CurType == tok_op_rpar) {
             if (_NextType >= tok_binary_op_pow && _NextType <= tok_binary_op_log_or || 
             _NextType == tok_comma || _NextType == tok_semicolon || 
             _NextType == tok_op_rpar) {
@@ -194,22 +211,6 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
 
                 return RET_CODE_ERROR;
             }
-        }
-        else if (_CurType == tok_semicolon) {
-            if (_Parentheses != 0) {
-                printf("Syntax Error: module %s\n--> %lu:%lu: expected ')' \n|\n|",
-                    yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer-1]
-                );
-                yel_print_error(
-                    yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer-1]
-                );
-
-                return RET_CODE_ERROR;
-            }
-
-            break;
         }
         else if (_CurType == tok_name) {    
             if (_NextType == tok_op_lpar) {
@@ -351,7 +352,7 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
 
     yel_tokens->pointer = start_pointer;
 
-    print_ystack();
+    //print_ystack();
     return yel_check_expr_grammar(yel_tokens);
 }
 
