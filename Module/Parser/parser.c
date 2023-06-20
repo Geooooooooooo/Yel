@@ -725,15 +725,10 @@ void yel_parse_statement(YelTokens* yel_tokens) {
                 yel_parse_expression(yel_tokens);
 
                 printf("store (Auto) %s\n", yel_tokens->value[tmp_i]);
+                return;
             }
             else if (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_pow_assign) {
-                if (_CurType == tok_number_int)
-                    printf("push_const (Int) %s\n", _CurVal);
-                else if (_CurType == tok_number_flt)
-                    printf("push_const (Flt) %s\n", _CurVal);
-                else if (_CurType == tok_word_Bool)
-                    printf("push_const (Bool) %s\n", _CurVal);
-                else printf("load_fast (Auto) %s\n", _CurVal);
+                printf("load_fast (Auto) %s\n", _CurVal);
 
                 size_t tmp_i = yel_tokens->pointer;
                 YelTokenType tmp_type = _NextType;

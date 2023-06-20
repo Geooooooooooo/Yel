@@ -11,7 +11,7 @@ static int _Parentheses = 0;
 static _Bool _Unary = 1;
 
 _Bool yel_check_expr_grammar(YelTokens* yel_tokens) {
-    int sp = 0;
+    register int sp = 0;
 
     while (sp < _ParserStackCounter) {
         if (_ParserStack[sp] == tok_en_expr && _ParserStack[sp+1] == tok_binary_op && _ParserStack[sp+2] == tok_en_expr) {
@@ -288,8 +288,24 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
             }
         }
         else if (_CurType == tok_unary_op_not && _Unary) {
-            _ParserStack[_ParserStackCounter] = tok_unary_op;
-            ++_ParserStackCounter;
+            if (_NextType >= tok_name && _NextType <= tok_bool ||
+            _NextType == tok_binary_op_plus || _NextType == tok_binary_op_minus ||
+            _NextType == tok_unary_op_not || _NextType == tok_op_lpar) {
+                _ParserStack[_ParserStackCounter] = tok_unary_op;
+                ++_ParserStackCounter;
+            }
+            else {
+                printf("Syntax Error: module %s\n--> %lu:%lu: expression is expected \n|\n|",
+                    yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer+1]
+                );
+                yel_print_error(
+                    yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer+1]
+                );
+
+                return RET_CODE_ERROR;
+            }
         }
         else if (_CurType >= tok_binary_op_pow && _CurType <= tok_binary_op_assign) {
             if (_NextType >= tok_name && _NextType <= tok_bool ||
@@ -356,14 +372,67 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
     return yel_check_expr_grammar(yel_tokens);
 }
 
-YelEntities yel_define_next_entity(YelTokens* yel_tokens) {
-    while (yel_tokens->pointer < yel_tokens->length) {
-        if (_CurType == tok_name) {
-            if (_NextType == tok_binary_op_assign) {
+_Bool yek_check_stmt(YelTokens* yel_tokens) {
+    size_t start_pointer = yel_tokens->pointer;
 
+    while (yel_tokens->pointer < yel_tokens->length) {
+        if (_CurType == tok_name && (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign)) {
+            yel_tokens->pointer += 2;
+
+            if (yel_check_expr(yel_tokens) == RET_CODE_OK) {
+                break;
             }
+            else {
+                return RET_CODE_ERROR;
+            }
+        }
+        else if (_CurType == tok_word_return) {
+            ++yel_tokens->pointer;
+
+            if (_NextType == tok_semicolon || yel_check_expr(yel_tokens) == RET_CODE_OK) {
+                break;
+            }
+            else {
+                return RET_CODE_ERROR;
+            }
+        }
+        else if (_CurType == tok_word_break && _NextType == tok_semicolon) {
+            break;
+        }
+        else {
+            printf("Syntax Error: module %s\n--> %lu:%lu: invalid syntax \n|\n|",
+                yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
+                yel_tokens->start_symbol[yel_tokens->pointer]
+            );
+            yel_print_error(
+                yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
+                yel_tokens->start_symbol[yel_tokens->pointer]
+            );
+
+            return RET_CODE_ERROR;
         }
 
         ++yel_tokens->pointer;
+    }
+
+    yel_tokens->pointer = start_pointer;
+    return RET_CODE_OK;
+}
+
+void yel_gen_opcode(YelTokens* yel_tokens) {
+    while (yel_tokens->pointer < yel_tokens->length) {
+        if (_CurType == tok_name && _NextType == tok_binary_op_assign || _CurType == tok_word_break || _CurType == tok_word_return) {
+
+            if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
+                yel_parse_statement(yel_tokens);
+            }        
+        }
+        else {
+            if (yel_check_expr(yel_tokens) == RET_CODE_OK) {
+                yel_parse_expression(yel_tokens);
+            }
+        }
+
+        if (yel_tokens->error) break;
     }
 }
