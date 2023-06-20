@@ -132,14 +132,9 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
     while (yel_tokens->pointer < yel_tokens->length) {
         if (_CurType == tok_semicolon) {
             if (_Parentheses != 0) {
-                printf("Syntax Error: module %s\n--> %lu:%lu: expected ')' \n|\n|",
-                    yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer-1]
-                );
-                yel_print_error(
-                    yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer-1]
-                );
+                yel_print_error("SyntaxError", "expected ')'", yel_tokens->src_ptr, 
+                    yel_tokens->line[yel_tokens->pointer-1], 
+                    yel_tokens->start_symbol[yel_tokens->pointer-1]);
 
                 return RET_CODE_ERROR;
             }
@@ -151,14 +146,9 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
             _NextType == tok_comma || _NextType == tok_semicolon || 
             _NextType == tok_op_rpar) {
                 if (_Parentheses == 0) {
-                    printf("Syntax Error: module %s\n--> %lu:%lu: expected '(' \n|\n|",
-                        yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
-                        yel_tokens->start_symbol[yel_tokens->pointer]
-                    );
-                    yel_print_error(
-                        yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
-                        yel_tokens->start_symbol[yel_tokens->pointer]
-                    );
+                    yel_print_error("SyntaxError", "expected '('", yel_tokens->src_ptr, 
+                        yel_tokens->line[yel_tokens->pointer], 
+                        yel_tokens->start_symbol[yel_tokens->pointer]);
 
                     return RET_CODE_ERROR;
                 }
@@ -167,18 +157,11 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
                 _ParserStack[_ParserStackCounter] = tok_op_rpar;
                 ++_ParserStackCounter;
                 _Unary = 0;
-
-                return RET_CODE_OK;
             }
             else {
-                printf("Syntax Error: module %s\n--> %lu:%lu: invalid syntax \n|\n|",
-                    yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer]
-                );
-                yel_print_error(
-                    yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer]
-                );
+                yel_print_error("SyntaxError", "invalid syntax", yel_tokens->src_ptr, 
+                    yel_tokens->line[yel_tokens->pointer+1], 
+                    yel_tokens->start_symbol[yel_tokens->pointer+1]);
 
                 return RET_CODE_ERROR;
             }
@@ -191,62 +174,21 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
             _NextType == tok_op_rpar) {
                 _ParserStack[_ParserStackCounter] = tok_op_lpar;
                 ++_ParserStackCounter;
-
                 ++_Parentheses;
-                ++yel_tokens->pointer;
-
-                if (yel_check_expr(yel_tokens) == RET_CODE_ERROR) {
-                    return RET_CODE_ERROR;
-                }
             }
             else {
-                printf("Syntax Error: module %s\n--> %lu:%lu: expression is expected \n|\n|",
-                    yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer+1]
-                );
-                yel_print_error(
-                    yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer+1]
-                );
+                yel_print_error("SyntaxError", "expression is expected", yel_tokens->src_ptr, 
+                    yel_tokens->line[yel_tokens->pointer+1], 
+                    yel_tokens->start_symbol[yel_tokens->pointer+1]);
+
 
                 return RET_CODE_ERROR;
             }
         }
         else if (_CurType == tok_name) {    
             if (_NextType == tok_op_lpar) {
-                ++yel_tokens->pointer;
-                _Unary = 1;
-
-                if (_NextType >= tok_name && _NextType <= tok_bool ||
-                _NextType == tok_binary_op_plus || _NextType == tok_binary_op_minus ||
-                _NextType == tok_unary_op_not || _NextType == tok_op_lpar ||
-                _NextType == tok_op_rpar) {
-                    _ParserStack[_ParserStackCounter] = tok_name;
-                    ++_ParserStackCounter;
-                    _ParserStack[_ParserStackCounter] = tok_op_lpar;
-                    ++_ParserStackCounter;
-
-                    ++_Parentheses;
-                    ++yel_tokens->pointer;
-
-                    if (yel_check_expr(yel_tokens) == RET_CODE_ERROR) {
-                        return RET_CODE_ERROR;
-                    }
-
-                    _Unary = 0;
-                }
-                else {
-                    printf("Syntax Error: module %s\n--> %lu:%lu: expression is expected \n|\n|",
-                        yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
-                        yel_tokens->start_symbol[yel_tokens->pointer+1]
-                    );
-                    yel_print_error(
-                        yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
-                        yel_tokens->start_symbol[yel_tokens->pointer+1]
-                    );
-
-                    return RET_CODE_ERROR;
-                }
+                _ParserStack[_ParserStackCounter] = tok_name;
+                ++_ParserStackCounter;
             }
             else if (_NextType >= tok_binary_op_pow && _NextType <= tok_binary_op_assign || 
             _NextType == tok_comma || _NextType == tok_semicolon || _NextType == tok_op_rpar) {
@@ -255,14 +197,9 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
                 _Unary = 0;
             }
             else {
-                printf("Syntax Error: module %s\n--> %lu:%lu: operator is expected \n|\n|",
-                    yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer+1]
-                );
-                yel_print_error(
-                    yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer+1]
-                );
+                yel_print_error("SyntaxError", "operator is expected", yel_tokens->src_ptr, 
+                    yel_tokens->line[yel_tokens->pointer+1], 
+                    yel_tokens->start_symbol[yel_tokens->pointer+1]);
 
                 return RET_CODE_ERROR;
             }
@@ -275,14 +212,9 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
                 _Unary = 0;
             } 
             else {
-                printf("Syntax Error: module %s\n--> %lu:%lu: operator is expected \n|\n|",
-                    yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer+1]
-                );
-                yel_print_error(
-                    yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer+1]
-                );
+                yel_print_error("SyntaxError", "operator is expected", yel_tokens->src_ptr, 
+                    yel_tokens->line[yel_tokens->pointer+1], 
+                    yel_tokens->start_symbol[yel_tokens->pointer+1]);
 
                 return RET_CODE_ERROR;
             }
@@ -295,14 +227,9 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
                 ++_ParserStackCounter;
             }
             else {
-                printf("Syntax Error: module %s\n--> %lu:%lu: expression is expected \n|\n|",
-                    yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer+1]
-                );
-                yel_print_error(
-                    yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer+1]
-                );
+                yel_print_error("SyntaxError", "expression is expected", yel_tokens->src_ptr, 
+                    yel_tokens->line[yel_tokens->pointer+1], 
+                    yel_tokens->start_symbol[yel_tokens->pointer+1]);
 
                 return RET_CODE_ERROR;
             }
@@ -317,14 +244,9 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
                 _Unary = 1;
             }
             else {
-                printf("Syntax Error: module %s\n--> %lu:%lu: expression is expected \n|\n|",
-                    yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer+1]
-                );
-                yel_print_error(
-                    yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer+1]
-                );
+                yel_print_error("SyntaxError", "expression is expected", yel_tokens->src_ptr, 
+                    yel_tokens->line[yel_tokens->pointer+1], 
+                    yel_tokens->start_symbol[yel_tokens->pointer+1]);
 
                 return RET_CODE_ERROR;
             }
@@ -338,27 +260,17 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
                 _Unary = 1;
             }
             else {
-                printf("Syntax Error: module %s\n--> %lu:%lu: expression is expected \n|\n|",
-                    yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer+1]
-                );
-                yel_print_error(
-                    yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer+1]
-                );
+                yel_print_error("SyntaxError", "expression is expected", yel_tokens->src_ptr, 
+                    yel_tokens->line[yel_tokens->pointer+1], 
+                    yel_tokens->start_symbol[yel_tokens->pointer+1]);
 
                 return RET_CODE_ERROR;
             }
         }
         else {
-            printf("Syntax Error: module %s\n--> %lu:%lu: invalid syntax \n|\n|",
-                yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
-                yel_tokens->start_symbol[yel_tokens->pointer]
-            );
-            yel_print_error(
-                yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
-                yel_tokens->start_symbol[yel_tokens->pointer]
-            );
+            yel_print_error("SyntaxError", "invalid syntax", yel_tokens->src_ptr, 
+                yel_tokens->line[yel_tokens->pointer], 
+                yel_tokens->start_symbol[yel_tokens->pointer]);
 
             return RET_CODE_ERROR;
         }
@@ -379,35 +291,22 @@ _Bool yek_check_stmt(YelTokens* yel_tokens) {
         if (_CurType == tok_name && (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign)) {
             yel_tokens->pointer += 2;
 
-            if (yel_check_expr(yel_tokens) == RET_CODE_OK) {
-                break;
-            }
-            else {
-                return RET_CODE_ERROR;
-            }
+            if (yel_check_expr(yel_tokens) == RET_CODE_OK) { break; }
+            else { return RET_CODE_ERROR; }
         }
         else if (_CurType == tok_word_return) {
             ++yel_tokens->pointer;
 
-            if (_NextType == tok_semicolon || yel_check_expr(yel_tokens) == RET_CODE_OK) {
-                break;
-            }
-            else {
-                return RET_CODE_ERROR;
-            }
+            if (_NextType == tok_semicolon || yel_check_expr(yel_tokens) == RET_CODE_OK) { break; }
+            else { return RET_CODE_ERROR; }
         }
         else if (_CurType == tok_word_break && _NextType == tok_semicolon) {
             break;
         }
         else {
-            printf("Syntax Error: module %s\n--> %lu:%lu: invalid syntax \n|\n|",
-                yel_tokens->file_name, yel_tokens->line[yel_tokens->pointer], 
-                yel_tokens->start_symbol[yel_tokens->pointer]
-            );
-            yel_print_error(
-                yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
-                yel_tokens->start_symbol[yel_tokens->pointer]
-            );
+            yel_print_error("SyntaxError", "invalid syntax", yel_tokens->src_ptr, 
+                yel_tokens->line[yel_tokens->pointer], 
+                yel_tokens->start_symbol[yel_tokens->pointer]);
 
             return RET_CODE_ERROR;
         }
@@ -422,17 +321,16 @@ _Bool yek_check_stmt(YelTokens* yel_tokens) {
 void yel_gen_opcode(YelTokens* yel_tokens) {
     while (yel_tokens->pointer < yel_tokens->length) {
         if (_CurType == tok_name && _NextType == tok_binary_op_assign || _CurType == tok_word_break || _CurType == tok_word_return) {
-
             if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
                 yel_parse_statement(yel_tokens);
-            }        
+            }
+            else break;
         }
         else {
             if (yel_check_expr(yel_tokens) == RET_CODE_OK) {
                 yel_parse_expression(yel_tokens);
             }
+            else break;
         }
-
-        if (yel_tokens->error) break;
     }
 }

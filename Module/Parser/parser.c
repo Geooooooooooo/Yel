@@ -72,17 +72,9 @@ void yel_parse_expression(YelTokens* yel_tokens) {
         }
         else if (_CurType == tok_op_rpar) {
             if (_Parentheses == 0) {
-                printf(
-                    "Syntax Error: module %s\n--> %lu:%lu: expected '(' \n|\n|", 
-                    yel_tokens->file_name, 
+                yel_print_error("SyntaxError", "expected '('", yel_tokens->src_ptr, 
                     yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer]
-                );
-                yel_print_error(
-                    yel_tokens->src_ptr, 
-                    yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer]
-                );
+                    yel_tokens->start_symbol[yel_tokens->pointer]);
 
                 yel_tokens->error = 1;
             }
@@ -674,17 +666,9 @@ void yel_parse_expression(YelTokens* yel_tokens) {
         }
         else if(_CurType == tok_number_int || _CurType == tok_number_flt) {
             if (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) {
-                printf(
-                    "Syntax Error: module %s\n--> %lu:%lu: expression on the left should not be a constant \n|\n|", 
-                    yel_tokens->file_name, 
+                yel_print_error("SyntaxError", "expression on the left should not be a constant", yel_tokens->src_ptr, 
                     yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer]
-                );
-                yel_print_error(
-                    yel_tokens->src_ptr, 
-                    yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer]
-                );
+                    yel_tokens->start_symbol[yel_tokens->pointer]);
 
                 yel_tokens->error = 1;
             }
