@@ -1,6 +1,8 @@
 #include "error.h"
 
-void yel_print_error(Source* src, size_t line, size_t symbol) {
+void yel_print_error(const char* err_name, const char* err_desc, Source* src, size_t line, size_t symbol) {
+    printf("File '%s', line %lu\n\n", src->file_name, line, symbol);
+
     --symbol;
     size_t line_counter = 1;
     size_t symbol_counter = 1;
@@ -11,7 +13,6 @@ void yel_print_error(Source* src, size_t line, size_t symbol) {
             size_t i_end = i;
 
             while (src->source_text[i_end] == ' ') ++i_end;
-
             while (1) {
                 if ((src->source_text[i_end] == ';' && symbol_counter >= symbol) || src->source_text[i_end] == '\n' || src->source_text[i_end] == '\0') {
                     ++i_end;
@@ -27,29 +28,29 @@ void yel_print_error(Source* src, size_t line, size_t symbol) {
 
             printf("    ");
             for (size_t l = i_start; l < src->length; l++) {
-                if (src->source_text[l] == '\n') {
+                if (src->source_text[l] == '\n')
                     break;
-                }
 
                 printf("%c", src->source_text[l]);
 
-                if (src->source_text[l] == ';') {
+                if (src->source_text[l] == ';')
                     break;
-                }
             }
 
             i_end -= i;
 
-            printf("\n|    ");
+            printf("\n    ");
             for (size_t l = i_start-i; l < i_end; l++) {
                 if (l == symbol) {
                     printf("^");
                 }
                 else printf("~");
             }
-
             
             puts("\n");
+
+            printf("%s: %s\n", err_name, err_desc);
+
             return;
         }
 
