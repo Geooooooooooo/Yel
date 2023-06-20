@@ -90,9 +90,7 @@ _start_:
         while (1) {
             if (cur_char == '.') {
                 if (dot) {
-                    printf("Lexical Error: module %s\n-->  %lu:%lu: invalid character '%c' in a numeric literal \n|\n|", 
-                        source->file_name, cur_char, cur_line, cur_line_symbol);
-                    yel_print_error(source, cur_line, cur_line_symbol);
+                    yel_print_error("LexicalError", "invalid character in a numeric literal", source, cur_line, cur_line_symbol);
                     *t_token_type = tok_undefined;
                     return;
                 }
@@ -110,9 +108,8 @@ _start_:
                     break;
                 }
                 else {
-                    printf("Lexical Error: module %s\n-->  %lu:%lu: invalid character in a numeric literal \n|\n|", 
-                        source->file_name, cur_line, cur_line_symbol);
-                    yel_print_error(source, cur_line, cur_line_symbol);
+                    yel_print_error("LexicalError", "invalid character in a numeric literal", source, cur_line, cur_line_symbol);
+
                     *t_token_type = tok_undefined;
                     return;
                 }
@@ -141,9 +138,8 @@ _start_:
                 break;
             }
             else if (cur_char == '.') {
-                printf("Lexical Error: module %s\n-->  %lu:%lu: invalid character \n|\n|", 
-                        source->file_name, cur_line, cur_line_symbol);
-                yel_print_error(source, cur_line, cur_line_symbol);
+                yel_print_error("LexicalError", "invalid character", source, cur_line, cur_line_symbol);
+
                 *t_token_type = tok_undefined;
                 return;
             }
@@ -176,9 +172,7 @@ _start_:
                 goto _end_;
             }
             else if (cur_char == '\n') {
-                printf("Lexical Error: module %s\n-->  %lu:%lu: a new line when reading a string literal \n|\n|", 
-                    source->file_name, cur_line, cur_line_symbol);
-                yel_print_error(source, cur_line, cur_line_symbol);
+                yel_print_error("LexicalError", "a new line when reading a string literal", source, cur_line, cur_line_symbol);
                 *t_token_type = tok_undefined;
                 return;
             }
@@ -189,9 +183,9 @@ _start_:
             ++cur_line_symbol;
         }
 
-        printf("Lexical Error: module %s\n-->  %lu:%lu: unclosed string \n|\n|", 
+        printf("LexicalError: module %s\n-->  %lu:%lu: unclosed string \n|\n|", 
                 source->file_name, com_start[0], com_start[1]);
-            yel_print_error(source, cur_line, cur_line_symbol);
+
         *t_token_type = tok_undefined;
         return;
 
@@ -466,6 +460,8 @@ YelTokens yel_parse_tokens(Source* source) {
         yel_tokens.value = (char**)__builtin_realloc(yel_tokens.value, (size_t)((yel_tokens.length + 1) * sizeof(char*)));
         yel_tokens.start_symbol = (size_t*)__builtin_realloc(yel_tokens.start_symbol, (size_t)((yel_tokens.length + 1) * sizeof(size_t)));
         yel_tokens.line = (size_t*)__builtin_realloc(yel_tokens.line, (size_t)((yel_tokens.length + 1) * sizeof(size_t)));
+
+        yel_tokens.type[yel_tokens.length] = tok_semicolon;
 
         yel_get_next_token(
             source, &yel_tokens.type[yel_tokens.length], token_value
