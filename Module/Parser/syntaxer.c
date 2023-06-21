@@ -249,10 +249,14 @@ _Bool yek_check_stmt(YelTokens* yel_tokens) {
         else if (_CurType == tok_word_break && _NextType == tok_semicolon) {
             break;
         }
+        else if (_CurType == tok_op_flbrk || _CurType == tok_op_frbrk) {
+            ++yel_tokens->pointer;
+            break;
+        }
         else {
             yel_print_error("SyntaxError", "invalid syntax", yel_tokens->src_ptr, 
-                yel_tokens->line[yel_tokens->pointer], 
-                yel_tokens->start_symbol[yel_tokens->pointer]);
+                yel_tokens->line[yel_tokens->pointer+1], 
+                yel_tokens->start_symbol[yel_tokens->pointer+1]);
 
             return RET_CODE_ERROR;
         }
@@ -266,15 +270,16 @@ _Bool yek_check_stmt(YelTokens* yel_tokens) {
 
 void yel_gen_opcode(YelTokens* yel_tokens) {
     while (yel_tokens->pointer < yel_tokens->length) {
-        if (_CurType == tok_name && _NextType == tok_binary_op_assign || _CurType == tok_word_break || _CurType == tok_word_return) {
+        if (_CurType == tok_name && _NextType == tok_binary_op_assign || _CurType == tok_word_break || 
+        _CurType == tok_word_return || _CurType == tok_op_flbrk || _CurType == tok_op_frbrk) {
             if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
                 yel_parse_statement(yel_tokens);
-            }
-            else break;
-        }
+            } else break;
+        } 
         else if (yel_check_expr(yel_tokens) == RET_CODE_OK) {
             yel_parse_expression(yel_tokens);
-        }
-        else break;
+        } else break;
+
+        puts("");
     }
 }
