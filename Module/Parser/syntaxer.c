@@ -141,49 +141,29 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
 
             break;
         }
-        else if (_CurType == tok_op_rpar) {
-            if (_NextType >= tok_binary_op_pow && _NextType <= tok_binary_op_log_or || 
-            _NextType == tok_comma || _NextType == tok_semicolon || 
-            _NextType == tok_op_rpar) {
-                if (_Parentheses == 0) {
-                    yel_print_error("SyntaxError", "expected '('", yel_tokens->src_ptr, 
-                        yel_tokens->line[yel_tokens->pointer], 
-                        yel_tokens->start_symbol[yel_tokens->pointer]);
-
-                    return RET_CODE_ERROR;
-                }
-
-                --_Parentheses;
-                _ParserStack[_ParserStackCounter] = tok_op_rpar;
-                ++_ParserStackCounter;
-                _Unary = 0;
-            }
-            else {
-                yel_print_error("SyntaxError", "invalid syntax", yel_tokens->src_ptr, 
-                    yel_tokens->line[yel_tokens->pointer+1], 
-                    yel_tokens->start_symbol[yel_tokens->pointer+1]);
-
+        else if (_CurType == tok_op_rpar && 
+        (_NextType >= tok_binary_op_pow && _NextType <= tok_binary_op_log_or ||  _NextType == tok_comma || 
+        _NextType == tok_semicolon ||  _NextType == tok_op_rpar)) {
+            if (_Parentheses == 0) {
+                yel_print_error("SyntaxError", "expected '('", yel_tokens->src_ptr, 
+                    yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer]);
                 return RET_CODE_ERROR;
             }
+
+            --_Parentheses;
+             _ParserStack[_ParserStackCounter] = tok_op_rpar;
+            ++_ParserStackCounter;
+            _Unary = 0;
+            
         }
-        else if (_CurType == tok_op_lpar) {
-            if (_NextType == tok_number_int || _NextType == tok_number_flt || 
-            _NextType == tok_bool || _NextType == tok_name || _NextType == tok_string ||  
-            _NextType == tok_binary_op_plus || _NextType == tok_binary_op_minus ||
-            _NextType == tok_unary_op_not || _NextType == tok_op_lpar ||
-            _NextType == tok_op_rpar) {
-                _ParserStack[_ParserStackCounter] = tok_op_lpar;
-                ++_ParserStackCounter;
-                ++_Parentheses;
-            }
-            else {
-                yel_print_error("SyntaxError", "expression is expected", yel_tokens->src_ptr, 
-                    yel_tokens->line[yel_tokens->pointer+1], 
-                    yel_tokens->start_symbol[yel_tokens->pointer+1]);
-
-
-                return RET_CODE_ERROR;
-            }
+        else if (_CurType == tok_op_lpar && (_NextType == tok_number_int || _NextType == tok_number_flt || 
+        _NextType == tok_bool || _NextType == tok_name || _NextType == tok_string ||  
+        _NextType == tok_binary_op_plus || _NextType == tok_binary_op_minus ||
+        _NextType == tok_unary_op_not || _NextType == tok_op_lpar || _NextType == tok_op_rpar)) {
+            _ParserStack[_ParserStackCounter] = tok_op_lpar;
+            ++_ParserStackCounter;
+            ++_Parentheses;
         }
         else if (_CurType == tok_name) {    
             if (_NextType == tok_op_lpar) {
@@ -204,73 +184,39 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
                 return RET_CODE_ERROR;
             }
         }
-        else if (_CurType == tok_number_int || _CurType == tok_number_flt || _CurType == tok_bool) {
-            if (_NextType >= tok_binary_op_pow && _NextType <= tok_binary_op_assign || 
-            _NextType == tok_comma || _NextType == tok_semicolon || _NextType == tok_op_rpar) {
-                _ParserStack[_ParserStackCounter] = tok_en_expr;
-                ++_ParserStackCounter;
-                _Unary = 0;
-            } 
-            else {
-                yel_print_error("SyntaxError", "operator is expected", yel_tokens->src_ptr, 
-                    yel_tokens->line[yel_tokens->pointer+1], 
-                    yel_tokens->start_symbol[yel_tokens->pointer+1]);
-
-                return RET_CODE_ERROR;
-            }
+        else if ((_CurType == tok_number_int || _CurType == tok_number_flt || _CurType == tok_bool) && 
+        (_NextType >= tok_binary_op_pow && _NextType <= tok_binary_op_assign || 
+        _NextType == tok_comma || _NextType == tok_semicolon || _NextType == tok_op_rpar)) {
+            _ParserStack[_ParserStackCounter] = tok_en_expr;
+            ++_ParserStackCounter;
+            _Unary = 0;
         }
-        else if (_CurType == tok_unary_op_not && _Unary) {
-            if (_NextType >= tok_name && _NextType <= tok_bool ||
-            _NextType == tok_binary_op_plus || _NextType == tok_binary_op_minus ||
-            _NextType == tok_unary_op_not || _NextType == tok_op_lpar) {
-                _ParserStack[_ParserStackCounter] = tok_unary_op;
-                ++_ParserStackCounter;
-            }
-            else {
-                yel_print_error("SyntaxError", "expression is expected", yel_tokens->src_ptr, 
-                    yel_tokens->line[yel_tokens->pointer+1], 
-                    yel_tokens->start_symbol[yel_tokens->pointer+1]);
-
-                return RET_CODE_ERROR;
-            }
+        else if (_CurType == tok_unary_op_not && _Unary && 
+        (_NextType >= tok_name && _NextType <= tok_bool ||
+        _NextType == tok_binary_op_plus || _NextType == tok_binary_op_minus ||
+        _NextType == tok_unary_op_not || _NextType == tok_op_lpar)) {
+            _ParserStack[_ParserStackCounter] = tok_unary_op;
+            ++_ParserStackCounter;
         }
-        else if (_CurType >= tok_binary_op_pow && _CurType <= tok_binary_op_assign) {
-            if (_NextType >= tok_name && _NextType <= tok_bool ||
-            _NextType == tok_binary_op_plus || _NextType == tok_binary_op_minus ||
-            _NextType == tok_unary_op_not || _NextType == tok_op_lpar) {
-                if (_Unary) _ParserStack[_ParserStackCounter] = tok_unary_op;
-                else _ParserStack[_ParserStackCounter] = tok_binary_op;
-                ++_ParserStackCounter;
-                _Unary = 1;
-            }
-            else {
-                yel_print_error("SyntaxError", "expression is expected", yel_tokens->src_ptr, 
-                    yel_tokens->line[yel_tokens->pointer+1], 
-                    yel_tokens->start_symbol[yel_tokens->pointer+1]);
-
-                return RET_CODE_ERROR;
-            }
+        else if (_CurType >= tok_binary_op_pow && _CurType <= tok_binary_op_assign && 
+        (_NextType >= tok_name && _NextType <= tok_bool ||
+        _NextType == tok_binary_op_plus || _NextType == tok_binary_op_minus ||
+        _NextType == tok_unary_op_not || _NextType == tok_op_lpar) ) {
+            _ParserStack[_ParserStackCounter] = tok_binary_op;
+            ++_ParserStackCounter;
+            _Unary = 1;
         }
-        else if (_CurType == tok_comma) {
-             if (_NextType >= tok_name && _NextType <= tok_bool ||
-            _NextType == tok_binary_op_plus || _NextType == tok_binary_op_minus ||
-            _NextType == tok_unary_op_not || _NextType == tok_op_lpar) {
-                _ParserStack[_ParserStackCounter] = tok_comma;
-                ++_ParserStackCounter;
-                _Unary = 1;
-            }
-            else {
-                yel_print_error("SyntaxError", "expression is expected", yel_tokens->src_ptr, 
-                    yel_tokens->line[yel_tokens->pointer+1], 
-                    yel_tokens->start_symbol[yel_tokens->pointer+1]);
-
-                return RET_CODE_ERROR;
-            }
+        else if (_CurType == tok_comma && (_NextType >= tok_name && _NextType <= tok_bool ||
+        _NextType == tok_binary_op_plus || _NextType == tok_binary_op_minus ||
+        _NextType == tok_unary_op_not || _NextType == tok_op_lpar)) {
+            _ParserStack[_ParserStackCounter] = tok_comma;
+            ++_ParserStackCounter;
+            _Unary = 1;
         }
         else {
             yel_print_error("SyntaxError", "invalid syntax", yel_tokens->src_ptr, 
-                yel_tokens->line[yel_tokens->pointer], 
-                yel_tokens->start_symbol[yel_tokens->pointer]);
+                yel_tokens->line[yel_tokens->pointer+1], 
+                yel_tokens->start_symbol[yel_tokens->pointer+1]);
 
             return RET_CODE_ERROR;
         }
@@ -326,11 +272,9 @@ void yel_gen_opcode(YelTokens* yel_tokens) {
             }
             else break;
         }
-        else {
-            if (yel_check_expr(yel_tokens) == RET_CODE_OK) {
-                yel_parse_expression(yel_tokens);
-            }
-            else break;
+        else if (yel_check_expr(yel_tokens) == RET_CODE_OK) {
+            yel_parse_expression(yel_tokens);
         }
+        else break;
     }
 }
