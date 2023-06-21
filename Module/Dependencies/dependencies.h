@@ -72,7 +72,9 @@ typedef enum __YelTokenType {
     tok_word_Str,       // Str
     tok_word_Any,       // Any
     tok_word_Bool,      // Bool
-    tok_word_Auto,      // 
+    tok_word_if,        // if
+    tok_word_else,      // else
+
 
     tok_$,              // end of expression
     tok_en_expr,
@@ -108,7 +110,7 @@ typedef enum __YelEntities {
 } YelEntities;
 
 #define __dbreak() printf("debug call in <File: %s:%d>", __FILE__, __LINE__);getchar()
-#define print_cur() printf("\ncur = %s\n", cur)
+#define print_cur() printf("\ncur = %s\n", _CurVal)
 #define print_tokens() puts("tokens = {");\
     for (size_t i = 0; i < token_array.length; i++) {\
         printf("   [%d, '%s', %lu:%lu]\n", token_array.type[i], token_array.value[i], token_array.line[i], token_array.start_symbol[i]);\
@@ -118,5 +120,8 @@ typedef enum __YelEntities {
 #define _NextType   yel_tokens->type[yel_tokens->pointer+1]
 #define _CurVal     yel_tokens->value[yel_tokens->pointer]
 #define _NextVal    yel_tokens->value[yel_tokens->pointer+1]
+
+#define RET_CODE_ERROR  0x1
+#define RET_CODE_OK     0x0
 
 #endif // __DEPENDECIES_H_
