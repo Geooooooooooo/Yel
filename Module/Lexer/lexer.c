@@ -18,10 +18,11 @@ size_t cur_line = 1;
 size_t cur_line_symbol = 1;
 size_t start_symbol = 1;
 
-const int yel_keywords_length = 10;
+const int yel_keywords_length = 12;
 const const char* yel_keywords[] = {
     "func", "return", "defer", "break",
-    "noreturn", "Int", "Flt", "Str", "Any", "Bool"
+    "noreturn", "Int", "Flt", "Str", "Any", "Bool", 
+    "if", "else"
 };
 
 void yel_get_next_token(Source* source, YelTokenType* t_token_type, char* token_value) {
@@ -359,7 +360,6 @@ _count_bin_operator3:
     cur_line_symbol += 4;
     goto _end_;
 
-
 _op:
     start_symbol = cur_line_symbol;
     switch (cur_char) {
@@ -370,7 +370,14 @@ _op:
     case '{': *t_token_type = (YelTokenType)tok_op_flbrk;
         ++f_brk; 
         break;
-    case '}': *t_token_type = (YelTokenType)tok_op_frbrk;
+    case '}':
+        if (f_brk == 0) {
+            yel_print_error("SyntaxError", "invalid syntax, expected '{'", 
+                source, cur_line, cur_line_symbol);
+            *t_token_type = tok_undefined;
+            goto _end_;
+        }
+        *t_token_type = (YelTokenType)tok_op_frbrk;
         --f_brk;
         break;
     case ';': *t_token_type = (YelTokenType)tok_semicolon;
@@ -380,8 +387,10 @@ _op:
     case ',': *t_token_type = (YelTokenType)tok_comma;
         break;
     default: 
+        yel_print_error("SyntaxError", "invalid syntax", 
+            source, cur_line, cur_line_symbol);
+        *t_token_type = tok_undefined;
         goto _end_;
-        break;
     }
     
     token_value[token_value_counter] = cur_src[cur_ptr];
@@ -494,7 +503,7 @@ YelTokens yel_parse_tokens(Source* source) {
     }
 
     if (f_brk != 0) {
-        printf("Lexical Error: module %s\n--> unclosed block\n\n", source->file_name);
+        printf("File '%s'\n\nSyntaxError: unexpected end of file\n", source->file_name);
         yel_tokens.error = 1;
     }
 
