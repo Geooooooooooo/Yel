@@ -119,9 +119,6 @@ _Bool yel_check_expr_grammar(YelTokens* yel_tokens) {
         ++sp;
     }
 
-    //puts("");
-    //print_ystack();
-    //puts("<expr>");
     _ParserStackCounter = 0;
     return RET_CODE_OK;
 }
@@ -152,10 +149,9 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
             }
 
             --_Parentheses;
-             _ParserStack[_ParserStackCounter] = tok_op_rpar;
+            _ParserStack[_ParserStackCounter] = tok_op_rpar;
             ++_ParserStackCounter;
             _Unary = 0;
-            
         }
         else if (_CurType == tok_op_lpar && (_NextType == tok_number_int || _NextType == tok_number_flt || 
         _NextType == tok_bool || _NextType == tok_name || _NextType == tok_string ||  
@@ -164,6 +160,7 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
             _ParserStack[_ParserStackCounter] = tok_op_lpar;
             ++_ParserStackCounter;
             ++_Parentheses;
+            _Unary = 1;
         }
         else if (_CurType == tok_name) {    
             if (_NextType == tok_op_lpar) {
@@ -191,7 +188,7 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
             ++_ParserStackCounter;
             _Unary = 0;
         }
-        else if (_CurType == tok_unary_op_not && _Unary && 
+        else if ((_CurType == tok_unary_op_not || _CurType == tok_unary_op_pos || _CurType == tok_unary_op_neg) && _Unary && 
         (_NextType >= tok_name && _NextType <= tok_bool ||
         _NextType == tok_binary_op_plus || _NextType == tok_binary_op_minus ||
         _NextType == tok_unary_op_not || _NextType == tok_op_lpar)) {
@@ -227,6 +224,7 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
     yel_tokens->pointer = start_pointer;
 
     //print_ystack();
+    //getchar();
     return yel_check_expr_grammar(yel_tokens);
 }
 

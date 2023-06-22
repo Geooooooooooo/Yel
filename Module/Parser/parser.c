@@ -8,7 +8,7 @@
     if (_CurType == tok_name)printf("load_fast %s\n",_CurVal);else printf("load_const %s\n",_CurVal);instCounter+=2;++argCounter;
 
 int          _SimpleExpr = 0;
-static int   _Parentheses = 0;
+static int   _Parentheses = 0;      // ()
 static _Bool _Unary = 1;
 static size_t instCounter = 0; 
 static size_t argCounter = 0;
@@ -33,7 +33,6 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             _Unary = 0;
             --_SimpleExpr;
 
-            // OP-CODE
             if (yel_tokens->type[uo_ptr] == tok_unary_op_pos)
                 puts("pos");
             else if(yel_tokens->type[uo_ptr] == tok_unary_op_neg)
@@ -46,7 +45,6 @@ void yel_parse_expression(YelTokens* yel_tokens) {
                 puts("dec");
 
             ++instCounter;
-            --argCounter;
             if (_SimpleExpr) return;
         }
 
@@ -56,25 +54,16 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             ++yel_tokens->pointer;
             _Unary = 1;
 
-            register int tmp__SimpleExpr = _SimpleExpr;
+            register int tmp_SimpleExpr = _SimpleExpr;
             _SimpleExpr = 0;
             yel_parse_expression(yel_tokens);
-            _SimpleExpr = tmp__SimpleExpr;
+            _SimpleExpr = tmp_SimpleExpr;
 
             if (_SimpleExpr) return;
         }
         else if (_CurType == tok_op_rpar) {
-            if (_Parentheses == 0) {
-                yel_print_error("SyntaxError", "expected '('", yel_tokens->src_ptr, 
-                    yel_tokens->line[yel_tokens->pointer], 
-                    yel_tokens->start_symbol[yel_tokens->pointer]);
-
-                yel_tokens->error = 1;
-            }
-
             --_Parentheses;
             _Unary = 0;
-
             return;
         }
 
@@ -178,7 +167,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
         }
         
         // +, -
-        else if (_NextType == tok_binary_op_plus || _NextType == tok_binary_op_minus) {
+        else if ((_NextType == tok_binary_op_plus || _NextType == tok_binary_op_minus) && _CurType != tok_op_lpar) {
             tmpPRINT_OPCODE();
 
             if (_SimpleExpr) return;
@@ -233,7 +222,6 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             --argCounter;
 
             if (_SimpleExpr) return;
-            continue; 
         }
         
         // <<, >>
@@ -657,7 +645,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
                 ++yel_tokens->pointer;
                 ++_SimpleExpr;
 
-                size_t tmp_argCounter = ++argCounter;
+                size_t tmp_argCounter = argCounter;
                 argCounter = 0;
 
                 yel_parse_expression(yel_tokens);
@@ -670,7 +658,8 @@ void yel_parse_expression(YelTokens* yel_tokens) {
                 printf("call %s\n", yel_tokens->value[tmp_i]);
 
                 instCounter += 2;
-                argCounter = tmp_argCounter;
+                argCounter = tmp_argCounter + 1;
+                _Unary = 1;
             }
             else if (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) {
                 if (_NextType != tok_binary_op_assign) 
@@ -705,8 +694,6 @@ void yel_parse_expression(YelTokens* yel_tokens) {
 
                 instCounter += 4;
                 --argCounter;
-
-                //return;
             }
             else {
                 printf("load_fast %s\n", _CurVal);
@@ -714,9 +701,6 @@ void yel_parse_expression(YelTokens* yel_tokens) {
                 ++argCounter;
                 _Unary = 0;
             }
-
-            //print_cur();
-            //getchar();
 
             if (_SimpleExpr) return;
         }
@@ -733,6 +717,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
             instCounter += 2;
             ++argCounter;
             _Unary = 0;
+
             if (_SimpleExpr) return;
         }
         else if(_CurType == tok_string) {
@@ -814,11 +799,24 @@ void yel_parse_statement(YelTokens* yel_tokens) {
             puts("brk");
             ++instCounter;
         }
-        else if (_CurType == tok_op_flbrk) {
-            puts("local:");
-        }
-        else if (_CurType == tok_op_frbrk) {
-            puts("global:");
+        else if (_CurType == tok_word_if) {
+            if (_NextType != tok_op_lpar) {
+                yel_print_error("SyntaxError", "expected '('", yel_tokens->src_ptr, 
+                    yel_tokens->line[yel_tokens->pointer+1], 
+                    yel_tokens->start_symbol[yel_tokens->pointer+1]);
+                return;
+            }
+
+            //HERE
+
+            ++yel_tokens->pointer;
+            if (yel_check_expr(yel_tokens) == RET_CODE_OK) {
+                ++_SimpleExpr;
+                yel_parse_expression(yel_tokens);
+                --_SimpleExpr;
+            }
+
+            printf("jump_false      [addr]\n");
         }
 
         ++yel_tokens->pointer;
