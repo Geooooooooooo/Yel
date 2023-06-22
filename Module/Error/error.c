@@ -19,7 +19,7 @@ void yel_print_error(const char* err_name, const char* err_desc, Source* src, si
             for (size_t l = start; l < src->length; l++) {
                 if (src->source_text[l] == '\n') break;
                 printf("%c", src->source_text[l]);
-                if (src->source_text[l] == ';') break;
+                if (src->source_text[l] == ';' && l >= symbol) break;
             }
             
             printf("\n    ");
@@ -27,7 +27,7 @@ void yel_print_error(const char* err_name, const char* err_desc, Source* src, si
                 if (src->source_text[i] == '\n') break;
 
                 else if (symbol_counter == symbol) printf("^");
-                else printf(" ");
+                else printf("~");
 
                 if (src->source_text[i] == ';') break;
 
