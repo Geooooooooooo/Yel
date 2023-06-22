@@ -181,7 +181,7 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
                 return RET_CODE_ERROR;
             }
         }
-        else if ((_CurType == tok_number_int || _CurType == tok_number_flt || _CurType == tok_bool) && 
+        else if ((_CurType == tok_number_int || _CurType == tok_number_flt || _CurType == tok_bool || _CurType == tok_string) && 
         (_NextType >= tok_binary_op_pow && _NextType <= tok_binary_op_assign || 
         _NextType == tok_comma || _NextType == tok_semicolon || _NextType == tok_op_rpar)) {
             _ParserStack[_ParserStackCounter] = tok_en_expr;
