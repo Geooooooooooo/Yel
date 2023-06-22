@@ -10,6 +10,7 @@ int _ParserStackCounter = 0;
 static int _Parentheses = 0;
 static _Bool _Unary = 1;
 
+// from syntaxer.c
 _Bool yel_check_expr_grammar(YelTokens* yel_tokens) {
     register int sp = 0;
 
@@ -123,7 +124,8 @@ _Bool yel_check_expr_grammar(YelTokens* yel_tokens) {
     return RET_CODE_OK;
 }
 
-_Bool yel_check_expr(YelTokens* yel_tokens) {
+// from syntaxer.c
+_Bool yel_check_expr(YelTokens* yel_tokens, int stmt) {
     size_t start_pointer = yel_tokens->pointer;
 
     while (yel_tokens->pointer < yel_tokens->length) {
@@ -139,8 +141,8 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
             break;
         }
         else if (_CurType == tok_op_rpar && 
-        (_NextType >= tok_binary_op_pow && _NextType <= tok_binary_op_log_or ||  _NextType == tok_comma || 
-        _NextType == tok_semicolon ||  _NextType == tok_op_rpar)) {
+        ((_NextType >= tok_binary_op_pow && _NextType <= tok_binary_op_log_or ||  _NextType == tok_comma || 
+        _NextType == tok_semicolon ||  _NextType == tok_op_rpar) || stmt)) {
             if (_Parentheses == 0) {
                 yel_print_error("SyntaxError", "expected '('", yel_tokens->src_ptr, 
                     yel_tokens->line[yel_tokens->pointer], 
@@ -152,6 +154,8 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
             _ParserStack[_ParserStackCounter] = tok_op_rpar;
             ++_ParserStackCounter;
             _Unary = 0;
+
+            if (_Parentheses == 0) break;
         }
         else if (_CurType == tok_op_lpar && (_NextType == tok_number_int || _NextType == tok_number_flt || 
         _NextType == tok_bool || _NextType == tok_name || _NextType == tok_string ||  
@@ -228,6 +232,7 @@ _Bool yel_check_expr(YelTokens* yel_tokens) {
     return yel_check_expr_grammar(yel_tokens);
 }
 
+// from syntaxer.c
 _Bool yek_check_stmt(YelTokens* yel_tokens) {
     size_t start_pointer = yel_tokens->pointer;
 
@@ -235,13 +240,13 @@ _Bool yek_check_stmt(YelTokens* yel_tokens) {
         if (_CurType == tok_name && (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign)) {
             yel_tokens->pointer += 2;
 
-            if (yel_check_expr(yel_tokens) == RET_CODE_OK) { break; }
+            if (yel_check_expr(yel_tokens, 0) == RET_CODE_OK) { break; }
             else { return RET_CODE_ERROR; }
         }
         else if (_CurType == tok_word_return) {
             ++yel_tokens->pointer;
 
-            if (_NextType == tok_semicolon || yel_check_expr(yel_tokens) == RET_CODE_OK) { break; }
+            if (_NextType == tok_semicolon || yel_check_expr(yel_tokens, 0) == RET_CODE_OK) { break; }
             else { return RET_CODE_ERROR; }
         }
         else if (_CurType == tok_word_break && _NextType == tok_semicolon) {
@@ -249,6 +254,9 @@ _Bool yek_check_stmt(YelTokens* yel_tokens) {
         }
         else if (_CurType == tok_op_flbrk || _CurType == tok_op_frbrk) {
             ++yel_tokens->pointer;
+            break;
+        }
+        else if (_CurType == tok_word_if && _NextType == tok_op_lpar) {
             break;
         }
         else {
@@ -266,15 +274,18 @@ _Bool yek_check_stmt(YelTokens* yel_tokens) {
     return RET_CODE_OK;
 }
 
+// from syntaxer.c
 void yel_gen_opcode(YelTokens* yel_tokens) {
     while (yel_tokens->pointer < yel_tokens->length) {
+        if (_CurType == tok_op_flbrk || _CurType == tok_op_frbrk) ++yel_tokens->pointer;
+        
         if (_CurType == tok_name && _NextType == tok_binary_op_assign || _CurType == tok_word_break || 
-        _CurType == tok_word_return || _CurType == tok_op_flbrk || _CurType == tok_op_frbrk) {
+        _CurType == tok_word_return || _CurType == tok_op_flbrk || _CurType == tok_op_frbrk || _CurType == tok_word_if) {
             if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
                 yel_parse_statement(yel_tokens);
             } else break;
         } 
-        else if (yel_check_expr(yel_tokens) == RET_CODE_OK) {
+        else if (yel_check_expr(yel_tokens, 0) == RET_CODE_OK) {
             yel_parse_expression(yel_tokens);
         } else break;
 
