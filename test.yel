@@ -1,20 +1,22 @@
-import_from(import_module("socket"), "*");
+import_from(find_module('socket'), '*');
 
 s = socket_create();
-socket_bind(s, '127.0.0.1', 4444);
-socket_losten(s, 10);
+socket_bind(s, 'server.ru', 8080);
+socket_listen(s, 10);
 
 conn = socket_accept(s);
 
-data = input();
-socket_send(s, conn, length(data), data);
+run = 1;
 
-if (not (rdata = decode(socket_recv(s, conn, 1024), "utf-8"))) {
-    print("No data!");
+while (run) {
+    str = input('Enter: ');
+    socket_send(s, len(str), str);
 
-    socket_close_connection(conn);
-    socket_close(s);
-    exit(1);
+    data = socket_recv(s, 1024);
+    if (not data) {
+        print('Not Data!');
+        run = 0;
+    }
 }
 
 socket_close_connection(conn);
