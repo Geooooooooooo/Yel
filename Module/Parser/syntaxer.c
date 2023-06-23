@@ -260,6 +260,7 @@ _Bool yek_check_stmt(YelTokens* yel_tokens) {
             break;
         }
         else if (_CurType == tok_word_while && _NextType == tok_op_lpar) {
+            ++yel_tokens->pointer;
             break;
         }
         else {
