@@ -168,7 +168,8 @@ void yel_parse_expression(YelTokens* yel_tokens) {
         }
         
         // +, -
-        else if ((_NextType == tok_binary_op_plus || _NextType == tok_binary_op_minus) && _CurType != tok_op_lpar) {
+        else if ((_NextType == tok_binary_op_plus || _NextType == tok_binary_op_minus) && _CurType != tok_op_lpar &&  
+        _CurType != tok_binary_op_plus && _CurType != tok_binary_op_minus) {
             tmpPRINT_OPCODE();
 
             if (_SimpleExpr) return;
@@ -660,7 +661,7 @@ void yel_parse_expression(YelTokens* yel_tokens) {
 
                 instCounter += 2;
                 argCounter = tmp_argCounter + 1;
-                _Unary = 1;
+                _Unary = 0;
             }
             else if (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) {
                 if (_NextType != tok_binary_op_assign) 
@@ -848,12 +849,14 @@ void yel_parse_statement(YelTokens* yel_tokens) {
                 }
             }
 
-            puts("else:");
+            puts("end_if:");
 
             if (_CurType == tok_word_else) {
-                if (_CurType != tok_op_flbrk) {
-                    ++yel_tokens->pointer;
+                puts("jump_forward       [end_if]\n\nelse:");
 
+                ++yel_tokens->pointer;
+
+                if (_CurType != tok_op_flbrk) {
                     if (_CurType == tok_name && _NextType == tok_binary_op_assign || _CurType == tok_word_break || 
                     _CurType == tok_word_return || _CurType == tok_op_flbrk || _CurType == tok_op_frbrk || _CurType == tok_word_if) {
                         if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
@@ -886,7 +889,11 @@ void yel_parse_statement(YelTokens* yel_tokens) {
                         } else break;
                     }
                 }
+
+                printf("\nend_if:");
             }
+
+            return;
         }
 
         ++yel_tokens->pointer;
