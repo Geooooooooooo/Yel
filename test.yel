@@ -1,4 +1,4 @@
-import_from(find_module('socket'), '*');
+import_all_from('socket');
 
 s = socket_create();
 socket_bind(s, 'server.ru', 8080);
