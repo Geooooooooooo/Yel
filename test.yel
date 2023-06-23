@@ -1,2 +1,21 @@
-a = 10;
-b = 20;
+import_from(import_module("socket"), "*");
+
+s = socket_create();
+socket_bind(s, '127.0.0.1', 4444);
+socket_losten(s, 10);
+
+conn = socket_accept(s);
+
+data = input();
+socket_send(s, conn, length(data), data);
+
+if (not (rdata = decode(socket_recv(s, conn, 1024), "utf-8"))) {
+    print("No data!");
+
+    socket_close_connection(conn);
+    socket_close(s);
+    exit(1);
+}
+
+socket_close_connection(conn);
+socket_close(s);
