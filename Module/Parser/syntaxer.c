@@ -259,6 +259,9 @@ _Bool yek_check_stmt(YelTokens* yel_tokens) {
         else if (_CurType == tok_word_if && _NextType == tok_op_lpar) {
             break;
         }
+        else if (_CurType == tok_word_while && _NextType == tok_op_lpar) {
+            break;
+        }
         else {
             yel_print_error("SyntaxError", "invalid syntax", yel_tokens->src_ptr, 
                 yel_tokens->line[yel_tokens->pointer+1], 
@@ -279,8 +282,10 @@ void yel_gen_opcode(YelTokens* yel_tokens) {
     while (yel_tokens->pointer < yel_tokens->length) {
         if (_CurType == tok_op_flbrk || _CurType == tok_op_frbrk) ++yel_tokens->pointer;
         
-        if (_CurType == tok_name && _NextType == tok_binary_op_assign || _CurType == tok_word_break || 
-        _CurType == tok_word_return || _CurType == tok_op_flbrk || _CurType == tok_op_frbrk || _CurType == tok_word_if) {
+        if (_CurType == tok_name && (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) || 
+        _CurType == tok_word_break || 
+        _CurType == tok_word_return || _CurType == tok_op_flbrk || _CurType == tok_op_frbrk || 
+        _CurType == tok_word_if || _CurType == tok_word_while) {
             if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
                 yel_parse_statement(yel_tokens);
             } else break;
