@@ -18,11 +18,11 @@ size_t cur_line = 1;
 size_t cur_line_symbol = 1;
 size_t start_symbol = 1;
 
-const int yel_keywords_length = 12;
+const int yel_keywords_length = 13;
 const const char* yel_keywords[] = {
     "func", "return", "defer", "break",
     "noreturn", "Int", "Flt", "Str", "Any", "Bool", 
-    "if", "else"
+    "if", "else", "while"
 };
 
 void yel_get_next_token(Source* source, YelTokenType* t_token_type, char* token_value) {
