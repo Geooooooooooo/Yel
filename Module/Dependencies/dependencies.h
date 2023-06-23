@@ -74,7 +74,7 @@ typedef enum __YelTokenType {
     tok_word_Bool,      // Bool
     tok_word_if,        // if
     tok_word_else,      // else
-
+    tok_word_while,     // while
 
     tok_$,              // end of expression
     tok_en_expr,
