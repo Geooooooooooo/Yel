@@ -282,7 +282,10 @@ _Bool yek_check_stmt(YelTokens* yel_tokens) {
 }
 
 // from syntaxer.c
-void yel_gen_opcode(YelTokens* yel_tokens) {
+void yel_gen_opcode(YelTokens* yel_tokens, OPCODES* opcodes) {
+    opcodes->codes = (OPCODEWORD*)malloc(sizeof(OPCODEWORD));
+    opcodes->len = 0;
+
     while (yel_tokens->pointer < yel_tokens->length) {
         if (_CurType == tok_op_flbrk || _CurType == tok_op_frbrk) ++yel_tokens->pointer;
         
@@ -291,13 +294,15 @@ void yel_gen_opcode(YelTokens* yel_tokens) {
         _CurType == tok_word_return || _CurType == tok_op_flbrk || _CurType == tok_op_frbrk || 
         _CurType == tok_word_if || _CurType == tok_word_while || _CurType == tok_word_func) {
             if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
-                yel_parse_statement(yel_tokens);
+                yel_parse_statement(yel_tokens, opcodes);
             } else break;
         } 
         else if (yel_check_expr(yel_tokens, 0) == RET_CODE_OK) {
-            yel_parse_expression(yel_tokens);
+            yel_parse_expression(yel_tokens, opcodes);
         } else break;
-
-        puts("");
     }
+
+    opcodes->codes = realloc(opcodes->codes, (opcodes->len+1)*sizeof(OPCODEWORD));
+    opcodes->codes[opcodes->len] = OP_HALT;
+    ++opcodes->len;
 }
