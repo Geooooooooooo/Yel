@@ -923,8 +923,8 @@ void yel_parse_statement(YelTokens* yel_tokens) {
                 --_SimpleExpr;
             }
 
-            printf("pop_jump_zero [end_while]\n\n");
-            instCounter += 2;
+            printf("jump_zero [end_while]\npop\n\n");
+            instCounter += 3;
 
             ++yel_tokens->pointer;
 
@@ -966,8 +966,8 @@ void yel_parse_statement(YelTokens* yel_tokens) {
                 }
             }
 
-            printf("jump %d\nend_while:\n", tmp_inst);
-            instCounter += 2;
+            printf("jump %d\nend_while:\npop\n", tmp_inst);
+            instCounter += 3;
             return;
         }
         else if (_CurType == tok_word_func) {
@@ -1028,6 +1028,8 @@ void yel_parse_statement(YelTokens* yel_tokens) {
                         yel_parse_expression(yel_tokens);
                     } else break;
                 }
+
+                printf("ret\n");
             }
             else {
                 yel_print_error("SyntaxError", "invalid syntax. function must be declared and implemented", 
