@@ -655,10 +655,10 @@ void yel_parse_expression(YelTokens* yel_tokens) {
                 --_SimpleExpr;
 
                 printf("load_const %lu           ; args\n", argCounter);
-                printf("load_const %lu          ; return address\n", instCounter+7);
+                //printf("load_const %lu          ; return address\n", instCounter+7);
                 printf("call %s\n", yel_tokens->value[tmp_i]);
 
-                instCounter += 6;
+                instCounter += 4;
                 argCounter = tmp_argCounter + 1;
                 _Unary = 0;
             }
@@ -808,6 +808,8 @@ void yel_parse_statement(YelTokens* yel_tokens) {
         else if (_CurType == tok_word_break) {
             puts("brk");
             ++instCounter;
+
+            yel_tokens->pointer += 2;
             return;
         }
         else if (_CurType == tok_word_if) {
@@ -825,10 +827,10 @@ void yel_parse_statement(YelTokens* yel_tokens) {
             ++yel_tokens->pointer;
 
             if (_CurType != tok_op_flbrk) {
-                ++yel_tokens->pointer;
                 if (_CurType == tok_name &&(_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) || 
                 _CurType == tok_word_break || 
-                _CurType == tok_word_return || _CurType == tok_op_flbrk || _CurType == tok_op_frbrk || _CurType == tok_word_if) {
+                _CurType == tok_word_return || _CurType == tok_op_flbrk || _CurType == tok_op_frbrk || 
+                _CurType == tok_word_if || _CurType == tok_word_while) {
                     if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
                         yel_parse_statement(yel_tokens);
                     } else break;
@@ -850,7 +852,8 @@ void yel_parse_statement(YelTokens* yel_tokens) {
                     
                     if (_CurType == tok_name && (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) || 
                     _CurType == tok_word_break || 
-                    _CurType == tok_word_return || _CurType == tok_op_flbrk || _CurType == tok_op_frbrk || _CurType == tok_word_if) {
+                    _CurType == tok_word_return || _CurType == tok_op_flbrk || _CurType == tok_op_frbrk || 
+                    _CurType == tok_word_if || _CurType == tok_word_while) {
                         if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
                             yel_parse_statement(yel_tokens);
                         } else break;
@@ -872,7 +875,7 @@ void yel_parse_statement(YelTokens* yel_tokens) {
                 if (_CurType != tok_op_flbrk) {
                     if (_CurType == tok_name && (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) || 
                     _CurType == tok_word_break ||  _CurType == tok_word_return || _CurType == tok_op_flbrk || 
-                    _CurType == tok_op_frbrk || _CurType == tok_word_if) {
+                    _CurType == tok_op_frbrk || _CurType == tok_word_if || _CurType == tok_word_while) {
                         if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
                             yel_parse_statement(yel_tokens);
                         } else break;
@@ -894,7 +897,7 @@ void yel_parse_statement(YelTokens* yel_tokens) {
                         
                         if (_CurType == tok_name && (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) || 
                         _CurType == tok_word_break ||  _CurType == tok_word_return || _CurType == tok_op_flbrk || 
-                        _CurType == tok_op_frbrk || _CurType == tok_word_if) {
+                        _CurType == tok_op_frbrk || _CurType == tok_word_if || _CurType == tok_word_while) {
                             if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
                                 yel_parse_statement(yel_tokens);
                             } else break;
@@ -913,22 +916,22 @@ void yel_parse_statement(YelTokens* yel_tokens) {
         else if (_CurType == tok_word_while) {
             int tmp_inst = instCounter+1;
             ++yel_tokens->pointer;
+
             if (yel_check_expr(yel_tokens, 1) == RET_CODE_OK) {
                 ++_SimpleExpr;
                 yel_parse_expression(yel_tokens);
                 --_SimpleExpr;
             }
 
-            printf("jump_zero [end_while]\npop\n\n");
-            instCounter += 3;
+            printf("pop_jump_zero [end_while]\n\n");
+            instCounter += 2;
 
             ++yel_tokens->pointer;
 
             if (_CurType != tok_op_flbrk) {
-                ++yel_tokens->pointer;
                 if (_CurType == tok_name && (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) || 
                 _CurType == tok_word_break ||  _CurType == tok_word_return || _CurType == tok_op_flbrk || 
-                _CurType == tok_op_frbrk || _CurType == tok_word_if) {
+                _CurType == tok_op_frbrk || _CurType == tok_word_if || _CurType == tok_word_while) {
                     if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
                         yel_parse_statement(yel_tokens);
                     } else break;
@@ -952,7 +955,7 @@ void yel_parse_statement(YelTokens* yel_tokens) {
                     
                     if (_CurType == tok_name && (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) || 
                     _CurType == tok_word_break ||  _CurType == tok_word_return || _CurType == tok_op_flbrk || 
-                    _CurType == tok_op_frbrk || _CurType == tok_word_if) {
+                    _CurType == tok_op_frbrk || _CurType == tok_word_if || _CurType == tok_word_while) {
                         if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
                             yel_parse_statement(yel_tokens);
                         } else break;
@@ -963,8 +966,79 @@ void yel_parse_statement(YelTokens* yel_tokens) {
                 }
             }
 
-            printf("jump %d\nend_while:\npop\n", tmp_inst);
-            instCounter += 3;
+            printf("jump %d\nend_while:\n", tmp_inst);
+            instCounter += 2;
+            return;
+        }
+        else if (_CurType == tok_word_func) {
+            size_t tmp_i = ++yel_tokens->pointer;
+
+            if (_NextType != tok_op_lpar) {
+                yel_print_error("SyntaxError", "invalid syntax", yel_tokens->src_ptr, 
+                    yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer]);
+
+                return;
+            }
+
+            yel_tokens->pointer += 2;
+
+            printf("%s:\n", yel_tokens->value[tmp_i]);
+            int largCounter = 0;
+            while (_CurType != tok_op_rpar) {
+                if (_CurType == tok_name && (_NextType == tok_comma || _NextType == tok_op_rpar)) {
+                    printf("%s      ; %d\n", _CurVal, ++largCounter);
+                }
+                else if (_CurType == tok_comma && _NextType == tok_name) {
+                    ++yel_tokens->pointer;
+                    continue;
+                }
+                else {
+                    yel_print_error("SyntaxError", "invalid syntax", yel_tokens->src_ptr, 
+                        yel_tokens->line[yel_tokens->pointer], 
+                        yel_tokens->start_symbol[yel_tokens->pointer]);
+                }
+
+                ++yel_tokens->pointer;
+            }
+            ++yel_tokens->pointer;
+
+            if (_CurType == tok_op_flbrk) {
+                int fbrks = 0;
+
+                while (yel_tokens->pointer < yel_tokens->length) {
+                    if (_CurType == tok_op_flbrk) {
+                        ++yel_tokens->pointer;
+                        ++fbrks;
+                    }  else if (_CurType == tok_op_frbrk) {
+                        ++yel_tokens->pointer;
+                        --fbrks;
+                    } 
+                    
+                    if (fbrks == 0) break;
+                    
+                    if (_CurType == tok_name && (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) || 
+                    _CurType == tok_word_break ||  _CurType == tok_word_return || _CurType == tok_op_flbrk || 
+                    _CurType == tok_op_frbrk || _CurType == tok_word_if || _CurType == tok_word_while) {
+                        if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
+                            yel_parse_statement(yel_tokens);
+                        } else break;
+                    } 
+                    else if (yel_check_expr(yel_tokens, 0) == RET_CODE_OK) {
+                        yel_parse_expression(yel_tokens);
+                    } else break;
+                }
+            }
+            else {
+                yel_print_error("SyntaxError", "invalid syntax. function must be declared and implemented", 
+                    yel_tokens->src_ptr, yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer]);
+            }
+
+            printf("\nload_const [func address]\n");
+            printf("make_func_and_store %s\n", yel_tokens->value[tmp_i]);
+
+            instCounter += 4;
             return;
         }
 

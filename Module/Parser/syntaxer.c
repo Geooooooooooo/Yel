@@ -260,7 +260,10 @@ _Bool yek_check_stmt(YelTokens* yel_tokens) {
             break;
         }
         else if (_CurType == tok_word_while && _NextType == tok_op_lpar) {
-            ++yel_tokens->pointer;
+            //++yel_tokens->pointer;
+            break;
+        }
+        else if (_CurType == tok_word_func &&  _NextType == tok_name) {
             break;
         }
         else {
@@ -286,7 +289,7 @@ void yel_gen_opcode(YelTokens* yel_tokens) {
         if (_CurType == tok_name && (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) || 
         _CurType == tok_word_break || 
         _CurType == tok_word_return || _CurType == tok_op_flbrk || _CurType == tok_op_frbrk || 
-        _CurType == tok_word_if || _CurType == tok_word_while) {
+        _CurType == tok_word_if || _CurType == tok_word_while || _CurType == tok_word_func) {
             if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
                 yel_parse_statement(yel_tokens);
             } else break;
