@@ -1,51 +1,11 @@
 #ifndef __YVM_H__
 #define __YVM_H__
 
-#include "Dependencies/dependencies.h"
+#include "../Dependencies/dependencies.h"
 
-typedef const OPCODEWORD _OPCODEWORD;
-
-OPCODEWORD MAX_STACK_SIZE = 65'536;
-
-_OPCODEWORD OP_HALT             = 0;
-_OPCODEWORD LOAD_VALUE          = 1;
-_OPCODEWORD LOAD_CONST          = 2;
-_OPCODEWORD POP_VALUE           = 3;
-_OPCODEWORD DUP_VALUE           = 4;
-
-_OPCODEWORD UNARY_POS           = 5;
-_OPCODEWORD UNARY_NEG           = 6;
-_OPCODEWORD UNARY_NOT           = 7;
-_OPCODEWORD UNARY_INC           = 8;
-_OPCODEWORD UNARY_DEC           = 9;
-
-_OPCODEWORD BYNARY_POW          = 10;
-_OPCODEWORD BYNARY_DIV          = 11;
-_OPCODEWORD BYNARY_MUL          = 12;
-_OPCODEWORD BYNARY_MOD          = 13;
-_OPCODEWORD BYNARY_ADD          = 14;
-_OPCODEWORD BYNARY_SUB          = 15;
-_OPCODEWORD BYNARY_RSH          = 16;
-_OPCODEWORD BYNARY_LSH          = 17;
-_OPCODEWORD BYNARY_MORE         = 18;
-_OPCODEWORD BYNARY_LESS         = 19;
-_OPCODEWORD BYNARY_MORE_EQ      = 20;
-_OPCODEWORD BYNARY_LESS_EQ      = 21;
-_OPCODEWORD BYNARY_EQ           = 22;
-_OPCODEWORD BYNARY_NOT_EQ       = 23;
-_OPCODEWORD BYNARY_AND          = 24;
-_OPCODEWORD BYNARY_OR           = 25;
-_OPCODEWORD BYNARY_LOGICAL_AND  = 26;
-_OPCODEWORD BYNARY_LOGICAL_OR   = 27;
-
-_OPCODEWORD OP_JUMP_TO          = 28;
-_OPCODEWORD OP_JUMP_ZERO        = 29;
-
-_OPCODEWORD OP_CALL             = 30;
-_OPCODEWORD OP_RET              = 31;
+OPCODEWORD MAX_STACK_SIZE = 65536;
 
 void yel_run();
 void yel_init_vm(OPCODEWORD stack_size);
-OPCODEWORD yel_add_data();
 
 #endif // __YVM_H__
