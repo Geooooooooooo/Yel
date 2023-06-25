@@ -6,7 +6,7 @@
 
 #define tmpPRINT_OPCODE() {\
     if (_CurType == tok_name) {opcodes->codes[opcodes->len] = LOAD_VALUE;\
-        opcodes->codes[opcodes->len+1] = &_CurVal;}\
+        opcodes->codes[opcodes->len+1] = (OPCODEWORD)_CurVal;}\
     else {opcodes->codes[opcodes->len] = LOAD_CONST;\
         opcodes->codes[opcodes->len+1] = &_CurVal;}opcodes->len+=2;++argCounter;}
 
@@ -708,7 +708,7 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 opcodes->codes[opcodes->len] = LOAD_CONST;
                 opcodes->codes[opcodes->len+1] = &argCounter;         // addres to constant
                 opcodes->codes[opcodes->len+2] = OP_CALL;
-                opcodes->codes[opcodes->len+3] = &yel_tokens->value[tmp_i];
+                opcodes->codes[opcodes->len+3] = yel_tokens->value[tmp_i];
 
                 opcodes->len += 4;
                 argCounter = tmp_argCounter + 1;
@@ -744,7 +744,7 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 
                 opcodes->codes[opcodes->len+2] = DUP_VALUE;
                 opcodes->codes[opcodes->len+3] = OP_STORE;
-                opcodes->codes[opcodes->len+4] = &yel_tokens->value[tmp_i];
+                opcodes->codes[opcodes->len+4] = yel_tokens->value[tmp_i];
 
                 opcodes->len += 5;
                 --argCounter;
@@ -752,7 +752,7 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
             else {
                 
                 opcodes->codes[opcodes->len] = LOAD_VALUE;
-                opcodes->codes[opcodes->len+1] = &_CurVal;
+                opcodes->codes[opcodes->len+1] = _CurVal;
                 opcodes->len += 2;
 
                 ++argCounter;
@@ -806,7 +806,7 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
                 yel_parse_expression(yel_tokens, opcodes);
                 
                 opcodes->codes[opcodes->len] = OP_STORE;
-                opcodes->codes[opcodes->len+1] = &_CurVal;
+                opcodes->codes[opcodes->len+1] = _CurVal;
                 opcodes->len += 2;
 
                 return;
@@ -814,34 +814,36 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
             else if (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_pow_assign) {
                 
                 opcodes->codes[opcodes->len] = LOAD_VALUE;
-                opcodes->codes[opcodes->len+1] = &_CurVal;
+                opcodes->codes[opcodes->len+1] = _CurVal;
                 opcodes->len += 2;
 
                 size_t tmp_i = yel_tokens->pointer;
                 YelTokenType tmp_type = _NextType;
 
                 yel_tokens->pointer += 2;
-                opcodes->len += 2;
 
+                _Unary = 1;
                 yel_parse_expression(yel_tokens, opcodes);
+                _Unary = 0;
 
+                opcodes->codes[opcodes->len] = BYNARY_OP;
                 switch (tmp_type) {
-                case tok_binary_op_div_assign:      opcodes->codes[opcodes->len] = BYNARY_DIV; break;
-                case tok_binary_op_mul_assign:      opcodes->codes[opcodes->len] = BYNARY_MUL; break;
-                case tok_binary_op_percent_assign:  opcodes->codes[opcodes->len] = BYNARY_MOD; break;
-                case tok_binary_op_plus_assign:     opcodes->codes[opcodes->len] = BYNARY_ADD; break;
-                case tok_binary_op_minus_assign:    opcodes->codes[opcodes->len] = BYNARY_SUB; break;
-                case tok_binary_op_rsh_assign:      opcodes->codes[opcodes->len] = BYNARY_RSH; break;
-                case tok_binary_op_lsh_assign:      opcodes->codes[opcodes->len] = BYNARY_LSH; break;
-                case tok_binary_op_and_assign:      opcodes->codes[opcodes->len] = BYNARY_AND; break;
-                case tok_binary_op_or_assign:       opcodes->codes[opcodes->len] = BYNARY_OR;  break;
-                case tok_binary_op_pow_assign:      opcodes->codes[opcodes->len] = BYNARY_POW; break;
+                case tok_binary_op_div_assign:      opcodes->codes[opcodes->len+1] = BYNARY_DIV; break;
+                case tok_binary_op_mul_assign:      opcodes->codes[opcodes->len+1] = BYNARY_MUL; break;
+                case tok_binary_op_percent_assign:  opcodes->codes[opcodes->len+1] = BYNARY_MOD; break;
+                case tok_binary_op_plus_assign:     opcodes->codes[opcodes->len+1] = BYNARY_ADD; break;
+                case tok_binary_op_minus_assign:    opcodes->codes[opcodes->len+1] = BYNARY_SUB; break;
+                case tok_binary_op_rsh_assign:      opcodes->codes[opcodes->len+1] = BYNARY_RSH; break;
+                case tok_binary_op_lsh_assign:      opcodes->codes[opcodes->len+1] = BYNARY_LSH; break;
+                case tok_binary_op_and_assign:      opcodes->codes[opcodes->len+1] = BYNARY_AND; break;
+                case tok_binary_op_or_assign:       opcodes->codes[opcodes->len+1] = BYNARY_OR;  break;
+                case tok_binary_op_pow_assign:      opcodes->codes[opcodes->len+1] = BYNARY_POW; break;
                 }
 
-                opcodes->codes[opcodes->len+1] = OP_STORE;
-                opcodes->codes[opcodes->len+2] = &yel_tokens->value[tmp_i];
+                opcodes->codes[opcodes->len+2] = OP_STORE;
+                opcodes->codes[opcodes->len+3] = yel_tokens->value[tmp_i];
 
-                opcodes->len += 3;
+                opcodes->len += 4;
                 return;
             }
         }
