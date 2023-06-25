@@ -5,21 +5,24 @@
 #include "../Dependencies/dependencies.h"
 
 #define tmpPRINT_OPCODE() {\
-    if (_CurType == tok_name) {\
-        opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));\
-        opcodes->codes[opcodes->len] = LOAD_VALUE;\
+    if (_CurType == tok_name) {opcodes->codes[opcodes->len] = LOAD_VALUE;\
         opcodes->codes[opcodes->len+1] = &_CurVal;}\
-    else {opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));\
-        opcodes->codes[opcodes->len] = LOAD_CONST;\
+    else {opcodes->codes[opcodes->len] = LOAD_CONST;\
         opcodes->codes[opcodes->len+1] = &_CurVal;}opcodes->len+=2;++argCounter;}
 
 int          _SimpleExpr = 0;
 static int   _Parentheses = 0;      // ()
 static _Bool _Unary = 1;
 static size_t argCounter = 0;
+static size_t curInstLen = 0;
 
 // from parser.c
 void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
+    if (curInstLen <= opcodes->len) {
+        curInstLen = opcodes->len + 40;
+        opcodes->codes = realloc(opcodes->codes, (curInstLen)*sizeof(OPCODEWORD));
+    }
+
     while (yel_tokens->pointer < yel_tokens->length) {
         if (_CurType == tok_semicolon) {            
             ++yel_tokens->pointer;
@@ -38,8 +41,6 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
 
             _Unary = 0;
             --_SimpleExpr;
-
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+1)*sizeof(OPCODEWORD));
 
             if (yel_tokens->type[uo_ptr] == tok_unary_op_pos)
                 opcodes->codes[opcodes->len] = UNARY_POS;
@@ -88,7 +89,6 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
             --_SimpleExpr;
             _Unary = 0;
 
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
             opcodes->codes[opcodes->len] = BYNARY_OP;
             opcodes->codes[opcodes->len+1] = BYNARY_POW;
 
@@ -107,7 +107,6 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
             --_SimpleExpr;
             _Unary = 0;
 
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
             opcodes->codes[opcodes->len] = BYNARY_OP;
             opcodes->codes[opcodes->len+1] = BYNARY_POW;
             opcodes->len += 2;
@@ -139,7 +138,6 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 --_SimpleExpr;
             }
 
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
             opcodes->codes[opcodes->len] = BYNARY_OP;
 
             if (yel_tokens->type[tmp_i] == tok_binary_op_div)
@@ -169,7 +167,6 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 --_SimpleExpr;
             }
 
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
             opcodes->codes[opcodes->len] = BYNARY_OP;
 
             if (yel_tokens->type[tmp_i] == tok_binary_op_div)
@@ -206,7 +203,6 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 --_SimpleExpr;
             }
 
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
             opcodes->codes[opcodes->len] = BYNARY_OP;
 
             if (yel_tokens->type[tmp_i] == tok_binary_op_plus)
@@ -234,7 +230,6 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 --_SimpleExpr;
             }
 
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
             opcodes->codes[opcodes->len] = BYNARY_OP;
 
             if (yel_tokens->type[tmp_i] == tok_binary_op_plus)
@@ -271,7 +266,6 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 --_SimpleExpr;
             }
 
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
             opcodes->codes[opcodes->len] = BYNARY_OP;
 
             if (yel_tokens->type[tmp_i] == tok_binary_op_rsh)
@@ -300,7 +294,6 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 --_SimpleExpr;
             }
 
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
             opcodes->codes[opcodes->len] = BYNARY_OP;
 
             if (yel_tokens->type[tmp_i] == tok_binary_op_rsh)
@@ -335,7 +328,6 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 --_SimpleExpr;
             }
 
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
             opcodes->codes[opcodes->len] = BYNARY_OP;
 
             if (yel_tokens->type[tmp_i] == tok_binary_op_more) 
@@ -368,7 +360,6 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 --_SimpleExpr;
             }
 
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
             opcodes->codes[opcodes->len] = BYNARY_OP;
 
             if (yel_tokens->type[tmp_i] == tok_binary_op_more) 
@@ -407,7 +398,6 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 --_SimpleExpr;
             }
 
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
             opcodes->codes[opcodes->len] = BYNARY_OP;
 
             if (yel_tokens->type[tmp_i] == tok_binary_op_eq)
@@ -436,7 +426,6 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 --_SimpleExpr;
             }
 
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
             opcodes->codes[opcodes->len] = BYNARY_OP;
 
             if (yel_tokens->type[tmp_i] == tok_binary_op_eq)
@@ -469,7 +458,6 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 --_SimpleExpr;
             }
 
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
             opcodes->codes[opcodes->len] = BYNARY_OP;
             opcodes->codes[opcodes->len+1] = BYNARY_AND;
 
@@ -493,7 +481,6 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 --_SimpleExpr;
             }
             
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
             opcodes->codes[opcodes->len] = BYNARY_OP;
             opcodes->codes[opcodes->len+1] = BYNARY_AND;
 
@@ -523,7 +510,6 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 --_SimpleExpr;
             }
 
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
             opcodes->codes[opcodes->len] = BYNARY_OP;
             opcodes->codes[opcodes->len+1] = BYNARY_OR;
 
@@ -547,7 +533,6 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 --_SimpleExpr;
             }
             
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
             opcodes->codes[opcodes->len] = BYNARY_OP;
             opcodes->codes[opcodes->len+1] = BYNARY_OR;
 
@@ -577,7 +562,6 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 --_SimpleExpr;
             }
 
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
             opcodes->codes[opcodes->len] = BYNARY_OP;
             opcodes->codes[opcodes->len+1] = BYNARY_LOGICAL_AND;
 
@@ -601,7 +585,6 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 --_SimpleExpr;
             }
             
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
             opcodes->codes[opcodes->len] = BYNARY_OP;
             opcodes->codes[opcodes->len+1] = BYNARY_LOGICAL_AND;
 
@@ -631,7 +614,7 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 --_SimpleExpr;
             }
 
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
+            
             opcodes->codes[opcodes->len] = BYNARY_OP;
             opcodes->codes[opcodes->len+1] = BYNARY_LOGICAL_OR;
 
@@ -655,7 +638,7 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 --_SimpleExpr;
             }
             
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
+            
             opcodes->codes[opcodes->len] = BYNARY_OP;
             opcodes->codes[opcodes->len+1] = BYNARY_LOGICAL_OR;
 
@@ -722,7 +705,6 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 //printf("load_const %lu          ; return address\n", opcodes->len+7);
                 //printf("call %s\n", yel_tokens->value[tmp_i]);
 
-                opcodes->codes = realloc(opcodes->codes, (opcodes->len+4*sizeof(OPCODEWORD)));
                 opcodes->codes[opcodes->len] = LOAD_CONST;
                 opcodes->codes[opcodes->len+1] = &argCounter;         // addres to constant
                 opcodes->codes[opcodes->len+2] = OP_CALL;
@@ -746,8 +728,6 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
 
                 --_SimpleExpr;
 
-                opcodes->codes = realloc(opcodes->codes, (opcodes->len+5)*sizeof(OPCODEWORD));
-
                 switch (tmp_type) {
                 case tok_binary_op_div_assign:      opcodes->codes[opcodes->len] = BYNARY_OP;opcodes->codes[opcodes->len+1] = BYNARY_DIV; break;
                 case tok_binary_op_mul_assign:      opcodes->codes[opcodes->len] = BYNARY_OP;opcodes->codes[opcodes->len+1] = BYNARY_MUL; break;
@@ -770,7 +750,7 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 --argCounter;
             }
             else {
-                opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
+                
                 opcodes->codes[opcodes->len] = LOAD_VALUE;
                 opcodes->codes[opcodes->len+1] = &_CurVal;
                 opcodes->len += 2;
@@ -790,7 +770,7 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 yel_tokens->error = 1;
             }
 
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
+            
             opcodes->codes[opcodes->len] = LOAD_CONST;
             opcodes->codes[opcodes->len+1] = &_CurVal;            // add to const
             opcodes->len += 2;
@@ -808,6 +788,11 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
 
 // from parser.c
 void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
+    if (curInstLen <= opcodes->len) {
+        curInstLen = opcodes->len + 40;
+        opcodes->codes = realloc(opcodes->codes, (curInstLen)*sizeof(OPCODEWORD));
+    }
+
     while (yel_tokens->pointer < yel_tokens->length) {
         if (_CurType == tok_semicolon) {
             ++yel_tokens->pointer;
@@ -819,10 +804,7 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
                 yel_tokens->pointer += 2;
 
                 yel_parse_expression(yel_tokens, opcodes);
-
-                //printf("store %s\n", yel_tokens->value[tmp_i]);
-
-                opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
+                
                 opcodes->codes[opcodes->len] = OP_STORE;
                 opcodes->codes[opcodes->len+1] = &_CurVal;
                 opcodes->len += 2;
@@ -830,7 +812,7 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
                 return;
             }
             else if (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_pow_assign) {
-                opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
+                
                 opcodes->codes[opcodes->len] = LOAD_VALUE;
                 opcodes->codes[opcodes->len+1] = &_CurVal;
                 opcodes->len += 2;
@@ -843,7 +825,6 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
 
                 yel_parse_expression(yel_tokens, opcodes);
 
-                opcodes->codes = realloc(opcodes->codes, (opcodes->len+3)*sizeof(OPCODEWORD));
                 switch (tmp_type) {
                 case tok_binary_op_div_assign:      opcodes->codes[opcodes->len] = BYNARY_DIV; break;
                 case tok_binary_op_mul_assign:      opcodes->codes[opcodes->len] = BYNARY_MUL; break;
@@ -868,7 +849,6 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
             ++yel_tokens->pointer;
             yel_parse_expression(yel_tokens, opcodes);
 
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+1)*sizeof(OPCODEWORD));
             opcodes->codes[opcodes->len] = OP_RET;
             opcodes->len += 2;
             ++opcodes->len;
@@ -882,7 +862,6 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
             return;
         }
         else if (_CurType == tok_word_break) {
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+1)*sizeof(OPCODEWORD));
             opcodes->codes[opcodes->len] = OP_BRK;
             opcodes->len += 2;
             ++opcodes->len;
@@ -897,8 +876,7 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
                 yel_parse_expression(yel_tokens, opcodes);
                 --_SimpleExpr;
             }
-
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
+            
             opcodes->codes[opcodes->len] = OP_JUMP_ZERO;
             size_t _NextAddress = opcodes->len+1;
 
@@ -945,9 +923,8 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
             }
 
             if (_CurType == tok_word_else) {
-                opcodes->codes[_NextAddress] = opcodes->len+1;
-
-                opcodes->codes = realloc(opcodes->codes, (opcodes->len+2)*sizeof(OPCODEWORD));
+                opcodes->codes[_NextAddress] = opcodes->len+2;
+                
                 opcodes->codes[opcodes->len] = OP_JUMP_TO;
                 _NextAddress = opcodes->len+1;
 
@@ -994,7 +971,7 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
                 opcodes->codes[_NextAddress] = opcodes->len;            
             }
             else {
-                opcodes->codes[_NextAddress] = opcodes->len-1;
+                opcodes->codes[_NextAddress] = opcodes->len;
             }
 
             return;
@@ -1009,7 +986,6 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
                 --_SimpleExpr;
             }
 
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+3)*sizeof(OPCODEWORD));
             opcodes->codes[opcodes->len] = OP_JUMP_ZERO;
             size_t _NextAddress = opcodes->len+1;
             opcodes->codes[opcodes->len+2] = POP_VALUE;
@@ -1061,7 +1037,6 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
             //printf("jump %d\nend_while:\npop\n", tmp_inst);
             opcodes->len += 3;
 
-            opcodes->codes = realloc(opcodes->codes, (opcodes->len+3)*sizeof(OPCODEWORD));
             opcodes->codes[opcodes->len] = OP_JUMP_TO;
             opcodes->codes[opcodes->len+1] = tmp_inst;
             opcodes->len += 2;
