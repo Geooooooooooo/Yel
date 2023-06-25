@@ -293,7 +293,7 @@ void yel_gen_opcode(YelTokens* yel_tokens, OPCODES* opcodes) {
         
         if (_CurType == tok_name && (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) || 
         _CurType == tok_word_break ||  _CurType == tok_word_return || _CurType == tok_op_flbrk || _CurType == tok_op_frbrk || 
-        _CurType == tok_word_if || _CurType == tok_word_while || _CurType == tok_word_func) {
+        _CurType == tok_word_if || _CurType == tok_word_while || _CurType == tok_word_func || _CurType == tok_word_continue) {
             if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
                 yel_parse_statement(yel_tokens, opcodes);
             } else {
@@ -310,7 +310,6 @@ void yel_gen_opcode(YelTokens* yel_tokens, OPCODES* opcodes) {
 
     }
 
-    opcodes->codes = realloc(opcodes->codes, (opcodes->len+1)*sizeof(OPCODEWORD));
     opcodes->codes[opcodes->len] = OP_HALT;
     ++opcodes->len;
 }
