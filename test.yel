@@ -1,23 +1,8 @@
-import_all_from('socket');
+a = 0;
 
-s = socket_create();
-socket_bind(s, 'server.ru', 8080);
-socket_listen(s, 10);
-
-conn = socket_accept(s);
-
-run = 1;
-
-while (run) {
-    str = input('Enter: ');
-    socket_send(s, len(str), str);
-
-    data = socket_recv(s, 1024);
-    if (not data) {
-        print('Not Data!');
-        run = 0;
-    }
+while (a) {
+    if (a != 100) 
+        continue;
+    else
+        break;
 }
-
-socket_close_connection(conn);
-socket_close(s);
