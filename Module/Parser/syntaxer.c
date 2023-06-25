@@ -294,11 +294,17 @@ void yel_gen_opcode(YelTokens* yel_tokens, OPCODES* opcodes) {
         _CurType == tok_word_if || _CurType == tok_word_while || _CurType == tok_word_func) {
             if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
                 yel_parse_statement(yel_tokens, opcodes);
-            } else break;
+            } else {
+                yel_tokens->error = 1;
+                break;
+            }
         } 
         else if (yel_check_expr(yel_tokens, 0) == RET_CODE_OK) {
             yel_parse_expression(yel_tokens, opcodes);
-        } else break;
+        } else {
+            yel_tokens->error = 1;
+            break;
+        }
     }
 
     opcodes->codes = realloc(opcodes->codes, (opcodes->len+1)*sizeof(OPCODEWORD));

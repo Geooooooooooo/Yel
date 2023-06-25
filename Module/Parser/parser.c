@@ -788,7 +788,7 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
 
 // from parser.c
 void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
-    if (curInstLen <= opcodes->len) {
+    if (curInstLen < opcodes->len+5) {
         curInstLen = opcodes->len + 40;
         opcodes->codes = realloc(opcodes->codes, (curInstLen)*sizeof(OPCODEWORD));
     }
@@ -806,7 +806,7 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
                 yel_parse_expression(yel_tokens, opcodes);
                 
                 opcodes->codes[opcodes->len] = OP_STORE;
-                opcodes->codes[opcodes->len+1] = _CurVal;
+                opcodes->codes[opcodes->len+1] = yel_tokens->value[tmp_i];
                 opcodes->len += 2;
 
                 return;
@@ -852,7 +852,6 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
             yel_parse_expression(yel_tokens, opcodes);
 
             opcodes->codes[opcodes->len] = OP_RET;
-            opcodes->len += 2;
             ++opcodes->len;
             return;
         }
@@ -865,7 +864,6 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
         }
         else if (_CurType == tok_word_break) {
             opcodes->codes[opcodes->len] = OP_BRK;
-            opcodes->len += 2;
             ++opcodes->len;
 
             yel_tokens->pointer += 2;
