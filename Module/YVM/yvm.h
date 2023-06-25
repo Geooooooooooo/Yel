@@ -8,7 +8,7 @@
 void yel_run();
 void yel_init_vm(OPCODEWORD stack_size);
 
-void print_disassembly_opcode(OPCODEWORD w);
+void print_disassembly_opcode(OPCODEWORD w, size_t count);
 
 
 #endif // __YVM_H__

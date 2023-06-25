@@ -1,6 +1,6 @@
 #include "yvm.h"
 
-void print_disassembly_opcode(OPCODEWORD w) {
+void print_disassembly_opcode(OPCODEWORD w, size_t count) {
     static int next = 0;
     // 1 = name
     // 2 = address
@@ -19,16 +19,16 @@ void print_disassembly_opcode(OPCODEWORD w) {
 
     switch (w)
     {
-    case OP_HALT:       puts("HALT");break;
-    case LOAD_VALUE:    printf("LOAD_VALUE\t");next=1;break;
-    case LOAD_CONST:    printf("LOAD_CONST\t");next=3;break;
-    case POP_VALUE:     puts("POP_VALUE");break;
-    case DUP_VALUE:     puts("DUP_VALUE");break;
-    case UNARY_POS:     puts("UNARY_POS");break;
-    case UNARY_NEG:     puts("UNARY_NEG");break;
-    case UNARY_INC:     puts("UNARY_INC");break;
-    case UNARY_DEC:     puts("UNARY_DEC");break;
-    case BYNARY_OP:     printf("BYNARY_OP\t");break;
+    case OP_HALT:       printf("%llu:\tHALT", count);break;
+    case LOAD_VALUE:    printf("%llu:\tLOAD_VALUE\t", count);next=1;break;
+    case LOAD_CONST:    printf("%llu:\tLOAD_CONST\t", count);next=3;break;
+    case POP_VALUE:     printf("%llu:\tPOP_VALUE", count);break;
+    case DUP_VALUE:     printf("%llu:\tDUP_VALUE", count);break;
+    case UNARY_POS:     printf("%llu:\tUNARY_POS", count);break;
+    case UNARY_NEG:     printf("%llu:\tUNARY_NEG", count);break;
+    case UNARY_INC:     printf("%llu:\tUNARY_INC", count);break;
+    case UNARY_DEC:     printf("%llu:\tUNARY_DEC", count);break;
+    case BYNARY_OP:     printf("%llu:\tBYNARY_OP\t", count);break;
     case BYNARY_POW:    printf("%llu (**)\n", BYNARY_POW);break;
     case BYNARY_DIV:    printf("%llu (/)\n", BYNARY_DIV);break;
     case BYNARY_MUL:    printf("%llu (*)\n", BYNARY_MUL);break;
@@ -47,12 +47,12 @@ void print_disassembly_opcode(OPCODEWORD w) {
     case BYNARY_OR:     printf("%llu (|)\n", BYNARY_OR);break;
     case BYNARY_LOGICAL_AND:printf("%llu (and)\n", BYNARY_LOGICAL_AND);break;
     case BYNARY_LOGICAL_OR:printf("%llu (or)\n", BYNARY_LOGICAL_OR);break;
-    case OP_JUMP_TO:    printf("JUMP_TO\t\t");next=2;break;
-    case OP_JUMP_ZERO:  printf("JUMP_ZERO\t");next=2;break;
-    case OP_CALL:       printf("CALL\t\t");next=1;break;
-    case OP_RET:        puts("RET");break;
-    case OP_BRK:        puts("BRK");break;
-    case OP_STORE:      printf("STORE\t");next=1;break;
-    default: printf("%p\n", w);break;
+    case OP_JUMP_TO:    printf("%llu:\tJUMP_TO\t\t", count);next=2;break;
+    case OP_JUMP_ZERO:  printf("%llu:\tJUMP_ZERO\t", count);next=2;break;
+    case OP_CALL:       printf("%llu:\tCALL\t\t", count);next=1;break;
+    case OP_RET:        printf("%llu:\tRET", count);break;
+    case OP_BRK:        printf("%llu:\tBRK", count);break;
+    case OP_STORE:      printf("%llu:\tSTORE\t", count);next=1;break;
+    default:            printf("%p\n", w);break;
     }
 }
