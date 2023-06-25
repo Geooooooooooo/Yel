@@ -82,6 +82,7 @@ typedef enum __YelTokenType {
     tok_word_if,        // if
     tok_word_else,      // else
     tok_word_while,     // while
+    tok_word_continue,  // continue
 
     tok_$,              // end of expression
     tok_en_expr,
@@ -163,6 +164,7 @@ typedef struct __Source {
 #define OP_CALL             (OPCODEWORD)31
 #define OP_RET              (OPCODEWORD)32
 #define OP_BRK              (OPCODEWORD)33
-#define OP_STORE            (OPCODEWORD)34
+#define OP_CNT              (OPCODEWORD)34
+#define OP_STORE            (OPCODEWORD)35
 
 #endif // __DEPENDECIES_H_
