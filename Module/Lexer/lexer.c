@@ -29,13 +29,19 @@ void yel_get_next_token(Source* source, YelTokenType* t_token_type, char* token_
     register size_t token_value_counter = 0;
 
 _start_:
-    while ((cur_ptr < cur_len) && (cur_char == ' ' || cur_char == '\n')) {
+    while ((cur_ptr < cur_len) && (cur_char == ' ' || cur_char == '\n' || cur_char == '\0')) {
         if (cur_char == '\n') {
             ++cur_line;
             cur_line_symbol = 0;
         }
         ++cur_ptr;
         ++cur_line_symbol;
+    }
+
+    if (cur_ptr == cur_len) {
+        token_value[token_value_counter] = 0;
+        *t_token_type = (YelTokenType)tok_semicolon;
+        return;
     }
 
     // comments
@@ -385,7 +391,11 @@ _op:
     case ':': *t_token_type = (YelTokenType)tok_colon;
         break;
     case ',': *t_token_type = (YelTokenType)tok_comma;
-        break;
+        break; 
+    case ' ': case '\n': case '\0':
+        ++cur_ptr;
+        ++cur_line_symbol;
+        goto _start_;
     default: 
         yel_print_error("SyntaxError", "invalid syntax", 
             source, cur_line, cur_line_symbol);
