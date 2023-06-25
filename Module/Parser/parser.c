@@ -18,8 +18,8 @@ static size_t curInstLen = 0;
 
 // from parser.c
 void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
-    if (curInstLen <= opcodes->len) {
-        curInstLen = opcodes->len + 40;
+    if (curInstLen < opcodes->len+5) {
+        curInstLen = opcodes->len + 20;
         opcodes->codes = realloc(opcodes->codes, (curInstLen)*sizeof(OPCODEWORD));
     }
 
@@ -1035,15 +1035,11 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
             }
 
             //printf("jump %d\nend_while:\npop\n", tmp_inst);
-            opcodes->len += 3;
-
             opcodes->codes[opcodes->len] = OP_JUMP_TO;
-            opcodes->codes[opcodes->len+1] = tmp_inst;
+            opcodes->codes[opcodes->len+1] = tmp_inst-1;
             opcodes->len += 2;
-
             opcodes->codes[_NextAddress] = opcodes->len;
-
-            opcodes->codes[opcodes->len+3] = POP_VALUE;
+            opcodes->codes[opcodes->len] = POP_VALUE;
 
             ++opcodes->len;
             return;
