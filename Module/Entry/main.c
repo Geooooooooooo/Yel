@@ -3,6 +3,7 @@
 #include "../Parser/syntaxer.h"
 #include "../Parser/parser.h"
 #include "../Dependencies/dependencies.h"
+#include "../VM/yvm.h"
 
 #include <stdlib.h>
 
@@ -32,12 +33,13 @@ int main(int argc, char* argv[]) {
     yel_gen_opcode(&token_array, &codes);
 
     for (size_t i = 0; i < codes.len; i++) {
-        printf("%llu\n", codes.codes[i]);
+        print_disassembly_opcode(codes.codes[i]);
     }
 
 _yel_end:
     yel_free_tokens(&token_array);
     __builtin_free(source.source_text);
+    free(codes.codes);
 
     return 0;
 }
