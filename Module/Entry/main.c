@@ -32,8 +32,11 @@ int main(int argc, char* argv[]) {
     OPCODES codes;
     yel_gen_opcode(&token_array, &codes);
 
+    if (token_array.error) goto _yel_end;
+
+    puts("Disassembled code:\n");
     for (size_t i = 0; i < codes.len; i++) {
-        print_disassembly_opcode(codes.codes[i]);
+        print_disassembly_opcode(codes.codes[i], i);
     }
 
 _yel_end:
