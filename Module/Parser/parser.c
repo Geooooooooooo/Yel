@@ -863,8 +863,19 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
             return;
         }
         else if (_CurType == tok_word_break) {
-            opcodes->codes[opcodes->len] = OP_BRK;
-            ++opcodes->len;
+            opcodes->codes[opcodes->len] = OP_JUMP_TO;
+            opcodes->codes[opcodes->len+1] = OP_BRK;
+
+            opcodes->len += 2;
+
+            yel_tokens->pointer += 2;
+            return;
+        }
+        else if (_CurType == tok_word_continue) {
+            opcodes->codes[opcodes->len] = OP_JUMP_TO;
+            opcodes->codes[opcodes->len+1] = OP_CNT;
+
+            opcodes->len += 2;
 
             yel_tokens->pointer += 2;
             return;
@@ -888,7 +899,7 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
                 if (_CurType == tok_name &&(_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) || 
                 _CurType == tok_word_break || 
                 _CurType == tok_word_return || _CurType == tok_op_flbrk || _CurType == tok_op_frbrk || 
-                _CurType == tok_word_if || _CurType == tok_word_while) {
+                _CurType == tok_word_if || _CurType == tok_word_while|| tok_word_continue) {
                     if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
                         yel_parse_statement(yel_tokens, opcodes);
                     } else break;
@@ -911,7 +922,7 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
                     if (_CurType == tok_name && (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) || 
                     _CurType == tok_word_break || 
                     _CurType == tok_word_return || _CurType == tok_op_flbrk || _CurType == tok_op_frbrk || 
-                    _CurType == tok_word_if || _CurType == tok_word_while) {
+                    _CurType == tok_word_if || _CurType == tok_word_while|| tok_word_continue) {
                         if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
                             yel_parse_statement(yel_tokens, opcodes);
                         } else break;
@@ -935,7 +946,7 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
                 if (_CurType != tok_op_flbrk) {
                     if (_CurType == tok_name && (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) || 
                     _CurType == tok_word_break ||  _CurType == tok_word_return || _CurType == tok_op_flbrk || 
-                    _CurType == tok_op_frbrk || _CurType == tok_word_if || _CurType == tok_word_while) {
+                    _CurType == tok_op_frbrk || _CurType == tok_word_if || _CurType == tok_word_while|| tok_word_continue) {
                         if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
                             yel_parse_statement(yel_tokens, opcodes);
                         } else break;
@@ -957,7 +968,7 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
                         
                         if (_CurType == tok_name && (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) || 
                         _CurType == tok_word_break ||  _CurType == tok_word_return || _CurType == tok_op_flbrk || 
-                        _CurType == tok_op_frbrk || _CurType == tok_word_if || _CurType == tok_word_while) {
+                        _CurType == tok_op_frbrk || _CurType == tok_word_if || _CurType == tok_word_while|| tok_word_continue) {
                             if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
                                 yel_parse_statement(yel_tokens, opcodes);
                             } else break;
@@ -980,6 +991,8 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
             int tmp_inst = opcodes->len+1;
             ++yel_tokens->pointer;
 
+            size_t while_start = opcodes->len;
+
             if (yel_check_expr(yel_tokens, 1) == RET_CODE_OK) {
                 ++_SimpleExpr;
                 yel_parse_expression(yel_tokens, opcodes);
@@ -999,7 +1012,7 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
             if (_CurType != tok_op_flbrk) {
                 if (_CurType == tok_name && (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) || 
                 _CurType == tok_word_break ||  _CurType == tok_word_return || _CurType == tok_op_flbrk || 
-                _CurType == tok_op_frbrk || _CurType == tok_word_if || _CurType == tok_word_while) {
+                _CurType == tok_op_frbrk || _CurType == tok_word_if || _CurType == tok_word_while|| tok_word_continue) {
                     if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
                         yel_parse_statement(yel_tokens, opcodes);
                     } else break;
@@ -1023,7 +1036,7 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
                     
                     if (_CurType == tok_name && (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) || 
                     _CurType == tok_word_break ||  _CurType == tok_word_return || _CurType == tok_op_flbrk || 
-                    _CurType == tok_op_frbrk || _CurType == tok_word_if || _CurType == tok_word_while) {
+                    _CurType == tok_op_frbrk || _CurType == tok_word_if || _CurType == tok_word_while|| tok_word_continue) {
                         if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
                             yel_parse_statement(yel_tokens, opcodes);
                         } else break;
@@ -1040,6 +1053,17 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
             opcodes->len += 2;
             opcodes->codes[_NextAddress] = opcodes->len;
             opcodes->codes[opcodes->len] = POP_VALUE;
+            
+            while (_NextAddress < opcodes->len) {
+                if (opcodes->codes[_NextAddress] == OP_BRK) {
+                    opcodes->codes[_NextAddress] = opcodes->len;
+                }
+                else if (opcodes->codes[_NextAddress] == OP_CNT) {
+                    opcodes->codes[_NextAddress] = while_start;
+                }
+
+                ++_NextAddress;
+            }
 
             ++opcodes->len;
             return;
@@ -1093,7 +1117,7 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
                     
                     if (_CurType == tok_name && (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) || 
                     _CurType == tok_word_break ||  _CurType == tok_word_return || _CurType == tok_op_flbrk || 
-                    _CurType == tok_op_frbrk || _CurType == tok_word_if || _CurType == tok_word_while) {
+                    _CurType == tok_op_frbrk || _CurType == tok_word_if || _CurType == tok_word_while|| tok_word_continue) {
                         if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
                             yel_parse_statement(yel_tokens, opcodes);
                         } else break;

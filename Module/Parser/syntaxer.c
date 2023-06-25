@@ -252,6 +252,9 @@ _Bool yek_check_stmt(YelTokens* yel_tokens) {
         else if (_CurType == tok_word_break && _NextType == tok_semicolon) {
             break;
         }
+        else if (_CurType == tok_word_continue && _NextType == tok_semicolon) {
+            break;
+        }
         else if (_CurType == tok_op_flbrk || _CurType == tok_op_frbrk) {
             ++yel_tokens->pointer;
             break;
@@ -260,7 +263,6 @@ _Bool yek_check_stmt(YelTokens* yel_tokens) {
             break;
         }
         else if (_CurType == tok_word_while && _NextType == tok_op_lpar) {
-            //++yel_tokens->pointer;
             break;
         }
         else if (_CurType == tok_word_func &&  _NextType == tok_name) {
@@ -305,6 +307,7 @@ void yel_gen_opcode(YelTokens* yel_tokens, OPCODES* opcodes) {
             yel_tokens->error = 1;
             break;
         }
+
     }
 
     opcodes->codes = realloc(opcodes->codes, (opcodes->len+1)*sizeof(OPCODEWORD));
