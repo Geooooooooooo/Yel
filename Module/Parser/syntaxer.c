@@ -127,6 +127,7 @@ _Bool yel_check_expr_grammar(YelTokens* yel_tokens) {
 // from syntaxer.c
 _Bool yel_check_expr(YelTokens* yel_tokens, int stmt) {
     size_t start_pointer = yel_tokens->pointer;
+    _Unary = 1;
 
     while (yel_tokens->pointer < yel_tokens->length) {
         if (_CurType == tok_semicolon) {
@@ -185,7 +186,7 @@ _Bool yel_check_expr(YelTokens* yel_tokens, int stmt) {
                 return RET_CODE_ERROR;
             }
         }
-        else if ((_CurType == tok_number_int || _CurType == tok_number_flt || _CurType == tok_bool || _CurType == tok_string) && 
+        else if ((_CurType >= tok_number_int && _CurType <= tok_bool) && 
         (_NextType >= tok_binary_op_pow && _NextType <= tok_binary_op_assign || 
         _NextType == tok_comma || _NextType == tok_semicolon || _NextType == tok_op_rpar)) {
             _ParserStack[_ParserStackCounter] = tok_en_expr;
@@ -215,9 +216,13 @@ _Bool yel_check_expr(YelTokens* yel_tokens, int stmt) {
             _Unary = 1;
         }
         else {
+            printf("_CurType == %d\n_NextType = %d\n", _CurType, _NextType);
+
             yel_print_error("SyntaxError", "invalid syntax", yel_tokens->src_ptr, 
                 yel_tokens->line[yel_tokens->pointer+1], 
                 yel_tokens->start_symbol[yel_tokens->pointer+1]);
+
+            getchar();
 
             return RET_CODE_ERROR;
         }
@@ -227,8 +232,8 @@ _Bool yel_check_expr(YelTokens* yel_tokens, int stmt) {
 
     yel_tokens->pointer = start_pointer;
 
-    //print_ystack();
-    //getchar();
+    // print_ystack();
+    // getchar();
     return yel_check_expr_grammar(yel_tokens);
 }
 

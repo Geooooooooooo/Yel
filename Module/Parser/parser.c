@@ -12,7 +12,7 @@
 
 int          _SimpleExpr = 0;
 static int   _Parentheses = 0;      // ()
-static int _Unary = 1;
+static int  _Unary = 1;
 static size_t argCounter = 0;
 static size_t curInstLen = 0;
 
@@ -752,7 +752,7 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 opcodes->codes[opcodes->len+4] = yel_tokens->value[tmp_i];
 
                 opcodes->len += 5;
-                --argCounter;
+                //++argCounter;
             }
             else {
                 opcodes->codes[opcodes->len] = LOAD_VALUE;
@@ -812,8 +812,6 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
                 opcodes->codes[opcodes->len] = OP_STORE;
                 opcodes->codes[opcodes->len+1] = yel_tokens->value[tmp_i];
                 opcodes->len += 2;
-
-                return;
             }
             else if (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_pow_assign) {
                 
@@ -848,11 +846,14 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
                 opcodes->codes[opcodes->len+3] = yel_tokens->value[tmp_i];
 
                 opcodes->len += 4;
-                return;
             }
+
+            _Unary = 1;
+            return;
         }
         else if (_CurType == tok_word_return) {
             ++yel_tokens->pointer;
+            _Unary = 1;
             yel_parse_expression(yel_tokens, opcodes);
 
             opcodes->codes[opcodes->len] = OP_RET;
