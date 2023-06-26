@@ -193,7 +193,7 @@ _Bool yel_check_expr(YelTokens* yel_tokens, int stmt) {
             ++_ParserStackCounter;
             _Unary = 0;
         }
-        else if ((_CurType == tok_unary_op_not || _CurType == tok_unary_op_pos || _CurType == tok_unary_op_neg) && _Unary && 
+        else if ((_CurType == tok_unary_op_not || _CurType == tok_unary_op_log_not || _CurType == tok_unary_op_pos || _CurType == tok_unary_op_neg) && _Unary && 
         (_NextType >= tok_name && _NextType <= tok_bool ||
         _NextType == tok_binary_op_plus || _NextType == tok_binary_op_minus ||
         _NextType == tok_unary_op_not || _NextType == tok_op_lpar)) {
@@ -216,13 +216,9 @@ _Bool yel_check_expr(YelTokens* yel_tokens, int stmt) {
             _Unary = 1;
         }
         else {
-            printf("_CurType == %d\n_NextType = %d\n", _CurType, _NextType);
-
             yel_print_error("SyntaxError", "invalid syntax", yel_tokens->src_ptr, 
                 yel_tokens->line[yel_tokens->pointer+1], 
                 yel_tokens->start_symbol[yel_tokens->pointer+1]);
-
-            getchar();
 
             return RET_CODE_ERROR;
         }
@@ -290,7 +286,7 @@ _Bool yek_check_stmt(YelTokens* yel_tokens) {
 
 // from syntaxer.c
 void yel_gen_opcode(YelTokens* yel_tokens, OPCODES* opcodes) {
-    opcodes->codes = (OPCODEWORD*)malloc(100*sizeof(OPCODEWORD));
+    opcodes->codes = (OPCODEWORD*)__builtin_malloc(64*sizeof(OPCODEWORD));
     opcodes->len = 0;
 
     while (yel_tokens->pointer < yel_tokens->length) {
