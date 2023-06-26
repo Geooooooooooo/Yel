@@ -29,16 +29,16 @@ typedef enum __YelTokenType {
     tok_binary_op_minus,                // -
     tok_binary_op_rsh,                  // >>
     tok_binary_op_lsh,                  // <<
+    tok_binary_op_and,                  // &
+    tok_binary_op_or,                   // |
     tok_binary_op_more,                 // >
     tok_binary_op_less,                 // <
     tok_binary_op_more_eq,              // >=
     tok_binary_op_less_eq,              // <=
     tok_binary_op_eq,                   // ==
     tok_binary_op_not_eq,               // !=
-    tok_binary_op_and,                  // &
-    tok_binary_op_or,                   // |
-    tok_binary_op_log_and,              // &&
-    tok_binary_op_log_or,               // ||
+    tok_binary_op_log_and,              // and
+    tok_binary_op_log_or,               // or
     tok_binary_op_div_assign = 422,     // /=
     tok_binary_op_mul_assign,           // *=
     tok_binary_op_percent_assign,       // %=
@@ -54,9 +54,10 @@ typedef enum __YelTokenType {
     tok_unary_op = 500,
     tok_unary_op_pos    = tok_binary_op_plus,
     tok_unary_op_neg    = tok_binary_op_minus,
-    tok_unary_op_not = 501,     // !
+    tok_unary_op_log_not = 501,     // not
     tok_unary_op_inc,           // ++obj or obj++
     tok_unary_op_dec,           // --obj or obj--
+    tok_unary_op_not,           // ~
 
     tok_op = 600, 
     tok_op_lpar,        // (
@@ -116,6 +117,8 @@ typedef struct __Source {
         printf("   [%d, '%s', %lu:%lu]\n", token_array.type[i], token_array.value[i], token_array.line[i], token_array.start_symbol[i]);\
     } puts("}")
 
+#define print_info() printf("_CurVal = %s, _NextVal = %s\n_SimpleExpr == %d\n _Unary == %d\n\n", _CurVal, _NextVal, _SimpleExpr, _Unary);getchar()
+
 #define _CurType    yel_tokens->type[yel_tokens->pointer]
 #define _NextType   yel_tokens->type[yel_tokens->pointer+1]
 #define _CurVal     yel_tokens->value[yel_tokens->pointer]
@@ -137,6 +140,7 @@ typedef struct __Source {
 #define UNARY_NOT           (OPCODEWORD)7
 #define UNARY_INC           (OPCODEWORD)8
 #define UNARY_DEC           (OPCODEWORD)9
+#define UNARY_LOGICAL_NOT   (OPCODEWORD)37
 
 #define BYNARY_OP           (OPCODEWORD)10
 #define BYNARY_POW          (OPCODEWORD)11
@@ -166,5 +170,6 @@ typedef struct __Source {
 #define OP_BRK              (OPCODEWORD)33
 #define OP_CNT              (OPCODEWORD)34
 #define OP_STORE            (OPCODEWORD)35
+#define OP_NOP              (OPCODEWORD)36
 
 #endif // __DEPENDECIES_H_
