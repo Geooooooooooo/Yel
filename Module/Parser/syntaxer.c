@@ -142,7 +142,7 @@ _Bool yel_check_expr(YelTokens* yel_tokens, int stmt) {
             break;
         }
         else if (_CurType == tok_op_rpar && 
-        ((_NextType >= tok_binary_op_pow && _NextType <= tok_binary_op_log_or ||  _NextType == tok_comma || 
+        ((_NextType >= tok_binary_op_pow && _NextType <= tok_binary_op_log_or || _NextType == tok_comma || 
         _NextType == tok_semicolon ||  _NextType == tok_op_rpar) || stmt)) {
             if (_Parentheses == 0) {
                 yel_print_error("SyntaxError", "expected '('", yel_tokens->src_ptr, 
@@ -161,7 +161,8 @@ _Bool yel_check_expr(YelTokens* yel_tokens, int stmt) {
         else if (_CurType == tok_op_lpar && (_NextType == tok_number_int || _NextType == tok_number_flt || 
         _NextType == tok_bool || _NextType == tok_name || _NextType == tok_string ||  
         _NextType == tok_binary_op_plus || _NextType == tok_binary_op_minus ||
-        _NextType == tok_unary_op_not || _NextType == tok_op_lpar || _NextType == tok_op_rpar)) {
+        _NextType == tok_unary_op_not || _NextType == tok_unary_op_log_not || 
+        _NextType == tok_op_lpar || _NextType == tok_op_rpar)) {
             _ParserStack[_ParserStackCounter] = tok_op_lpar;
             ++_ParserStackCounter;
             ++_Parentheses;
@@ -196,7 +197,7 @@ _Bool yel_check_expr(YelTokens* yel_tokens, int stmt) {
         else if ((_CurType == tok_unary_op_not || _CurType == tok_unary_op_log_not || _CurType == tok_unary_op_pos || _CurType == tok_unary_op_neg) && _Unary && 
         (_NextType >= tok_name && _NextType <= tok_bool ||
         _NextType == tok_binary_op_plus || _NextType == tok_binary_op_minus ||
-        _NextType == tok_unary_op_not || _NextType == tok_op_lpar)) {
+        _NextType == tok_unary_op_not || _NextType == tok_op_lpar || _NextType == tok_unary_op_log_not)) {
             _ParserStack[_ParserStackCounter] = tok_unary_op;
             ++_ParserStackCounter;
         }
