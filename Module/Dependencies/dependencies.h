@@ -9,7 +9,7 @@ typedef long long   OPCODEWORD;
 
 typedef struct __OPCODES {
     OPCODEWORD* codes;
-    size_t len;
+    long long len;
 } OPCODES;
 
 typedef enum __YelTokenType {
@@ -21,7 +21,7 @@ typedef enum __YelTokenType {
     tok_bool,       // const bool literal True or False
 
     tok_binary_op = 400,
-    tok_binary_op_pow,                  // **
+    tok_binary_op_pow,                  // ***
     tok_binary_op_div,                  // /
     tok_binary_op_mul,                  // *
     tok_binary_op_percent,              // %
@@ -74,12 +74,6 @@ typedef enum __YelTokenType {
     tok_word_return,    // return
     tok_word_defer,     // defer
     tok_word_break,     // break
-    tok_word_noreturn,  // noreturn
-    tok_word_Int,       // Int
-    tok_word_Flt,       // Flt
-    tok_word_Str,       // Str
-    tok_word_Any,       // Any
-    tok_word_Bool,      // Bool
     tok_word_if,        // if
     tok_word_else,      // else
     tok_word_while,     // while
@@ -163,12 +157,12 @@ typedef struct __Source {
 #define BYNARY_LOGICAL_OR   (OPCODEWORD)28
 
 #define OP_JUMP_TO          (OPCODEWORD)29
-#define OP_JUMP_ZERO        (OPCODEWORD)30
+#define OP_POP_JUMP_ZERO    (OPCODEWORD)30
 
 #define OP_CALL             (OPCODEWORD)31
 #define OP_RET              (OPCODEWORD)32
-#define OP_BRK              (OPCODEWORD)33
-#define OP_CNT              (OPCODEWORD)34
+#define OP_BRK              (OPCODEWORD)-1
+#define OP_CNT              (OPCODEWORD)-2
 #define OP_STORE            (OPCODEWORD)35
 #define OP_NOP              (OPCODEWORD)36
 
