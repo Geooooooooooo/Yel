@@ -185,7 +185,7 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
 
             --_SimpleExpr;
 
-            while (_NextType ==tok_binary_op_pow) {
+            while (_NextType == tok_binary_op_pow) {
                 _Unary = 0;
 
                 ++_SimpleExpr;
@@ -211,8 +211,10 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
         }
         
         // +, -
-        else if ((_NextType == tok_binary_op_plus || _NextType == tok_binary_op_minus) && ((_CurType != tok_op_lpar && 
-        _CurType < tok_binary_op_pow && _CurType > tok_binary_op_log_or) || yel_tokens->pointer == 0)) {
+        else if ((_NextType == tok_binary_op_plus || _NextType == tok_binary_op_minus) 
+        //&& (yel_tokens->pointer == 0 || 
+        //(_CurType != tok_op_lpar &&  _CurType < tok_binary_op_pow && _CurType > tok_binary_op_log_or))
+        ) {
             _Unary = 1;
             WRITE_OPCODE();
 
@@ -780,12 +782,16 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 continue;
             }
             else {
+                puts("HERE");
                 opcodes->codes[opcodes->len] = LOAD_VALUE;
                 opcodes->codes[opcodes->len+1] = _CurVal;
                 opcodes->len += 2;
 
                 ++argCounter;
                 _Unary = 0;
+
+                // ???
+                if (_SimpleExpr) return;
             }
         }
         else if(_CurType == tok_number_int || _CurType == tok_number_flt || _CurType == tok_string || _CurType == tok_bool) {
@@ -807,6 +813,7 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
             if (_SimpleExpr) return;
         }
 
+        //if (_CurType == tok_op_rpar) continue;
         ++yel_tokens->pointer;
         //if (_NextType == tok_semicolon) return;
     }
