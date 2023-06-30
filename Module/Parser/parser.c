@@ -782,7 +782,6 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 continue;
             }
             else {
-                puts("HERE");
                 opcodes->codes[opcodes->len] = LOAD_VALUE;
                 opcodes->codes[opcodes->len+1] = _CurVal;
                 opcodes->len += 2;
