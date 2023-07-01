@@ -5,13 +5,7 @@
 #include "../Dependencies/dependencies.h"
 #include "../VM/yvm.h"
 
-#include <stdlib.h>
-
-// TODO: create checker to (-q -= (1 - 2) ** 3);
-//                             ^^
-//                             invalid syntax
-
-// IN FUTURE: Instead of each bin_op use '''bin_op 10'''
+// TODO: fix SYNTAXER for: (a1=b1=c1=f1, hello); print(a1=(b1=(c1=f1)), a2=(b2=(c2=f2)));
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -28,21 +22,24 @@ int main(int argc, char* argv[]) {
     if (token_array.error) {
         goto _yel_end;
     }
+    
+    yel_init_data_seg();
 
-    OPCODES codes;
-    yel_gen_opcode(&token_array, &codes);
+    OPCODES opcodes;
+    yel_gen_opcode(&token_array, &opcodes);
 
     if (token_array.error) goto _yel_end;
 
     puts("Disassembled code:\n");
-    for (size_t i = 0; i < codes.len; i++) {
-        print_disassembly_opcode(codes.codes[i], i);
+    for (size_t i = 0; i < opcodes.len; i++) {
+        print_disassembly_opcode(opcodes.codes[i], i);
     }
 
 _yel_end:
     yel_free_tokens(&token_array);
     __builtin_free(source.source_text);
-    free(codes.codes);
+    __builtin_free(opcodes.codes);
+    yel_free_data_seg();
 
     return 0;
 }
