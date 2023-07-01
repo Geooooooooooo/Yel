@@ -5,7 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef long long   OPCODEWORD;
+typedef long long OPCODEWORD;
+typedef long long SIZE_REF;
 
 typedef struct __OPCODES {
     OPCODEWORD* codes;
@@ -105,6 +106,19 @@ typedef struct __Source {
     size_t length;
 } Source;
 
+typedef struct __YelProgramVariable {
+
+} YelVariable;
+
+typedef struct __YelProgramConstant {
+    int type;
+    OPCODEWORD ref;
+} YelConstant;
+
+typedef struct __YelProgramObject {
+ 
+} YelObject;
+
 #define print_cur() printf("\ncur = %s\n", _CurVal)
 #define print_tokens() puts("tokens = {");\
     for (size_t i = 0; i < token_array.length; i++) {\
@@ -134,36 +148,37 @@ typedef struct __Source {
 #define UNARY_NOT           (OPCODEWORD)7
 #define UNARY_INC           (OPCODEWORD)8
 #define UNARY_DEC           (OPCODEWORD)9
-#define UNARY_LOGICAL_NOT   (OPCODEWORD)37
+#define UNARY_LOGICAL_NOT   (OPCODEWORD)10
 
-#define BYNARY_OP           (OPCODEWORD)10
-#define BYNARY_POW          (OPCODEWORD)11
-#define BYNARY_DIV          (OPCODEWORD)12
-#define BYNARY_MUL          (OPCODEWORD)13
-#define BYNARY_MOD          (OPCODEWORD)14
-#define BYNARY_ADD          (OPCODEWORD)15
-#define BYNARY_SUB          (OPCODEWORD)16
-#define BYNARY_RSH          (OPCODEWORD)17
-#define BYNARY_LSH          (OPCODEWORD)18
-#define BYNARY_MORE         (OPCODEWORD)19
-#define BYNARY_LESS         (OPCODEWORD)20
-#define BYNARY_MORE_EQ      (OPCODEWORD)21
-#define BYNARY_LESS_EQ      (OPCODEWORD)22
-#define BYNARY_EQ           (OPCODEWORD)23
-#define BYNARY_NOT_EQ       (OPCODEWORD)24
-#define BYNARY_AND          (OPCODEWORD)25
-#define BYNARY_OR           (OPCODEWORD)26
-#define BYNARY_LOGICAL_AND  (OPCODEWORD)27
-#define BYNARY_LOGICAL_OR   (OPCODEWORD)28
+#define BYNARY_OP           (OPCODEWORD)11
+#define BYNARY_POW          (OPCODEWORD)12
+#define BYNARY_DIV          (OPCODEWORD)13
+#define BYNARY_MUL          (OPCODEWORD)14
+#define BYNARY_MOD          (OPCODEWORD)15
+#define BYNARY_ADD          (OPCODEWORD)16
+#define BYNARY_SUB          (OPCODEWORD)17
+#define BYNARY_RSH          (OPCODEWORD)18
+#define BYNARY_LSH          (OPCODEWORD)19
+#define BYNARY_MORE         (OPCODEWORD)20
+#define BYNARY_LESS         (OPCODEWORD)21
+#define BYNARY_MORE_EQ      (OPCODEWORD)22
+#define BYNARY_LESS_EQ      (OPCODEWORD)23
+#define BYNARY_EQ           (OPCODEWORD)24
+#define BYNARY_NOT_EQ       (OPCODEWORD)25
+#define BYNARY_AND          (OPCODEWORD)26
+#define BYNARY_OR           (OPCODEWORD)27
+#define BYNARY_LOGICAL_AND  (OPCODEWORD)28
+#define BYNARY_LOGICAL_OR   (OPCODEWORD)29
 
-#define OP_JUMP_TO          (OPCODEWORD)29
-#define OP_POP_JUMP_ZERO    (OPCODEWORD)30
+#define OP_JUMP_TO          (OPCODEWORD)30
+#define OP_POP_JUMP_ZERO    (OPCODEWORD)31
 
-#define OP_CALL             (OPCODEWORD)31
-#define OP_RET              (OPCODEWORD)32
+#define OP_CALL             (OPCODEWORD)32
+#define OP_RET              (OPCODEWORD)33
 #define OP_BRK              (OPCODEWORD)-1
 #define OP_CNT              (OPCODEWORD)-2
-#define OP_STORE            (OPCODEWORD)35
-#define OP_NOP              (OPCODEWORD)36
+#define OP_STORE            (OPCODEWORD)34
+#define OP_NOP              (OPCODEWORD)35
+#define MAKE_FUNC           (OPCODEWORD)36
 
 #endif // __DEPENDECIES_H_
