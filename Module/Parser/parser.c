@@ -3,12 +3,19 @@
 #include "../Lexer/lexer.h"
 #include "../Errors/error.h"
 #include "../Dependencies/dependencies.h"
+#include "../VM/yvm.h"
 
 #define WRITE_OPCODE() {\
     if (_CurType == tok_name) {opcodes->codes[opcodes->len] = LOAD_VALUE;\
         opcodes->codes[opcodes->len+1] = (OPCODEWORD)_CurVal;}\
-    else {opcodes->codes[opcodes->len] = LOAD_CONST;\
-        opcodes->codes[opcodes->len+1] = (OPCODEWORD)&_CurVal;}opcodes->len+=2;++argCounter;}
+    else if (_CurType == tok_number_int) {opcodes->codes[opcodes->len] = LOAD_CONST;\
+        opcodes->codes[opcodes->len+1] = yel_alloc_Int_data(atoll(_CurVal));}\
+    else if(_CurType == tok_number_flt) {opcodes->codes[opcodes->len] = LOAD_CONST;\
+        opcodes->codes[opcodes->len+1] = yel_alloc_Flt_data(atof(_CurVal));}\
+    else if(_CurType == tok_bool) {opcodes->codes[opcodes->len] = LOAD_CONST;\
+        opcodes->codes[opcodes->len+1] = yel_alloc_Bool_data((_Bool)atoi(_CurVal));}\
+    else if(_CurType == tok_string) {opcodes->codes[opcodes->len] = LOAD_CONST;\
+        opcodes->codes[opcodes->len+1] = yel_alloc_Str_data(_CurVal);}opcodes->len+=2;++argCounter;}
 
 int          _SimpleExpr = 0;
 static int   _Parentheses = 0;      // ()
@@ -663,12 +670,13 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
 
         // ,
         else if (_NextType == tok_comma) {
+            _Unary = 1;
+            
             WRITE_OPCODE();
             if (_SimpleExpr) return;
 
             yel_tokens->pointer += 2;
             ++_SimpleExpr;
-            _Unary = 1;
 
             yel_parse_expression(yel_tokens, opcodes);
 
@@ -793,7 +801,7 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
                 if (_SimpleExpr) return;
             }
         }
-        else if(_CurType == tok_number_int || _CurType == tok_number_flt || _CurType == tok_string || _CurType == tok_bool) {
+        else if(_CurType == tok_number_int) {
             if (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) {
                 yel_print_error("SyntaxError", "expression on the left should not be a constant", yel_tokens->src_ptr, 
                     yel_tokens->line[yel_tokens->pointer], 
@@ -803,7 +811,66 @@ void yel_parse_expression(YelTokens* yel_tokens, OPCODES* opcodes) {
             }
             
             opcodes->codes[opcodes->len] = LOAD_CONST;
-            opcodes->codes[opcodes->len+1] = &_CurVal;            // add to const
+            opcodes->codes[opcodes->len+1] = yel_alloc_Int_data(atoll(_CurVal));            // add to const
+            opcodes->len += 2;
+
+            ++argCounter;
+            _Unary = 0;
+
+            if (_SimpleExpr) return;
+        }
+        else if(_CurType == tok_number_flt) {
+            if (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) {
+                yel_print_error("SyntaxError", "expression on the left should not be a constant", yel_tokens->src_ptr, 
+                    yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer]);
+
+                yel_tokens->error = 1;
+            }
+            
+            opcodes->codes[opcodes->len] = LOAD_CONST;
+            opcodes->codes[opcodes->len+1] = yel_alloc_Flt_data(atof(_CurVal));            // add to const
+            opcodes->len += 2;
+
+            ++argCounter;
+            _Unary = 0;
+
+            if (_SimpleExpr) return;
+        }
+        else if(_CurType == tok_string) {
+            if (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) {
+                yel_print_error("SyntaxError", "expression on the left should not be a constant", yel_tokens->src_ptr, 
+                    yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer]);
+
+                yel_tokens->error = 1;
+            }
+            
+            opcodes->codes[opcodes->len] = LOAD_CONST;
+            opcodes->codes[opcodes->len+1] = yel_alloc_Str_data(_CurVal);            // add to const
+            opcodes->len += 2;
+
+            ++argCounter;
+            _Unary = 0;
+
+            if (_SimpleExpr) return;
+        }
+        else if(_CurType == tok_bool) {
+            if (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) {
+                yel_print_error("SyntaxError", "expression on the left should not be a constant", yel_tokens->src_ptr, 
+                    yel_tokens->line[yel_tokens->pointer], 
+                    yel_tokens->start_symbol[yel_tokens->pointer]);
+
+                yel_tokens->error = 1;
+            }
+            
+            opcodes->codes[opcodes->len] = LOAD_CONST;
+
+            if (strcmp(_CurVal, "True") == 0)
+                opcodes->codes[opcodes->len+1] = yel_alloc_Bool_data((_Bool)1);
+            else
+                opcodes->codes[opcodes->len+1] = yel_alloc_Bool_data((_Bool)0);
+
             opcodes->len += 2;
 
             ++argCounter;
@@ -1160,17 +1227,21 @@ void yel_parse_statement(YelTokens* yel_tokens, OPCODES* opcodes) {
                     yel_tokens->start_symbol[yel_tokens->pointer]);
             }
 
-            printf("\nload_const [func address]\n");
-            printf("make_func_and_store %s\n", yel_tokens->value[tmp_i]);
+            opcodes->codes[opcodes->len] = LOAD_CONST;
+            opcodes->codes[opcodes->len+1] = yel_tokens->value[tmp_i];
 
-            opcodes->len += 4;
+            opcodes->codes[opcodes->len+2] = MAKE_FUNC;
+            opcodes->codes[opcodes->len+3] = OP_STORE;
+            opcodes->codes[opcodes->len+4] = yel_tokens->value[tmp_i];
+
+            opcodes->len += 5;
             return;
         }
 
         ++yel_tokens->pointer;
     }
 
-    opcodes->codes = __builtin_realloc(opcodes->codes, (opcodes->len+1)*sizeof(OPCODEWORD));
-    opcodes->codes[opcodes->len] = OP_HALT;
-    ++opcodes->len;
+    // opcodes->codes = __builtin_realloc(opcodes->codes, (opcodes->len+1)*sizeof(OPCODEWORD));
+    //opcodes->codes[opcodes->len] = OP_HALT;
+    //++opcodes->len;
 }

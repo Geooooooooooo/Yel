@@ -2,6 +2,7 @@
 #include "../Parser/parser.h"
 #include "../Lexer/lexer.h"
 #include "../Errors/error.h"
+#include "../VM/yvm.h"
 
 #define print_ystack() for(int i=0;i<_ParserStackCounter;i++)printf("%d\n",_ParserStack[i]);
 
@@ -294,8 +295,7 @@ void yel_gen_opcode(YelTokens* yel_tokens, OPCODES* opcodes) {
         if (_CurType == tok_op_flbrk || _CurType == tok_op_frbrk) ++yel_tokens->pointer;
         
         if (_CurType == tok_name && (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) || 
-        _CurType == tok_word_break ||  _CurType == tok_word_return || _CurType == tok_op_flbrk || _CurType == tok_op_frbrk || 
-        _CurType == tok_word_if || _CurType == tok_word_while || _CurType == tok_word_func || _CurType == tok_word_continue) {
+        _CurType >= tok_word_func && _CurType <= tok_word_continue) {
             if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
                 yel_parse_statement(yel_tokens, opcodes);
             } else {
