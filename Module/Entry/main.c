@@ -9,36 +9,35 @@
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        printf("No input file\nUse: 'yel <filename>'\n");
+        printf("No input file\nUse: 'yel [filename]'\n");
         return -1;
     }
 
-    Source source = yel_stdio_read_file(argv[1]);
-    if (source.source_text == NULL) {
+    YelSource source = yel_stdio_read_file(argv[1]);
+    if (source.source_text == NULL)
         return 0;
-    }
 
-    YelTokens token_array = yel_parse_tokens(&source);
-    if (token_array.error) {
+    YelTokens yeltokens = yel_parse_tokens(&source);
+    if (yeltokens.error)
         goto _yel_end;
-    }
     
     yel_init_data_seg();
 
-    OPCODES opcodes;
-    yel_gen_opcode(&token_array, &opcodes);
+    YelByteCode bytecode;
+    yel_gen_opcode(&yeltokens, &bytecode);
 
-    if (token_array.error) goto _yel_end;
+    if (yeltokens.error) 
+        goto _yel_end;
 
     puts("Disassembled code:\n");
-    for (size_t i = 0; i < opcodes.len; i++) {
-        print_disassembly_opcode(opcodes.codes[i], i);
+    for (size_t i = 0; i < bytecode.len; i++) {
+        print_disassembly_opcode(bytecode.opcode[i], i);
     }
 
 _yel_end:
-    yel_free_tokens(&token_array);
+    yel_free_tokens(&yeltokens);
     __builtin_free(source.source_text);
-    __builtin_free(opcodes.codes);
+    __builtin_free(bytecode.opcode);
     yel_free_data_seg();
 
     return 0;
