@@ -1,6 +1,6 @@
 #include "error.h"
 
-void yel_print_error(const char* err_name, const char* err_desc, Source* src, size_t line, size_t symbol) {
+void yel_print_error(const char* err_name, const char* err_desc, YelSource* src, size_t line, size_t symbol) {
     printf("File '%s', line %lu\n\n    ", src->file_name, line, symbol);
 
     size_t line_counter = 1;

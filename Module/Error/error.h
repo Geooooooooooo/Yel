@@ -3,6 +3,6 @@
 
 #include "../Dependencies/dependencies.h"
 
-void yel_print_error(const char* err_name, const char* err_desc, Source* src, size_t line, size_t symbol);
+void yel_print_error(const char*, const char*, YelSource*, size_t, size_t);
 
 #endif //__ERROR_H__
