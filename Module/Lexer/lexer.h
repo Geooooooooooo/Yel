@@ -3,8 +3,8 @@
 #ifndef __LEXER_H__
 #define __LEXER_H__
 
-void yel_get_next_token(Source* source, YelTokenType* t_token_type, char* token_value);
-YelTokens yel_parse_tokens(Source* source);
-void  yel_free_tokens(YelTokens* daf_tokens);
+void yel_get_next_token(YelSource*, YelTokenType*, char*);
+YelTokens yel_parse_tokens(YelSource*);
+void  yel_free_tokens(YelTokens*);
 
 #endif //__LEXER_H__

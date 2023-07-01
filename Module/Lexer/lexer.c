@@ -18,14 +18,13 @@ size_t cur_line = 1;
 size_t cur_line_symbol = 1;
 size_t start_symbol = 1;
 
-const int yel_keywords_length = 14;
+const int yel_keywords_length = 8;
 const const char* yel_keywords[] = {
     "func", "return", "defer", "break",
-    "noreturn", "Int", "Flt", "Str", "Any", "Bool", 
     "if", "else", "while", "continue"
 };
 
-void yel_get_next_token(Source* source, YelTokenType* t_token_type, char* token_value) {
+void yel_get_next_token(YelSource* source, YelTokenType* t_token_type, char* token_value) {
     register size_t token_value_counter = 0;
 
 _start_:
@@ -433,7 +432,7 @@ _end_:
     }
 }
 
-YelTokens yel_parse_tokens(Source* source) {
+YelTokens yel_parse_tokens(YelSource* source) {
     YelTokens yel_tokens = { 0 };
     yel_tokens.pointer = 0;
     yel_tokens.file_name = source->file_name;
