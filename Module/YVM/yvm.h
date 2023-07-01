@@ -5,10 +5,15 @@
 
 //OPCODEWORD MAX_STACK_SIZE = 65536;
 
-void yel_run();
-void yel_init_vm(OPCODEWORD stack_size);
-
-void print_disassembly_opcode(OPCODEWORD w, size_t count);
+void yel_init_data_seg();
+void yel_free_data_seg();
+void yel_run(OPCODES*, OPCODES*, size_t);
+OPCODES* yel_init_stack(size_t);
+SIZE_REF yel_alloc_Flt_data(__float128);
+SIZE_REF yel_alloc_Int_data(__int128_t);
+SIZE_REF yel_alloc_Str_data(char*);
+SIZE_REF yel_alloc_Bool_data(_Bool);
+void print_disassembly_opcode(OPCODEWORD, size_t);
 
 
 #endif // __YVM_H__
