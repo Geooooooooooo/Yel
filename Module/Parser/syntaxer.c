@@ -287,9 +287,9 @@ _Bool yek_check_stmt(YelTokens* yel_tokens) {
 }
 
 // from syntaxer.c
-void yel_gen_opcode(YelTokens* yel_tokens, OPCODES* opcodes) {
-    opcodes->codes = (OPCODEWORD*)__builtin_malloc(64*sizeof(OPCODEWORD));
-    opcodes->len = 0;
+void yel_gen_opcode(YelTokens* yel_tokens, YelByteCode* bytecode) {
+    bytecode->opcode = (OPCODEWORD*)__builtin_malloc(64*sizeof(OPCODEWORD));
+    bytecode->len = 0;
 
     while (yel_tokens->pointer < yel_tokens->length) {
         if (_CurType == tok_op_flbrk || _CurType == tok_op_frbrk) ++yel_tokens->pointer;
@@ -297,14 +297,14 @@ void yel_gen_opcode(YelTokens* yel_tokens, OPCODES* opcodes) {
         if (_CurType == tok_name && (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_assign) || 
         _CurType >= tok_word_func && _CurType <= tok_word_continue) {
             if (yek_check_stmt(yel_tokens) == RET_CODE_OK) {
-                yel_parse_statement(yel_tokens, opcodes);
+                yel_parse_statement(yel_tokens, bytecode);
             } else {
                 yel_tokens->error = 1;
                 break;
             }
         } 
         else if (yel_check_expr(yel_tokens, 0) == RET_CODE_OK) {
-            yel_parse_expression(yel_tokens, opcodes);
+            yel_parse_expression(yel_tokens, bytecode);
         } else {
             yel_tokens->error = 1;
             break;
@@ -312,6 +312,6 @@ void yel_gen_opcode(YelTokens* yel_tokens, OPCODES* opcodes) {
 
     }
 
-    opcodes->codes[opcodes->len] = OP_HALT;
-    ++opcodes->len;
+    bytecode->opcode[bytecode->len] = OP_HALT;
+    ++bytecode->len;
 }
