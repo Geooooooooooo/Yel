@@ -74,31 +74,69 @@ SIZE_REF* data_float_segment;
 SIZE_REF* data_bool_segment;
 SIZE_REF* data_int_segment;
 SIZE_REF* data_str_segment;
+SIZE_REF* variables_segment;
 
 unsigned long long data_float_segment_len;
 unsigned long long data_int_segment_len;
 unsigned long long data_bool_segment_len;
 unsigned long long data_str_segment_len;
+unsigned long long variables_segment_len;
 
 void yel_init_data_seg() {
-    data_float_segment = (YelConstant*)__builtin_malloc(sizeof(YelConstant));
+    data_float_segment = (SIZE_REF*)__builtin_malloc(sizeof(SIZE_REF));
     data_float_segment_len = 0;
 
-    data_int_segment = (YelConstant*)__builtin_malloc(sizeof(YelConstant));
+    data_int_segment = (SIZE_REF*)__builtin_malloc(sizeof(SIZE_REF));
     data_int_segment_len = 0;
 
-    data_bool_segment = (YelConstant*)__builtin_malloc(sizeof(YelConstant));
+    data_bool_segment = (SIZE_REF*)__builtin_malloc(sizeof(SIZE_REF));
     data_bool_segment_len = 0;
 
-    data_str_segment = (YelConstant*)__builtin_malloc(sizeof(YelConstant));
+    data_str_segment = (SIZE_REF*)__builtin_malloc(sizeof(SIZE_REF));
     data_str_segment_len = 0;
+
+    variables_segment = (SIZE_REF*)__builtin_malloc(sizeof(SIZE_REF));
+    variables_segment_len = 0;
 }
 
+// fix
 void yel_free_data_seg() {
     __builtin_free(data_float_segment);
     __builtin_free(data_int_segment);
     __builtin_free(data_bool_segment);
     __builtin_free(data_str_segment);
+    __builtin_free(variables_segment);
+}
+
+// store var
+int yel_alloc_variable(char* name, SIZE_REF c_ref) {
+    for (unsigned long long i = 0; i < variables_segment_len; i++) {
+        if (__builtin_strcmp((*(YelVariable*)variables_segment[i]).name, name) == 0) {
+            (*(YelVariable*)variables_segment[i]).ref = c_ref;
+            return RET_CODE_OK;
+        }
+    }
+    
+    variables_segment = (SIZE_REF*)__builtin_realloc(variables_segment, (variables_segment_len+1) * sizeof(SIZE_REF));
+    YelVariable* var = (YelVariable*)__builtin_malloc(sizeof(YelVariable));
+
+    var->ref = c_ref;
+    var->name = name;
+
+    variables_segment[variables_segment_len] = (SIZE_REF)var;
+
+    ++variables_segment_len;
+    return RET_CODE_OK;
+}
+
+SIZE_REF yel_get_variable(char* name) {
+    for (unsigned long long i = 0; i < variables_segment_len; i++) {
+        if (__builtin_strcmp((*(YelVariable*)variables_segment[i]).name, name) == 0) {
+            return (*(YelVariable*)variables_segment[i]).ref;
+        }
+    }
+
+    printf("Unknown variable\n");
 }
 
 SIZE_REF yel_alloc_Flt_data(long double _Val) {
@@ -108,7 +146,7 @@ SIZE_REF yel_alloc_Flt_data(long double _Val) {
         }
     }
     
-    data_float_segment = (YelConstant*)__builtin_realloc(data_float_segment, (data_float_segment_len+1) * sizeof(YelConstant));
+    data_float_segment = (SIZE_REF*)__builtin_realloc(data_float_segment, (data_float_segment_len+1) * sizeof(SIZE_REF));
     long double* tmp = (long double*)__builtin_malloc(sizeof(long double));
     *tmp = _Val;
     YelConstant* cnst = (YelConstant*)__builtin_malloc(sizeof(YelConstant));
@@ -149,7 +187,7 @@ SIZE_REF yel_alloc_Int_data(signed long long _Val) {
 
 // fix it
 SIZE_REF yel_alloc_Str_data(char* _Val) {
-    data_str_segment = (YelConstant*)__builtin_realloc(data_str_segment, (data_str_segment_len+1) * sizeof(YelConstant));
+    data_str_segment = (SIZE_REF*)__builtin_realloc(data_str_segment, (data_str_segment_len+1) * sizeof(SIZE_REF));
     char* tmp = (char*)__builtin_malloc(sizeof(char*));
     *tmp = _Val;
     YelConstant* cnst = (YelConstant*)__builtin_malloc(sizeof(YelConstant));
@@ -167,7 +205,7 @@ SIZE_REF yel_alloc_Bool_data(_Bool _Val) {
         }
     }
     
-    data_bool_segment = (YelConstant*)__builtin_realloc(data_bool_segment, (data_bool_segment_len+1) * sizeof(YelConstant));
+    data_bool_segment = (SIZE_REF*)__builtin_realloc(data_bool_segment, (data_bool_segment_len+1) * sizeof(SIZE_REF));
     _Bool* tmp = (_Bool*)__builtin_malloc(sizeof(_Bool));
     *tmp = _Val;
     YelConstant* cnst = (YelConstant*)__builtin_malloc(sizeof(YelConstant));
@@ -202,8 +240,12 @@ void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
             goto _end;
 
         case LOAD_VALUE:
+            stack[sp] = yel_get_variable((char*)instructions[ip+1]);
+            ++sp;
+            ip += 2;
+
             break;
-            
+
         case LOAD_CONST: 
             stack[sp] = instructions[ip+1];
             ++sp;
@@ -373,10 +415,16 @@ void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
                 ip = instructions[ip+1];
 
             break;
+
+        case OP_STORE:
+            yel_alloc_variable((char*)instructions[ip+1], stack[--sp]);
+            ip += 2;
+
+            break;
         }
     }
 
 _end:
-
-    printf("TOP = %lld\n", *(signed long long*)((YelConstant*)stack[sp-1])->ref);
+    if (sp == 0) puts("Stack is empty");
+    else printf("TOP = %lld\n", *(signed long long*)((YelConstant*)stack[sp-1])->ref);
 }

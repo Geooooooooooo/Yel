@@ -2,6 +2,7 @@
 #define __YVM_H__
 
 #include "../Dependencies/dependencies.h"
+#include <math.h>
 
 //OPCODEWORD MAX_STACK_SIZE = 65536;
 
