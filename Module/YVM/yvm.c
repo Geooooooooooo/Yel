@@ -101,10 +101,26 @@ void yel_init_data_seg() {
 
 // fix
 void yel_free_data_seg() {
+    size_t i;
+
+    for (i = 0; i < data_float_segment_len; i++)
+        __builtin_free(data_float_segment[i]);
     __builtin_free(data_float_segment);
+
+    for (i = 0; i < data_int_segment_len; i++)
+        __builtin_free(data_int_segment[i]);
     __builtin_free(data_int_segment);
+
+    for (i = 0; i < data_bool_segment_len; i++)
+        __builtin_free(data_bool_segment[i]);
     __builtin_free(data_bool_segment);
+
+    for (i = 0; i < data_str_segment_len; i++)
+        __builtin_free(data_str_segment[i]);
     __builtin_free(data_str_segment);
+
+    for (i = 0; i < variables_segment_len; i++)
+        __builtin_free(variables_segment[i]);
     __builtin_free(variables_segment);
 }
 
@@ -135,8 +151,7 @@ SIZE_REF yel_get_variable(char* name) {
             return (*(YelVariable*)variables_segment[i]).ref;
         }
     }
-
-    printf("Unknown variable\n");
+    return 0LL;
 }
 
 SIZE_REF yel_alloc_Flt_data(long double _Val) {
@@ -234,13 +249,21 @@ void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
 
     OPCODEWORD* instructions = bytecode->opcode;
 
+    register clock_t begin = clock();
+
     while (1) {
         switch (instructions[ip]) {
         case OP_HALT:
-            goto _end;
+            goto _debug_info; // _end;
 
         case LOAD_VALUE:
             stack[sp] = yel_get_variable((char*)instructions[ip+1]);
+
+            if (stack[sp] == 0LL) {
+                printf("RuntimeError: undeclared name '%s'\n", (char*)instructions[ip+1]);
+                goto _emergency_stop;
+            }
+
             ++sp;
             ip += 2;
 
@@ -425,6 +448,18 @@ void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
     }
 
 _end:
-    if (sp == 0) puts("Stack is empty");
-    else printf("TOP = %lld\n", *(signed long long*)((YelConstant*)stack[sp-1])->ref);
+    return;
+
+_debug_info:
+    register clock_t end = clock(); 
+
+    printf("VM Info:\n--> sp = %llu\n--> ip = %llu\n", sp, ip);
+    if (sp != 0) printf("--> top = %lld (%p)\n", *(signed long long*)((YelConstant*)stack[sp-1])->ref, ((YelConstant*)stack[sp-1])->ref);
+    else printf("--> stack is empty\n");
+
+    printf("--> exe time = %.7f", (double)(end - begin) / CLOCKS_PER_SEC);
+    return;
+
+_emergency_stop:
+
 }
