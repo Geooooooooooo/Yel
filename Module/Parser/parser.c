@@ -9,7 +9,7 @@
     if (_CurType == tok_name) {bytecode->opcode[bytecode->len] = LOAD_VALUE;\
         bytecode->opcode[bytecode->len+1] = (OPCODEWORD)_CurVal;}\
     else if (_CurType == tok_number_int) {bytecode->opcode[bytecode->len] = LOAD_CONST;\
-        bytecode->opcode[bytecode->len+1] = yel_alloc_Int_data(atoll(_CurVal));}\
+        bytecode->opcode[bytecode->len+1] = yel_alloc_Int_data((signed long long)atoll(_CurVal));}\
     else if(_CurType == tok_number_flt) {bytecode->opcode[bytecode->len] = LOAD_CONST;\
         bytecode->opcode[bytecode->len+1] = yel_alloc_Flt_data(atof(_CurVal));}\
     else if(_CurType == tok_bool) {bytecode->opcode[bytecode->len] = LOAD_CONST;\
@@ -17,11 +17,11 @@
     else if(_CurType == tok_string) {bytecode->opcode[bytecode->len] = LOAD_CONST;\
         bytecode->opcode[bytecode->len+1] = yel_alloc_Str_data(_CurVal);}bytecode->len+=2;++argCounter;}
 
-int          _SimpleExpr = 0;
-static int   _Parentheses = 0;      // ()
-static int  _Unary = 1;
-static size_t argCounter = 0;
-static size_t curInstLen = 0;
+int             _SimpleExpr = 0;
+static int      _Parentheses = 0;      // ()
+static int      _Unary = 1;
+static size_t   argCounter = 0;
+static size_t   curInstLen = 0;
 
 // from parser.c
 void yel_parse_expression(YelTokens* yel_tokens, YelByteCode* bytecode) {
@@ -469,6 +469,7 @@ void yel_parse_expression(YelTokens* yel_tokens, YelByteCode* bytecode) {
             --_SimpleExpr;
 
             while (_NextType >= tok_binary_op_pow && _NextType <= tok_binary_op_or) {
+                _Unary = 1;
                 ++_SimpleExpr;
                 ++yel_tokens->pointer;
                 yel_parse_expression(yel_tokens, bytecode);
@@ -556,6 +557,8 @@ void yel_parse_expression(YelTokens* yel_tokens, YelByteCode* bytecode) {
 
             ++bytecode->len;
             _Unary = 0;
+
+            if (_CurType == tok_op_rpar) continue;
             if (_SimpleExpr) return;
         }
 
@@ -811,7 +814,7 @@ void yel_parse_expression(YelTokens* yel_tokens, YelByteCode* bytecode) {
             }
             
             bytecode->opcode[bytecode->len] = LOAD_CONST;
-            bytecode->opcode[bytecode->len+1] = yel_alloc_Int_data(atoll(_CurVal));            // add to const
+            bytecode->opcode[bytecode->len+1] = yel_alloc_Int_data((signed long long)atoll(_CurVal));            // add to const
             bytecode->len += 2;
 
             ++argCounter;
