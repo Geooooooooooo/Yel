@@ -7,9 +7,15 @@
 
 // TODO: fix SYNTAXER for: (a1=b1=c1=f1, hello); print(a1=(b1=(c1=f1)), a2=(b2=(c2=f2)));
 
+// TODO: if (not (a = foo(b, c)))
+//          exit(bar());
+// fix error
+
+// fix: not a != (10 + 10);
+
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        printf("No input file\nUse: 'yel [filename]'\n");
+        printf("Inline mode is not available\nUse: 'yel [filename]'\n");
         return -1;
     }
 
@@ -29,10 +35,13 @@ int main(int argc, char* argv[]) {
     if (yeltokens.error) 
         goto _yel_end;
 
-    puts("Disassembled code:\n");
-    for (size_t i = 0; i < bytecode.len; i++) {
-        print_disassembly_opcode(bytecode.opcode[i], i);
-    }
+    //print_disassembly_bytecode(bytecode);
+    //puts("");
+
+    OPCODEWORD* stack = yel_init_stack(256);
+    yel_run(stack, &bytecode, 256);
+
+    //print_const_int_data();
 
 _yel_end:
     yel_free_tokens(&yeltokens);
