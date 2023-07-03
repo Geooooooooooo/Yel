@@ -14,6 +14,7 @@ SIZE_REF yel_alloc_Flt_data(long double);
 SIZE_REF yel_alloc_Int_data(signed long long);
 SIZE_REF yel_alloc_Str_data(char*);
 SIZE_REF yel_alloc_Bool_data(_Bool);
+SIZE_REF yel_alloc_variable(char*, SIZE_REF);
 void print_disassembly_bytecode(YelByteCode);
 
 // debug
