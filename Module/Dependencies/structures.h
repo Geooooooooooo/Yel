@@ -103,8 +103,12 @@ typedef struct __YelSource {
     size_t length;
 } YelSource;
 
-typedef struct __YelProgramObject {
-    char* name;
+typedef struct __YelConstant {
     int type;
     OPCODEWORD ref;     // ref to value
-} YelVariable, YelConstant;
+} YelConstant;
+
+typedef struct __YelVariable {
+    char* name;
+    OPCODEWORD ref;     // to YelConstant
+} YelVariable;
