@@ -171,8 +171,13 @@ SIZE_REF yel_alloc_Flt_data(long double _Val) {
 }
 
 void print_const_int_data() {
+    if (data_int_segment_len == 0) return;
+
+    puts("segment .Int");
     for (unsigned long long i=0; i<data_int_segment_len; i++)
-        printf("%p:\t%lld\n", (*(YelConstant*)data_int_segment[i]).ref, *(signed long long*)((*(YelConstant*)data_int_segment[i]).ref)); 
+        printf("\t%p:\t%lld\n", (*(YelConstant*)data_int_segment[i]).ref, *(signed long long*)((*(YelConstant*)data_int_segment[i]).ref)); 
+
+    puts("");
 }
 
 SIZE_REF yel_alloc_Int_data(signed long long _Val) {
@@ -244,14 +249,19 @@ void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
     register OPCODEWORD a;
     register OPCODEWORD b;
 
-    YelConstant tmp_const;
-    long long tmp_int;
+    YelConstant tmp_const[22];
+    long long tmp_int[22];
 
     OPCODEWORD* instructions = bytecode->opcode;
 
     clock_t begin = clock();
 
     while (1) {
+        if (sp == stack_size) {
+            puts("RuntimeError: stack overflow");
+            goto _emergency_stop;
+        }
+
         switch (instructions[ip]) {
         case OP_HALT:
             goto _debug_info; // _end;
@@ -275,13 +285,10 @@ void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
             ip += 2;
             break;
 
-        case POP_VALUE:
-            --sp;
-            break;
-
-        case DUP_VALUE:
+        case DUP_VALUE:     // fix it
             stack[sp] = stack[sp-1];
             ++sp;
+            ++ip;
             break;
 
         case BYNARY_OP:
@@ -302,140 +309,140 @@ void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
                 stack[sp-1] = &tmp_const; */
                 break;
             case BYNARY_DIV:
-                tmp_int = *(signed long long*)((YelConstant*)b)->ref /
+                tmp_int[1] = *(signed long long*)((YelConstant*)b)->ref /
                         *(signed long long*)((YelConstant*)a)->ref;
 
-                tmp_const.ref = &tmp_int;
-                tmp_const.type = INT_TYPE;
-                stack[sp-1] = &tmp_const;
+                tmp_const[1].ref = &tmp_int[1];
+                tmp_const[1].type = INT_TYPE;
+                stack[sp-1] = &tmp_const[1];
                 break;
             case BYNARY_MUL:
-                tmp_int = *(signed long long*)((YelConstant*)b)->ref *
+                tmp_int[2] = *(signed long long*)((YelConstant*)b)->ref *
                         *(signed long long*)((YelConstant*)a)->ref;
 
-                tmp_const.ref = &tmp_int;
-                tmp_const.type = INT_TYPE;
-                stack[sp-1] = &tmp_const;
+                tmp_const[2].ref = &tmp_int[2];
+                tmp_const[2].type = INT_TYPE;
+                stack[sp-1] = &tmp_const[2];
                 break;
             case BYNARY_MOD:
-                tmp_int = *(signed long long*)((YelConstant*)b)->ref %
+                tmp_int[3] = *(signed long long*)((YelConstant*)b)->ref %
                         *(signed long long*)((YelConstant*)a)->ref;
 
-                tmp_const.ref = &tmp_int;
-                tmp_const.type = INT_TYPE;
-                stack[sp-1] = &tmp_const;
+                tmp_const[3].ref = &tmp_int[3];
+                tmp_const[3].type = INT_TYPE;
+                stack[sp-1] = &tmp_const[3];
                 break;
             case BYNARY_ADD:
-                tmp_int = *(signed long long*)((YelConstant*)b)->ref +
+                tmp_int[4] = *(signed long long*)((YelConstant*)b)->ref +
                         *(signed long long*)((YelConstant*)a)->ref;
 
-                tmp_const.ref = &tmp_int;
-                tmp_const.type = INT_TYPE;
-                stack[sp-1] = &tmp_const;
+                tmp_const[4].ref = &tmp_int[4];
+                tmp_const[4].type = INT_TYPE;
+                stack[sp-1] = &tmp_const[4];
                 break;
             case BYNARY_SUB:
-                tmp_int = *(signed long long*)((YelConstant*)b)->ref -
+                tmp_int[5] = *(signed long long*)((YelConstant*)b)->ref -
                         *(signed long long*)((YelConstant*)a)->ref;
 
-                tmp_const.ref = &tmp_int;
-                tmp_const.type = INT_TYPE;
-                stack[sp-1] = &tmp_const;
+                tmp_const[5].ref = &tmp_int[5];
+                tmp_const[5].type = INT_TYPE;
+                stack[sp-1] = &tmp_const[5];
                 break;
             case BYNARY_RSH:
-                tmp_int = *(signed long long*)((YelConstant*)b)->ref >>
+                tmp_int[6] = *(signed long long*)((YelConstant*)b)->ref >>
                         *(signed long long*)((YelConstant*)a)->ref;
 
-                tmp_const.ref = &tmp_int;
-                tmp_const.type = INT_TYPE;
-                stack[sp-1] = &tmp_const;
+                tmp_const[6].ref = &tmp_int[6];
+                tmp_const[6].type = INT_TYPE;
+                stack[sp-1] = &tmp_const[6];
                 break;
             case BYNARY_LSH:
-                tmp_int = *(signed long long*)((YelConstant*)b)->ref <<
+                tmp_int[7] = *(signed long long*)((YelConstant*)b)->ref <<
                         *(signed long long*)((YelConstant*)a)->ref;
 
-                tmp_const.ref = &tmp_int;
-                tmp_const.type = INT_TYPE;
-                stack[sp-1] = &tmp_const;
+                tmp_const[7].ref = &tmp_int[7];
+                tmp_const[7].type = INT_TYPE;
+                stack[sp-1] = &tmp_const[7];
                 break;
             case BYNARY_MORE:
-                tmp_int = *(signed long long*)((YelConstant*)b)->ref >
+                tmp_int[8] = *(signed long long*)((YelConstant*)b)->ref >
                         *(signed long long*)((YelConstant*)a)->ref;
 
-                tmp_const.ref = &tmp_int;
-                tmp_const.type = INT_TYPE;
-                stack[sp-1] = &tmp_const;
+                tmp_const[8].ref = &tmp_int[8];
+                tmp_const[8].type = INT_TYPE;
+                stack[sp-1] = &tmp_const[8];
                 break;
             case BYNARY_LESS:
-                tmp_int = *(signed long long*)((YelConstant*)b)->ref <
+                tmp_int[9] = *(signed long long*)((YelConstant*)b)->ref <
                         *(signed long long*)((YelConstant*)a)->ref;
 
-                tmp_const.ref = &tmp_int;
-                tmp_const.type = INT_TYPE;
-                stack[sp-1] = &tmp_const;
+                tmp_const[9].ref = &tmp_int[9];
+                tmp_const[9].type = INT_TYPE;
+                stack[sp-1] = &tmp_const[9];
                 break;
             case BYNARY_MORE_EQ:
-                tmp_int = *(signed long long*)((YelConstant*)b)->ref >=
+                tmp_int[10] = *(signed long long*)((YelConstant*)b)->ref >=
                         *(signed long long*)((YelConstant*)a)->ref;
 
-                tmp_const.ref = &tmp_int;
-                tmp_const.type = INT_TYPE;
-                stack[sp-1] = &tmp_const;
+                tmp_const[10].ref = &tmp_int[10];
+                tmp_const[10].type = INT_TYPE;
+                stack[sp-1] = &tmp_const[10];
                 break;
             case BYNARY_LESS_EQ:
-                tmp_int = *(signed long long*)((YelConstant*)b)->ref <=
+                tmp_int[11] = *(signed long long*)((YelConstant*)b)->ref <=
                         *(signed long long*)((YelConstant*)a)->ref;
 
-                tmp_const.ref = &tmp_int;
-                tmp_const.type = INT_TYPE;
-                stack[sp-1] = &tmp_const;
+                tmp_const[11].ref = &tmp_int[11];
+                tmp_const[11].type = INT_TYPE;
+                stack[sp-1] = &tmp_const[11];
                 break;
             case BYNARY_EQ:
-                tmp_int = *(signed long long*)((YelConstant*)b)->ref ==
+                tmp_int[12] = *(signed long long*)((YelConstant*)b)->ref ==
                         *(signed long long*)((YelConstant*)a)->ref;
 
-                tmp_const.ref = &tmp_int;
-                tmp_const.type = INT_TYPE;
-                stack[sp-1] = &tmp_const;
+                tmp_const[12].ref = &tmp_int[12];
+                tmp_const[12].type = INT_TYPE;
+                stack[sp-1] = &tmp_const[12];
                 break;
             case BYNARY_NOT_EQ:
-                tmp_int = *(signed long long*)((YelConstant*)b)->ref !=
+                tmp_int[13] = *(signed long long*)((YelConstant*)b)->ref !=
                         *(signed long long*)((YelConstant*)a)->ref;
 
-                tmp_const.ref = &tmp_int;
-                tmp_const.type = INT_TYPE;
-                stack[sp-1] = &tmp_const;
+                tmp_const[13].ref = &tmp_int[13];
+                tmp_const[13].type = INT_TYPE;
+                stack[sp-1] = &tmp_const[13];
                 break;
             case BYNARY_AND:
-                tmp_int = *(signed long long*)((YelConstant*)b)->ref &
+                tmp_int[14] = *(signed long long*)((YelConstant*)b)->ref &
                         *(signed long long*)((YelConstant*)a)->ref;
 
-                tmp_const.ref = &tmp_int;
-                tmp_const.type = INT_TYPE;
-                stack[sp-1] = &tmp_const;
+                tmp_const[14].ref = &tmp_int[14];
+                tmp_const[14].type = INT_TYPE;
+                stack[sp-1] = &tmp_const[14];
                 break;
             case BYNARY_OR:
-                tmp_int = *(signed long long*)((YelConstant*)b)->ref |
+                tmp_int[15] = *(signed long long*)((YelConstant*)b)->ref |
                         *(signed long long*)((YelConstant*)a)->ref;
 
-                tmp_const.ref = &tmp_int;
-                tmp_const.type = INT_TYPE;
-                stack[sp-1] = &tmp_const;
+                tmp_const[15].ref = &tmp_int[15];
+                tmp_const[15].type = INT_TYPE;
+                stack[sp-1] = &tmp_const[15];
                 break;
             case BYNARY_LOGICAL_AND:
-                tmp_int = *(signed long long*)((YelConstant*)b)->ref &&
+                tmp_int[16] = *(signed long long*)((YelConstant*)b)->ref &&
                         *(signed long long*)((YelConstant*)a)->ref;
 
-                tmp_const.ref = &tmp_int;
-                tmp_const.type = INT_TYPE;
-                stack[sp-1] = &tmp_const;
+                tmp_const[16].ref = &tmp_int[16];
+                tmp_const[16].type = INT_TYPE;
+                stack[sp-1] = &tmp_const[16];
                 break;
             case BYNARY_LOGICAL_OR:
-                tmp_int = *(signed long long*)((YelConstant*)b)->ref ||
+                tmp_int[17] = *(signed long long*)((YelConstant*)b)->ref ||
                         *(signed long long*)((YelConstant*)a)->ref;
 
-                tmp_const.ref = &tmp_int;
-                tmp_const.type = INT_TYPE;
-                stack[sp-1] = &tmp_const;
+                tmp_const[17].ref = &tmp_int[17];
+                tmp_const[17].type = INT_TYPE;
+                stack[sp-1] = &tmp_const[17];
                 break;
             }
         
@@ -443,34 +450,34 @@ void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
 
             break;
         case UNARY_NEG:
-            tmp_int = -*(signed long long*)((YelConstant*)stack[sp-1])->ref;
-            tmp_const.ref = &tmp_int;
-            tmp_const.type = INT_TYPE;
-            stack[sp-1] = &tmp_const;
+            tmp_int[18] = -*(signed long long*)((YelConstant*)stack[sp-1])->ref;
+            tmp_const[18].ref = &tmp_int[18];
+            tmp_const[18].type = INT_TYPE;
+            stack[sp-1] = &tmp_const[18];
             ++ip;
             break;
         
         case UNARY_POS:
-            tmp_int = +*(signed long long*)((YelConstant*)stack[sp-1])->ref;
-            tmp_const.ref = &tmp_int;
-            tmp_const.type = INT_TYPE;
-            stack[sp-1] = &tmp_const;
+            tmp_int[19] = +*(signed long long*)((YelConstant*)stack[sp-1])->ref;
+            tmp_const[19].ref = &tmp_int[19];
+            tmp_const[19].type = INT_TYPE;
+            stack[sp-1] = &tmp_const[19];
             ++ip;
             break;
 
         case UNARY_NOT:
-            tmp_int = ~*(signed long long*)((YelConstant*)stack[sp-1])->ref;
-            tmp_const.ref = &tmp_int;
-            tmp_const.type = INT_TYPE;
-            stack[sp-1] = &tmp_const;
+            tmp_int[20] = ~*(signed long long*)((YelConstant*)stack[sp-1])->ref;
+            tmp_const[20].ref = &tmp_int[20];
+            tmp_const[20].type = INT_TYPE;
+            stack[sp-1] = &tmp_const[20];
             ++ip;
             break;
 
         case UNARY_LOGICAL_NOT:
-            tmp_int = !*(signed long long*)((YelConstant*)stack[sp-1])->ref;
-            tmp_const.ref = &tmp_int;
-            tmp_const.type = INT_TYPE;
-            stack[sp-1] = &tmp_const;
+            tmp_int[21] = !*(signed long long*)((YelConstant*)stack[sp-1])->ref;
+            tmp_const[21].ref = &tmp_int[21];
+            tmp_const[21].type = INT_TYPE;
+            stack[sp-1] = &tmp_const[21];
             ++ip;
 
             break;
@@ -504,6 +511,8 @@ void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
 
             break;
         }
+
+        // collector
     }
 
 _end:
@@ -516,7 +525,7 @@ _debug_info:
     if (sp != 0) printf("--> top = %lld (%p)\n", *(signed long long*)((YelConstant*)stack[sp-1])->ref, ((YelConstant*)stack[sp-1])->ref);
     else printf("--> stack is empty\n");
 
-    printf("--> exec time = %.7f\n", (double)(end - begin) / CLOCKS_PER_SEC);
+    printf("--> exec time = %.6f sec\n", (double)(end - begin) / CLOCKS_PER_SEC);
     return;
 
 _emergency_stop:
