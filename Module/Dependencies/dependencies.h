@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 
 #include "opcodes.h"
 #include "structures.h"
@@ -31,5 +32,7 @@
 #define FLT_TYPE            2
 #define BOOL_TYPE           3
 #define STR_TYPE            4
+
+#define YEL_SIZE_INT        sizeof(long long)
 
 #endif // __DEPENDECIES_H_
