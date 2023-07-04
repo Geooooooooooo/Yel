@@ -7,7 +7,7 @@
 
 #define WRITE_OPCODE() {\
     if (_CurType == tok_name) {bytecode->opcode[bytecode->len] = LOAD_VALUE;\
-        bytecode->opcode[bytecode->len+1] = (OPCODEWORD)yel_alloc_variable(_CurVal, NULL);}\
+        bytecode->opcode[bytecode->len+1] = yel_alloc_variable(_CurVal, NULL);}\
     else if (_CurType == tok_number_int) {bytecode->opcode[bytecode->len] = LOAD_CONST;\
         bytecode->opcode[bytecode->len+1] = yel_alloc_Int_data((signed long long)atoll(_CurVal));}\
     else if(_CurType == tok_number_flt) {bytecode->opcode[bytecode->len] = LOAD_CONST;\
@@ -908,13 +908,13 @@ void yel_parse_statement(YelTokens* yel_tokens, YelByteCode* bytecode) {
                 yel_parse_expression(yel_tokens, bytecode);
                 
                 bytecode->opcode[bytecode->len] = OP_STORE;
-                bytecode->opcode[bytecode->len+1] = (OPCODEWORD)yel_alloc_variable(yel_tokens->value[tmp_i], NULL);
+                bytecode->opcode[bytecode->len+1] = yel_alloc_variable(yel_tokens->value[tmp_i], NULL);
                 bytecode->len += 2;
             }
             else if (_NextType >= tok_binary_op_div_assign && _NextType <= tok_binary_op_pow_assign) {
                 
                 bytecode->opcode[bytecode->len] = LOAD_VALUE;
-                bytecode->opcode[bytecode->len+1] = (OPCODEWORD)yel_alloc_variable(_CurVal, NULL);
+                bytecode->opcode[bytecode->len+1] = yel_alloc_variable(_CurVal, NULL);
                 bytecode->len += 2;
 
                 size_t tmp_i = yel_tokens->pointer;
@@ -941,7 +941,7 @@ void yel_parse_statement(YelTokens* yel_tokens, YelByteCode* bytecode) {
                 }
 
                 bytecode->opcode[bytecode->len+2] = OP_STORE;
-                bytecode->opcode[bytecode->len+3] = (OPCODEWORD)yel_alloc_variable(yel_tokens->value[tmp_i], NULL);
+                bytecode->opcode[bytecode->len+3] = yel_alloc_variable(yel_tokens->value[tmp_i], NULL);
 
                 bytecode->len += 4;
             }
