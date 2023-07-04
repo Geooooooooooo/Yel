@@ -1,4 +1,5 @@
 #include "yvm.h"
+#include <math.h>
 
 void print_disassembly_bytecode(YelByteCode bytecode) {
     static int next = 0;
@@ -243,12 +244,12 @@ void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
     register OPCODEWORD a;
     register OPCODEWORD b;
 
-    OPCODEWORD* instructions = bytecode->opcode;
-
     YelConstant tmp_const;
     long long tmp_int;
 
-    register clock_t begin = clock();
+    OPCODEWORD* instructions = bytecode->opcode;
+
+    clock_t begin = clock();
 
     while (1) {
         switch (instructions[ip]) {
@@ -268,7 +269,7 @@ void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
 
             break;
 
-        case LOAD_CONST:
+        case LOAD_CONST: 
             stack[sp] = instructions[ip+1];
             ++sp;
             ip += 2;
@@ -279,7 +280,7 @@ void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
             break;
 
         case DUP_VALUE:
-            stack[sp+1] = stack[sp];
+            stack[sp] = stack[sp-1];
             ++sp;
             break;
 
@@ -292,12 +293,13 @@ void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
             switch (instructions[++ip])
             {
             case BYNARY_POW:
-                // stack[sp-1] = yel_alloc_Int_data(
-                //     (long long)pow(
-                //         *(signed long long*)((YelConstant*)b)->ref,
-                //         *(signed long long*)((YelConstant*)a)->ref
-                //     )
-                // );
+                /* tmp_int = powl(
+                    *(signed long long*)((YelConstant*)b)->ref, 
+                    *(signed long long*)((YelConstant*)a)->ref);
+
+                tmp_const.ref = &tmp_int;
+                tmp_const.type = INT_TYPE;
+                stack[sp-1] = &tmp_const; */
                 break;
             case BYNARY_DIV:
                 tmp_int = *(signed long long*)((YelConstant*)b)->ref /
@@ -470,12 +472,12 @@ void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
             tmp_const.type = INT_TYPE;
             stack[sp-1] = &tmp_const;
             ++ip;
-            break;
 
+            break;
         case OP_JUMP_TO: 
             ip = instructions[ip+1];
-            break;
 
+            break;
         case OP_POP_JUMP_ZERO:
             if (*(signed long long*)((YelConstant*)stack[--sp])->ref)
                 ip += 2;
@@ -508,13 +510,13 @@ _end:
     return;
 
 _debug_info:
-    register clock_t end = clock(); 
+    clock_t end = clock(); 
 
     printf("VM Info:\n--> sp = %llu\n--> ip = %llu\n", sp, ip);
     if (sp != 0) printf("--> top = %lld (%p)\n", *(signed long long*)((YelConstant*)stack[sp-1])->ref, ((YelConstant*)stack[sp-1])->ref);
     else printf("--> stack is empty\n");
 
-    printf("--> time = %.7f\n", (double)(end - begin) / CLOCKS_PER_SEC);
+    printf("--> exec time = %.7f\n", (double)(end - begin) / CLOCKS_PER_SEC);
     return;
 
 _emergency_stop:
