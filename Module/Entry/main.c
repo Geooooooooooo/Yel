@@ -12,14 +12,38 @@
 // fix error
 
 // fix: not a != (10 + 10);
+// fix: True == not False;
+
+// TODO: create ref to vars into heap in bytecode (!!!!!!!!!!!!!!!!!!!!!!!!). this will give a high speed
+
+int dis_flag = 0;
 
 int main(int argc, char* argv[]) {
+    clock_t full_time_start = clock();
+
     if (argc < 2) {
-        printf("Inline mode is not available\nUse: 'yel [filename]'\n");
+        printf("Inline mode is not available\nUse: 'yel [filename] [OPTIONS ... ]'\n");
         return -1;
     }
 
-    YelSource source = yel_stdio_read_file(argv[1]);
+    int file_field = 1;
+
+    if (argc == 3) {
+        if (strcmp(argv[2], "-d") == 0 || strcmp(argv[2], "--disassembly") == 0) {
+            dis_flag = 1;
+            file_field = 1;
+        }
+        else if (strcmp(argv[1], "-d") == 0 || strcmp(argv[1], "--disassembly") == 0) {
+            dis_flag = 1;
+            file_field = 2;
+        }
+        else {
+            puts("Unknown argument\nUse: 'yel [filename] [OPTIONS ... ]'");
+            return -1;
+        }
+    }
+
+    YelSource source = yel_stdio_read_file(argv[file_field]);
     if (source.source_text == NULL)
         return 0;
 
@@ -35,19 +59,24 @@ int main(int argc, char* argv[]) {
     if (yeltokens.error) 
         goto _yel_end;
 
-    //print_disassembly_bytecode(bytecode);
-    //puts("");
+    if (dis_flag) {
+        print_disassembly_bytecode(bytecode);
+        goto _yel_end;
+    }
 
-    OPCODEWORD* stack = yel_init_stack(256);
-    yel_run(stack, &bytecode, 256);
+    OPCODEWORD* stack = yel_init_stack(65536UL);
 
-    //print_const_int_data();
+    yel_run(stack, &bytecode, 65536UL);
 
 _yel_end:
     yel_free_tokens(&yeltokens);
     __builtin_free(source.source_text);
     __builtin_free(bytecode.opcode);
     yel_free_data_seg();
+
+    clock_t full_time_end = clock();
+
+    printf("--> full time = %.7f\n", (double)(full_time_end-full_time_start) / CLOCKS_PER_SEC);
 
     return 0;
 }
