@@ -468,11 +468,17 @@ YelTokens yel_parse_tokens(YelSource* source) {
     }
 
     yel_tokens.length = 0;
+    size_t tmp_malloc = 0;
+
     while (source->pointer < source->length) {
-        yel_tokens.type = (YelTokenType*)__builtin_realloc(yel_tokens.type, (size_t)((yel_tokens.length + 1) * sizeof(YelTokenType)));
-        yel_tokens.value = (char**)__builtin_realloc(yel_tokens.value, (size_t)((yel_tokens.length + 1) * sizeof(char*)));
-        yel_tokens.start_symbol = (size_t*)__builtin_realloc(yel_tokens.start_symbol, (size_t)((yel_tokens.length + 1) * sizeof(size_t)));
-        yel_tokens.line = (size_t*)__builtin_realloc(yel_tokens.line, (size_t)((yel_tokens.length + 1) * sizeof(size_t)));
+        if (yel_tokens.length == tmp_malloc) {
+            tmp_malloc += 64UL;
+
+            yel_tokens.type = (YelTokenType*)__builtin_realloc(yel_tokens.type, (size_t)((tmp_malloc) * sizeof(YelTokenType)));
+            yel_tokens.value = (char**)__builtin_realloc(yel_tokens.value, (size_t)((tmp_malloc) * sizeof(char*)));
+            yel_tokens.start_symbol = (size_t*)__builtin_realloc(yel_tokens.start_symbol, (size_t)((tmp_malloc) * sizeof(size_t)));
+            yel_tokens.line = (size_t*)__builtin_realloc(yel_tokens.line, (size_t)((tmp_malloc) * sizeof(size_t)));
+        }
 
         yel_tokens.type[yel_tokens.length] = tok_semicolon;
 
@@ -498,7 +504,7 @@ YelTokens yel_parse_tokens(YelSource* source) {
         }
 
         size_t l = __builtin_strlen(token_value);
-        for (size_t i = 0; i < l; i++) {
+        for (size_t i = 0; i < l; ++i) {
             yel_tokens.value[yel_tokens.length][i] = token_value[i];
         }
         yel_tokens.value[yel_tokens.length][l] = '\0';
