@@ -105,6 +105,8 @@ unsigned long long data_bool_segment_len;
 unsigned long long data_str_segment_len;
 unsigned long long variables_segment_len;
 
+unsigned long long end_data_int_segment_len;
+
 void yel_init_data_seg() {
     data_float_segment = (SIZE_REF*)__builtin_malloc(sizeof(SIZE_REF));
     data_float_segment_len = 0;
@@ -121,29 +123,27 @@ void yel_init_data_seg() {
     variables_segment = (SIZE_REF*)__builtin_malloc(sizeof(SIZE_REF));
     variables_segment_len = 0;
 }
-
-// fix
 void yel_free_data_seg() {
     size_t i;
 
     for (i = 0; i < data_float_segment_len; i++)
-        __builtin_free(data_float_segment[i]);
+        __builtin_free((void*)data_float_segment[i]);
     __builtin_free(data_float_segment);
 
     for (i = 0; i < data_int_segment_len; i++)
-        __builtin_free(data_int_segment[i]);
+        __builtin_free((void*)data_int_segment[i]);
     __builtin_free(data_int_segment);
 
     for (i = 0; i < data_bool_segment_len; i++)
-        __builtin_free(data_bool_segment[i]);
+        __builtin_free((void*)data_bool_segment[i]);
     __builtin_free(data_bool_segment);
 
     for (i = 0; i < data_str_segment_len; i++)
-        __builtin_free(data_str_segment[i]);
+        __builtin_free((void*)data_str_segment[i]);
     __builtin_free(data_str_segment);
 
     for (i = 0; i < variables_segment_len; i++)
-        __builtin_free(variables_segment[i]);
+        __builtin_free((void*)variables_segment[i]);
     __builtin_free(variables_segment);
 }
 
@@ -152,7 +152,7 @@ SIZE_REF yel_alloc_variable(char* name, SIZE_REF c_ref) {
     for (unsigned long long i = 0; i < variables_segment_len; i++) {
         if (__builtin_strcmp((*(YelVariable*)variables_segment[i]).name, name) == 0) {
             // (*(YelVariable*)variables_segment[i]).ref = c_ref;
-            return (SIZE_REF)variables_segment[i];
+            return variables_segment[i];
         }
     }
     
@@ -211,7 +211,6 @@ SIZE_REF yel_alloc_Int_data(signed long long _Val) {
     return (SIZE_REF)data_int_segment[data_int_segment_len-1];
 }
 
-// fix it
 SIZE_REF yel_alloc_Str_data(char* _Val) {
     data_str_segment = (SIZE_REF*)__builtin_realloc(data_str_segment, (data_str_segment_len+1) * sizeof(SIZE_REF));
     YelConstant* cnst = (YelConstant*)__builtin_malloc(sizeof(YelConstant));
@@ -257,41 +256,47 @@ OPCODEWORD* yel_init_stack(size_t stack_size) {
 }
 
 // @return unused int memory or alloc new memory
+// @bug can return a used value in stack
 SIZE_REF yel_set_unused_int_memory(signed long long _Val) {
-    for (unsigned long long i = 0; i < variables_segment_len; i++) {
-        if (TO_YEL_VAR(variables_segment[i]).ref != NULL && TO_YEL_CONST(TO_YEL_VAR(variables_segment[i]).ref).type == INT_TYPE) {
-            for (unsigned long long l = 0; l < data_int_segment_len; l++) {
-                if (TO_YEL_VAR(variables_segment[i]).ref != data_int_segment[l]) { 
-                    TO_LL(TO_YEL_CONST(data_int_segment[l]).ref) = _Val;
-                    return data_int_segment[l];
-                }
+    for (unsigned long long i = end_data_int_segment_len; i < data_int_segment_len; i++) {            
+        for (unsigned long long l = 0; l < variables_segment_len; l++) {
+            if (TO_YEL_VAR(variables_segment[l]).ref == NULL)
+                continue;
+
+            if (TO_YEL_CONST(TO_YEL_VAR(variables_segment[l]).ref).ref == TO_YEL_CONST(data_int_segment[i]).ref) {
+                goto _alloc_new;
             }
         }
+
+        TO_LL(TO_YEL_CONST(data_int_segment[i]).ref) = _Val;
+        return data_int_segment[i];
     }
 
+_alloc_new:
+
     data_int_segment = (SIZE_REF*)__builtin_realloc(data_int_segment, (data_int_segment_len+1) * sizeof(SIZE_REF));
+
     signed long long* tmp = (signed long long*)__builtin_malloc(sizeof(signed long long));
     *tmp = _Val;
 
     YelConstant* cnst = (YelConstant*)__builtin_malloc(sizeof(YelConstant));
     cnst->ref = tmp;
     cnst->type = INT_TYPE;
+
     data_int_segment[data_int_segment_len] = (SIZE_REF)cnst;
     ++data_int_segment_len;
     
-    return (SIZE_REF)data_int_segment[data_int_segment_len-1];
+    return data_int_segment[data_int_segment_len-1];
 }
 
 void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
+    end_data_int_segment_len = data_int_segment_len;
+
     register unsigned long long ip = 0;             // instruntion pointer
     register unsigned long long sp = 0;             // stack pointer
 
     register OPCODEWORD a;
     register OPCODEWORD b;
-
-    YelConstant tmp_const[22];
-    long long   tmp_int[22];
-    long double tmp_flt[22];
 
     OPCODEWORD* instructions = bytecode->opcode;
 
@@ -543,6 +548,8 @@ _debug_info:
     else printf("--> stack is empty\n");
 
     printf("--> exec time = %.6f sec\n", (double)(end - begin) / CLOCKS_PER_SEC);
+
+    if (sp == 0) return;
 
     puts("Stack:");
     for (unsigned long long i = 0; i < sp; i++)
