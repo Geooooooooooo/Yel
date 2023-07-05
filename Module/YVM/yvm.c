@@ -257,17 +257,29 @@ OPCODEWORD* yel_init_stack(size_t stack_size) {
 }
 
 // @return unused int memory or alloc new memory
-SIZE_REF yel_get_unused_int_memory() {
+SIZE_REF yel_set_unused_int_memory(signed long long _Val) {
     for (unsigned long long i = 0; i < variables_segment_len; i++) {
         if (TO_YEL_VAR(variables_segment[i]).ref != NULL && TO_YEL_CONST(TO_YEL_VAR(variables_segment[i]).ref).type == INT_TYPE) {
             for (unsigned long long l = 0; l < data_int_segment_len; l++) {
                 if (TO_YEL_VAR(variables_segment[i]).ref != data_int_segment[l]) { 
+                    TO_LL(TO_YEL_CONST(data_int_segment[l]).ref) = _Val;
                     return data_int_segment[l];
                 }
             }
         }
     }
-    return yel_alloc_Int_data(0);
+
+    data_int_segment = (SIZE_REF*)__builtin_realloc(data_int_segment, (data_int_segment_len+1) * sizeof(SIZE_REF));
+    signed long long* tmp = (signed long long*)__builtin_malloc(sizeof(signed long long));
+    *tmp = _Val;
+
+    YelConstant* cnst = (YelConstant*)__builtin_malloc(sizeof(YelConstant));
+    cnst->ref = tmp;
+    cnst->type = INT_TYPE;
+    data_int_segment[data_int_segment_len] = (SIZE_REF)cnst;
+    ++data_int_segment_len;
+    
+    return (SIZE_REF)data_int_segment[data_int_segment_len-1];
 }
 
 void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
@@ -338,145 +350,107 @@ void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
                 stack[sp-1] = &tmp_const; */
                 break;
             case BYNARY_DIV:
-                tmp_int[1] = TO_LL(TO_YEL_CONST(b).ref) /
-                            TO_LL(TO_YEL_CONST(a).ref);
-
-                tmp_const[1].ref = &tmp_int[1];
-                tmp_const[1].type = FLT_TYPE;
-                stack[sp-1] = &tmp_const[1];
+                stack[sp-1] = yel_set_unused_int_memory(
+                    *(signed long long*)((YelConstant*)b)->ref /
+                    *(signed long long*)((YelConstant*)a)->ref
+                );
                 break;
             case BYNARY_MUL:
-                tmp_int[2] = TO_LL(TO_YEL_CONST(b).ref) *
-                            TO_LL(TO_YEL_CONST(a).ref);
-
-                tmp_const[2].ref = &tmp_int[2];
-                tmp_const[2].type = INT_TYPE;
-                stack[sp-1] = &tmp_const[2];
+                stack[sp-1] = yel_set_unused_int_memory(
+                    *(signed long long*)((YelConstant*)b)->ref *
+                    *(signed long long*)((YelConstant*)a)->ref
+                );
                 break;
             case BYNARY_MOD:
-                tmp_int[3] = *(signed long long*)((YelConstant*)b)->ref %
-                        *(signed long long*)((YelConstant*)a)->ref;
-
-                tmp_const[3].ref = &tmp_int[3];
-                tmp_const[3].type = INT_TYPE;
-                stack[sp-1] = &tmp_const[3];
+                stack[sp-1] = yel_set_unused_int_memory(
+                    *(signed long long*)((YelConstant*)b)->ref %
+                    *(signed long long*)((YelConstant*)a)->ref
+                );
                 break;
             case BYNARY_ADD:
-                tmp_int[4] = TO_LL(TO_YEL_CONST(b).ref) +
-                        TO_LL(TO_YEL_CONST(a).ref);
-
-                tmp_const[4].ref = &tmp_int[4];
-                tmp_const[4].type = INT_TYPE;
-                stack[sp-1] = &tmp_const[4];
+                stack[sp-1] = yel_set_unused_int_memory(
+                    *(signed long long*)((YelConstant*)b)->ref +
+                    *(signed long long*)((YelConstant*)a)->ref
+                );
                 break;
             case BYNARY_SUB:
-                stack[sp-1] = yel_get_unused_int_memory();
-                TO_LL(TO_YEL_CONST(stack[sp-1]).ref) = 
-                        *(signed long long*)((YelConstant*)b)->ref -
-                        *(signed long long*)((YelConstant*)a)->ref;
-
-                /*tmp_int[5] = *(signed long long*)((YelConstant*)b)->ref -
-                        *(signed long long*)((YelConstant*)a)->ref;
-
-                tmp_const[5].ref = &tmp_int[5];
-                tmp_const[5].type = INT_TYPE;
-                stack[sp-1] = &tmp_const[5];*/
+                stack[sp-1] = yel_set_unused_int_memory(
+                    *(signed long long*)((YelConstant*)b)->ref -
+                    *(signed long long*)((YelConstant*)a)->ref
+                );
+                
                 break;
             case BYNARY_RSH:
-                tmp_int[6] = *(signed long long*)((YelConstant*)b)->ref >>
-                        *(signed long long*)((YelConstant*)a)->ref;
-
-                tmp_const[6].ref = &tmp_int[6];
-                tmp_const[6].type = INT_TYPE;
-                stack[sp-1] = &tmp_const[6];
+                stack[sp-1] = yel_set_unused_int_memory(
+                    *(signed long long*)((YelConstant*)b)->ref >>
+                    *(signed long long*)((YelConstant*)a)->ref
+                );
                 break;
             case BYNARY_LSH:
-                tmp_int[7] = *(signed long long*)((YelConstant*)b)->ref <<
-                        *(signed long long*)((YelConstant*)a)->ref;
-
-                tmp_const[7].ref = &tmp_int[7];
-                tmp_const[7].type = INT_TYPE;
-                stack[sp-1] = &tmp_const[7];
+                stack[sp-1] = yel_set_unused_int_memory(
+                    *(signed long long*)((YelConstant*)b)->ref <<
+                    *(signed long long*)((YelConstant*)a)->ref
+                );
                 break;
             case BYNARY_MORE:
-                tmp_int[8] = *(signed long long*)((YelConstant*)b)->ref >
-                        *(signed long long*)((YelConstant*)a)->ref;
-
-                tmp_const[8].ref = &tmp_int[8];
-                tmp_const[8].type = INT_TYPE;
-                stack[sp-1] = &tmp_const[8];
+                stack[sp-1] = yel_set_unused_int_memory(
+                    *(signed long long*)((YelConstant*)b)->ref >
+                    *(signed long long*)((YelConstant*)a)->ref
+                );
                 break;
             case BYNARY_LESS:
-                tmp_int[9] = *(signed long long*)((YelConstant*)b)->ref <
-                        *(signed long long*)((YelConstant*)a)->ref;
-
-                tmp_const[9].ref = &tmp_int[9];
-                tmp_const[9].type = INT_TYPE;
-                stack[sp-1] = &tmp_const[9];
+                stack[sp-1] = yel_set_unused_int_memory(
+                    *(signed long long*)((YelConstant*)b)->ref <
+                    *(signed long long*)((YelConstant*)a)->ref
+                );
                 break;
             case BYNARY_MORE_EQ:
-                tmp_int[10] = *(signed long long*)((YelConstant*)b)->ref >=
-                        *(signed long long*)((YelConstant*)a)->ref;
-
-                tmp_const[10].ref = &tmp_int[10];
-                tmp_const[10].type = INT_TYPE;
-                stack[sp-1] = &tmp_const[10];
+                stack[sp-1] = yel_set_unused_int_memory(
+                    *(signed long long*)((YelConstant*)b)->ref >=
+                    *(signed long long*)((YelConstant*)a)->ref
+                );
                 break;
             case BYNARY_LESS_EQ:
-                tmp_int[11] = *(signed long long*)((YelConstant*)b)->ref <=
-                        *(signed long long*)((YelConstant*)a)->ref;
-
-                tmp_const[11].ref = &tmp_int[11];
-                tmp_const[11].type = INT_TYPE;
-                stack[sp-1] = &tmp_const[11];
+                stack[sp-1] = yel_set_unused_int_memory(
+                    *(signed long long*)((YelConstant*)b)->ref <=
+                    *(signed long long*)((YelConstant*)a)->ref
+                );
                 break;
             case BYNARY_EQ:
-                tmp_int[12] = *(signed long long*)((YelConstant*)b)->ref ==
-                        *(signed long long*)((YelConstant*)a)->ref;
-
-                tmp_const[12].ref = &tmp_int[12];
-                tmp_const[12].type = INT_TYPE;
-                stack[sp-1] = &tmp_const[12];
+                stack[sp-1] = yel_set_unused_int_memory(
+                    *(signed long long*)((YelConstant*)b)->ref ==
+                    *(signed long long*)((YelConstant*)a)->ref
+                );
                 break;
             case BYNARY_NOT_EQ:
-                tmp_int[13] = *(signed long long*)((YelConstant*)b)->ref !=
-                        *(signed long long*)((YelConstant*)a)->ref;
-
-                tmp_const[13].ref = &tmp_int[13];
-                tmp_const[13].type = INT_TYPE;
-                stack[sp-1] = &tmp_const[13];
+                stack[sp-1] = yel_set_unused_int_memory(
+                    *(signed long long*)((YelConstant*)b)->ref !=
+                    *(signed long long*)((YelConstant*)a)->ref
+                );
                 break;
             case BYNARY_AND:
-                tmp_int[14] = *(signed long long*)((YelConstant*)b)->ref &
-                        *(signed long long*)((YelConstant*)a)->ref;
-
-                tmp_const[14].ref = &tmp_int[14];
-                tmp_const[14].type = INT_TYPE;
-                stack[sp-1] = &tmp_const[14];
+                stack[sp-1] = yel_set_unused_int_memory(
+                    *(signed long long*)((YelConstant*)b)->ref &
+                    *(signed long long*)((YelConstant*)a)->ref
+                );
                 break;
             case BYNARY_OR:
-                tmp_int[15] = *(signed long long*)((YelConstant*)b)->ref |
-                        *(signed long long*)((YelConstant*)a)->ref;
-
-                tmp_const[15].ref = &tmp_int[15];
-                tmp_const[15].type = INT_TYPE;
-                stack[sp-1] = &tmp_const[15];
+                stack[sp-1] = yel_set_unused_int_memory(
+                    *(signed long long*)((YelConstant*)b)->ref |
+                    *(signed long long*)((YelConstant*)a)->ref
+                );
                 break;
             case BYNARY_LOGICAL_AND:
-                tmp_int[16] = *(signed long long*)((YelConstant*)b)->ref &&
-                        *(signed long long*)((YelConstant*)a)->ref;
-
-                tmp_const[16].ref = &tmp_int[16];
-                tmp_const[16].type = INT_TYPE;
-                stack[sp-1] = &tmp_const[16];
+                stack[sp-1] = yel_set_unused_int_memory(
+                    *(signed long long*)((YelConstant*)b)->ref &&
+                    *(signed long long*)((YelConstant*)a)->ref
+                );
                 break;
             case BYNARY_LOGICAL_OR:
-                tmp_int[17] = *(signed long long*)((YelConstant*)b)->ref ||
-                        *(signed long long*)((YelConstant*)a)->ref;
-
-                tmp_const[17].ref = &tmp_int[17];
-                tmp_const[17].type = INT_TYPE;
-                stack[sp-1] = &tmp_const[17];
+                stack[sp-1] = yel_set_unused_int_memory(
+                    *(signed long long*)((YelConstant*)b)->ref ||
+                    *(signed long long*)((YelConstant*)a)->ref
+                );
                 break;
             }
         
@@ -484,34 +458,30 @@ void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
 
             break;
         case UNARY_NEG:
-            tmp_int[18] = -*(signed long long*)((YelConstant*)stack[sp-1])->ref;
-            tmp_const[18].ref = &tmp_int[18];
-            tmp_const[18].type = INT_TYPE;
-            stack[sp-1] = &tmp_const[18];
+            stack[sp-1] = yel_set_unused_int_memory(
+                -*(signed long long*)((YelConstant*)stack[sp-1])->ref
+            );
             ++ip;
             break;
         
         case UNARY_POS:
-            tmp_int[19] = +*(signed long long*)((YelConstant*)stack[sp-1])->ref;
-            tmp_const[19].ref = &tmp_int[19];
-            tmp_const[19].type = INT_TYPE;
-            stack[sp-1] = &tmp_const[19];
+            stack[sp-1] = yel_set_unused_int_memory(
+                +*(signed long long*)((YelConstant*)stack[sp-1])->ref
+            );
             ++ip;
             break;
 
         case UNARY_NOT:
-            tmp_int[20] = ~*(signed long long*)((YelConstant*)stack[sp-1])->ref;
-            tmp_const[20].ref = &tmp_int[20];
-            tmp_const[20].type = INT_TYPE;
-            stack[sp-1] = &tmp_const[20];
+            stack[sp-1] = yel_set_unused_int_memory(
+                ~*(signed long long*)((YelConstant*)stack[sp-1])->ref
+            );
             ++ip;
             break;
 
         case UNARY_LOGICAL_NOT:
-            tmp_int[21] = !*(signed long long*)((YelConstant*)stack[sp-1])->ref;
-            tmp_const[21].ref = &tmp_int[21];
-            tmp_const[21].type = INT_TYPE;
-            stack[sp-1] = &tmp_const[21];
+            stack[sp-1] = yel_set_unused_int_memory(
+                !*(signed long long*)((YelConstant*)stack[sp-1])->ref
+            );
             ++ip;
 
             break;
