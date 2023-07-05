@@ -19,7 +19,7 @@ void print_disassembly_bytecode(YelByteCode bytecode) {
         }
         else if (next == 3) {
             next = 0;
-            printf("%s\n", (char*)(*(YelVariable*)bytecode.opcode[i]).name);
+            printf("%p (%s)\n", bytecode.opcode[i], (char*)TO_YEL_VAR(bytecode.opcode[i]).name);
             continue;
         }
         else if (next == 4) {
@@ -29,7 +29,24 @@ void print_disassembly_bytecode(YelByteCode bytecode) {
         }
         else if (next == 5) {
             next = 0;
-            printf("%p\n", bytecode.opcode[i]);
+
+            printf("%p ", TO_YEL_CONST(bytecode.opcode[i]).ref);
+
+            if (TO_YEL_CONST(bytecode.opcode[i]).type == INT_TYPE)
+                printf("(%lld)\n", TO_LL(TO_YEL_CONST(bytecode.opcode[i]).ref));
+            else if (TO_YEL_CONST(bytecode.opcode[i]).type == FLT_TYPE)
+                printf("(%Lf)\n", TO_LD(TO_YEL_CONST(bytecode.opcode[i]).ref));
+            else if (TO_YEL_CONST(bytecode.opcode[i]).type == STR_TYPE)
+                printf("('%s')\n", (char*)(TO_YEL_CONST(bytecode.opcode[i]).ref));
+            else if (TO_YEL_CONST(bytecode.opcode[i]).type == BOOL_TYPE)
+                printf("(%d)\n", *(_Bool*)(TO_YEL_CONST(bytecode.opcode[i]).ref));
+
+            continue;
+        }
+        else if (next == 6) {
+            next = 0;
+
+            printf("%ld\n", bytecode.opcode[i]);
             continue;
         }
 
@@ -66,7 +83,7 @@ void print_disassembly_bytecode(YelByteCode bytecode) {
         case BYNARY_LOGICAL_OR:printf("%llu (or)\n", BYNARY_LOGICAL_OR);break;
         case OP_JUMP_TO:    printf("%llu:\tJUMP_TO\t\t", i);next=2;break;
         case OP_POP_JUMP_ZERO:printf("%llu:\tPOP_JUMP_ZERO\t", i);next=2;break;
-        case OP_CALL:       printf("%llu:\tCALL\t\t", i);next=3;break;
+        case OP_CALL:       printf("%llu:\tCALL\t\t", i);next=6;break;
         case OP_RET:        printf("%llu:\tRET\n", i);break;
         case OP_BRK:        printf("%llu:\tBRK\n", i);break;
         case OP_STORE:      printf("%llu:\tSTORE\t\t", i);next=3;break;
@@ -130,7 +147,7 @@ void yel_free_data_seg() {
     __builtin_free(variables_segment);
 }
 
-// returns ref to YelVariable struct
+// @return ref to YelVariable struct
 SIZE_REF yel_alloc_variable(char* name, SIZE_REF c_ref) {
     for (unsigned long long i = 0; i < variables_segment_len; i++) {
         if (__builtin_strcmp((*(YelVariable*)variables_segment[i]).name, name) == 0) {
@@ -153,7 +170,7 @@ SIZE_REF yel_alloc_variable(char* name, SIZE_REF c_ref) {
 
 SIZE_REF yel_alloc_Flt_data(long double _Val) {
     for (unsigned long long i = 0; i < data_float_segment_len; i++) {
-        if (*(long double*)(*(YelConstant*)data_float_segment[i]).ref == (long double)_Val) {
+        if (*(long double*)TO_YEL_VAR(data_float_segment[i]).ref == (long double)_Val) {
             return (SIZE_REF)data_float_segment[i];
         }
     }
@@ -172,19 +189,9 @@ SIZE_REF yel_alloc_Flt_data(long double _Val) {
     return (SIZE_REF)data_float_segment[data_float_segment_len-1];
 }
 
-void print_const_int_data() {
-    if (data_int_segment_len == 0) return;
-
-    puts("segment .Int");
-    for (unsigned long long i=0; i<data_int_segment_len; i++)
-        printf("\t%p:\t%lld\n", (*(YelConstant*)data_int_segment[i]).ref, *(signed long long*)((*(YelConstant*)data_int_segment[i]).ref)); 
-
-    puts("");
-}
-
 SIZE_REF yel_alloc_Int_data(signed long long _Val) {
     for (unsigned long long i = 0; i < data_int_segment_len; i++) {
-        if (*(signed long long*)(*(YelConstant*)data_int_segment[i]).ref == (signed long long)_Val) {
+        if (*(signed long long*)TO_YEL_VAR(data_int_segment[i]).ref == (signed long long)_Val) {
             return (SIZE_REF)data_int_segment[i];
         }
     }
@@ -207,11 +214,9 @@ SIZE_REF yel_alloc_Int_data(signed long long _Val) {
 // fix it
 SIZE_REF yel_alloc_Str_data(char* _Val) {
     data_str_segment = (SIZE_REF*)__builtin_realloc(data_str_segment, (data_str_segment_len+1) * sizeof(SIZE_REF));
-    char* tmp = (char*)__builtin_malloc(sizeof(char*));
-    *tmp = _Val;
     YelConstant* cnst = (YelConstant*)__builtin_malloc(sizeof(YelConstant));
 
-    cnst->ref = tmp;
+    cnst->ref = _Val;
     cnst->type = STR_TYPE;
 
     data_str_segment[data_str_segment_len] = (SIZE_REF)cnst;
@@ -222,7 +227,7 @@ SIZE_REF yel_alloc_Str_data(char* _Val) {
 
 SIZE_REF yel_alloc_Bool_data(_Bool _Val) {
     for (unsigned long long i = 0; i < data_bool_segment_len; i++) {
-        if (*(_Bool*)(*(YelConstant*)data_bool_segment[i]).ref == _Val) {
+        if (*(_Bool*)TO_YEL_CONST(data_bool_segment[i]).ref == _Val) {
             return (SIZE_REF)data_bool_segment[i];
         }
     }
@@ -251,6 +256,20 @@ OPCODEWORD* yel_init_stack(size_t stack_size) {
     return stack;
 }
 
+// @return unused int memory or alloc new memory
+SIZE_REF yel_get_unused_int_memory() {
+    for (unsigned long long i = 0; i < variables_segment_len; i++) {
+        if (TO_YEL_VAR(variables_segment[i]).ref != NULL && TO_YEL_CONST(TO_YEL_VAR(variables_segment[i]).ref).type == INT_TYPE) {
+            for (unsigned long long l = 0; l < data_int_segment_len; l++) {
+                if (TO_YEL_VAR(variables_segment[i]).ref != data_int_segment[l]) { 
+                    return data_int_segment[l];
+                }
+            }
+        }
+    }
+    return yel_alloc_Int_data(0);
+}
+
 void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
     register unsigned long long ip = 0;             // instruntion pointer
     register unsigned long long sp = 0;             // stack pointer
@@ -277,10 +296,10 @@ void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
             goto _debug_info; // _end;
 
         case LOAD_VALUE:
-            stack[sp] = (*(YelVariable*)instructions[ip+1]).ref;
+            stack[sp] = TO_YEL_VAR(instructions[ip+1]).ref;
 
             if (stack[sp] == NULL) {
-                printf("RuntimeError: undeclared name '%s'\n", (*(YelVariable*)instructions[ip+1]).name);
+                printf("RuntimeError: undeclared name '%s'\n", TO_YEL_VAR(instructions[ip+1]).name);
                 goto _emergency_stop;
             }
 
@@ -319,26 +338,16 @@ void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
                 stack[sp-1] = &tmp_const; */
                 break;
             case BYNARY_DIV:
-                if ((((YelConstant*)b)->type) == FLT_TYPE && (((YelConstant*)a)->type) == FLT_TYPE)
-                    tmp_flt[1] = (*(long double*)((YelConstant*)b)->ref) /
-                                (*(long double*)((YelConstant*)a)->ref);
-                else if ((((YelConstant*)b)->type) == INT_TYPE && (((YelConstant*)a)->type) == FLT_TYPE)
-                    tmp_flt[1] = (long double)(*(long long*)((YelConstant*)b)->ref) /
-                                (*(long double*)((YelConstant*)a)->ref);
-                else if ((((YelConstant*)b)->type) == FLT_TYPE && (((YelConstant*)a)->type) == INT_TYPE)
-                    tmp_flt[1] = (*(long double*)((YelConstant*)b)->ref) /
-                                (long double)(*(long long*)((YelConstant*)a)->ref);
-                else if ((((YelConstant*)b)->type) == INT_TYPE && (((YelConstant*)a)->type) == INT_TYPE)
-                    tmp_flt[1] = (long double)((*(long long*)((YelConstant*)b)->ref) /
-                                (long double)(*(long long*)((YelConstant*)a)->ref));
+                tmp_int[1] = TO_LL(TO_YEL_CONST(b).ref) /
+                            TO_LL(TO_YEL_CONST(a).ref);
 
-                tmp_const[1].ref = &tmp_flt[1];
+                tmp_const[1].ref = &tmp_int[1];
                 tmp_const[1].type = FLT_TYPE;
                 stack[sp-1] = &tmp_const[1];
                 break;
             case BYNARY_MUL:
-                tmp_int[2] = *(signed long long*)((YelConstant*)b)->ref *
-                        *(signed long long*)((YelConstant*)a)->ref;
+                tmp_int[2] = TO_LL(TO_YEL_CONST(b).ref) *
+                            TO_LL(TO_YEL_CONST(a).ref);
 
                 tmp_const[2].ref = &tmp_int[2];
                 tmp_const[2].type = INT_TYPE;
@@ -353,20 +362,25 @@ void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
                 stack[sp-1] = &tmp_const[3];
                 break;
             case BYNARY_ADD:
-                tmp_int[4] = *(signed long long*)((YelConstant*)b)->ref +
-                        *(signed long long*)((YelConstant*)a)->ref;
+                tmp_int[4] = TO_LL(TO_YEL_CONST(b).ref) +
+                        TO_LL(TO_YEL_CONST(a).ref);
 
                 tmp_const[4].ref = &tmp_int[4];
                 tmp_const[4].type = INT_TYPE;
                 stack[sp-1] = &tmp_const[4];
                 break;
             case BYNARY_SUB:
-                tmp_int[5] = *(signed long long*)((YelConstant*)b)->ref -
+                stack[sp-1] = yel_get_unused_int_memory();
+                TO_LL(TO_YEL_CONST(stack[sp-1]).ref) = 
+                        *(signed long long*)((YelConstant*)b)->ref -
+                        *(signed long long*)((YelConstant*)a)->ref;
+
+                /*tmp_int[5] = *(signed long long*)((YelConstant*)b)->ref -
                         *(signed long long*)((YelConstant*)a)->ref;
 
                 tmp_const[5].ref = &tmp_int[5];
                 tmp_const[5].type = INT_TYPE;
-                stack[sp-1] = &tmp_const[5];
+                stack[sp-1] = &tmp_const[5];*/
                 break;
             case BYNARY_RSH:
                 tmp_int[6] = *(signed long long*)((YelConstant*)b)->ref >>
@@ -527,6 +541,8 @@ void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
 
                     (*(YelConstant*)(*(YelVariable*)instructions[ip+1]).ref).type = FLT_TYPE;
                 }
+
+                // another types will be here
             }
 
             if ((*(YelConstant*)stack[sp-1]).type == INT_TYPE)
@@ -542,13 +558,12 @@ void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
         // collector
     }
 
-_end:
-    return;
+_end: return;
 
 _debug_info:
     clock_t end = clock(); 
 
-    printf("VM Info:\n--> sp = %llu\n--> ip = %llu\n", sp, ip);
+    printf("Debug Info:\n--> sp = %llu\n--> ip = %llu\n", sp, ip);
     if (sp != 0) {
         if (((YelConstant*)stack[sp-1])->type == INT_TYPE)
             printf("--> top = %lld (%p)\n", *(signed long long*)((YelConstant*)stack[sp-1])->ref, ((YelConstant*)stack[sp-1])->ref);
@@ -558,6 +573,11 @@ _debug_info:
     else printf("--> stack is empty\n");
 
     printf("--> exec time = %.6f sec\n", (double)(end - begin) / CLOCKS_PER_SEC);
+
+    puts("Stack:");
+    for (unsigned long long i = 0; i < sp; i++)
+        printf("[%p]: %lld\n", stack[i], TO_LL(TO_YEL_CONST(stack[i]).ref));
+
     return;
 
 _emergency_stop:
