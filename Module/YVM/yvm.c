@@ -256,17 +256,20 @@ OPCODEWORD* yel_init_stack(size_t stack_size) {
 }
 
 // @return unused int memory or alloc new memory
-// @bug can return a used value in stack
-SIZE_REF yel_set_unused_int_memory(signed long long _Val) {
-    for (unsigned long long i = end_data_int_segment_len; i < data_int_segment_len; i++) {            
+SIZE_REF yel_set_unused_int_memory(signed long long _Val, OPCODEWORD* stack, unsigned long long sp) {
+    for (unsigned long long i = end_data_int_segment_len; i < data_int_segment_len; i++) {   
         for (unsigned long long l = 0; l < variables_segment_len; l++) {
             if (TO_YEL_VAR(variables_segment[l]).ref == NULL)
                 continue;
 
-            if (TO_YEL_CONST(TO_YEL_VAR(variables_segment[l]).ref).ref == TO_YEL_CONST(data_int_segment[i]).ref) {
+            if (TO_YEL_CONST(TO_YEL_VAR(variables_segment[l]).ref).ref == TO_YEL_CONST(data_int_segment[i]).ref)
                 goto _alloc_new;
-            }
         }
+
+
+        for (unsigned long long l = 0; l < sp; l++)
+            if (TO_YEL_CONST(stack[l]).ref == TO_YEL_CONST(data_int_segment[i]).ref)
+                goto _alloc_new;
 
         TO_LL(TO_YEL_CONST(data_int_segment[i]).ref) = _Val;
         return data_int_segment[i];
@@ -286,6 +289,9 @@ _alloc_new:
     data_int_segment[data_int_segment_len] = (SIZE_REF)cnst;
     ++data_int_segment_len;
     
+    //printf("alloc new memory for: %lld\n", _Val);
+    //while (!getchar());
+
     return data_int_segment[data_int_segment_len-1];
 }
 
@@ -357,105 +363,105 @@ void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
             case BYNARY_DIV:
                 stack[sp-1] = yel_set_unused_int_memory(
                     *(signed long long*)((YelConstant*)b)->ref /
-                    *(signed long long*)((YelConstant*)a)->ref
-                );
+                    *(signed long long*)((YelConstant*)a)->ref,
+                stack, sp);
                 break;
             case BYNARY_MUL:
                 stack[sp-1] = yel_set_unused_int_memory(
                     *(signed long long*)((YelConstant*)b)->ref *
-                    *(signed long long*)((YelConstant*)a)->ref
-                );
+                    *(signed long long*)((YelConstant*)a)->ref,
+                stack, sp);
                 break;
             case BYNARY_MOD:
                 stack[sp-1] = yel_set_unused_int_memory(
                     *(signed long long*)((YelConstant*)b)->ref %
-                    *(signed long long*)((YelConstant*)a)->ref
-                );
+                    *(signed long long*)((YelConstant*)a)->ref,
+                stack, sp);
                 break;
             case BYNARY_ADD:
                 stack[sp-1] = yel_set_unused_int_memory(
                     *(signed long long*)((YelConstant*)b)->ref +
-                    *(signed long long*)((YelConstant*)a)->ref
-                );
+                    *(signed long long*)((YelConstant*)a)->ref,
+                stack, sp);
                 break;
             case BYNARY_SUB:
                 stack[sp-1] = yel_set_unused_int_memory(
                     *(signed long long*)((YelConstant*)b)->ref -
-                    *(signed long long*)((YelConstant*)a)->ref
-                );
+                    *(signed long long*)((YelConstant*)a)->ref,
+                stack, sp);
                 
                 break;
             case BYNARY_RSH:
                 stack[sp-1] = yel_set_unused_int_memory(
                     *(signed long long*)((YelConstant*)b)->ref >>
-                    *(signed long long*)((YelConstant*)a)->ref
-                );
+                    *(signed long long*)((YelConstant*)a)->ref,
+                stack, sp);
                 break;
             case BYNARY_LSH:
                 stack[sp-1] = yel_set_unused_int_memory(
                     *(signed long long*)((YelConstant*)b)->ref <<
-                    *(signed long long*)((YelConstant*)a)->ref
-                );
+                    *(signed long long*)((YelConstant*)a)->ref,
+                stack, sp);
                 break;
             case BYNARY_MORE:
                 stack[sp-1] = yel_set_unused_int_memory(
                     *(signed long long*)((YelConstant*)b)->ref >
-                    *(signed long long*)((YelConstant*)a)->ref
-                );
+                    *(signed long long*)((YelConstant*)a)->ref,
+                stack, sp);
                 break;
             case BYNARY_LESS:
                 stack[sp-1] = yel_set_unused_int_memory(
                     *(signed long long*)((YelConstant*)b)->ref <
-                    *(signed long long*)((YelConstant*)a)->ref
-                );
+                    *(signed long long*)((YelConstant*)a)->ref,
+                stack, sp);
                 break;
             case BYNARY_MORE_EQ:
                 stack[sp-1] = yel_set_unused_int_memory(
                     *(signed long long*)((YelConstant*)b)->ref >=
-                    *(signed long long*)((YelConstant*)a)->ref
-                );
+                    *(signed long long*)((YelConstant*)a)->ref,
+                stack, sp);
                 break;
             case BYNARY_LESS_EQ:
                 stack[sp-1] = yel_set_unused_int_memory(
                     *(signed long long*)((YelConstant*)b)->ref <=
-                    *(signed long long*)((YelConstant*)a)->ref
-                );
+                    *(signed long long*)((YelConstant*)a)->ref,
+                stack, sp);
                 break;
             case BYNARY_EQ:
                 stack[sp-1] = yel_set_unused_int_memory(
                     *(signed long long*)((YelConstant*)b)->ref ==
-                    *(signed long long*)((YelConstant*)a)->ref
-                );
+                    *(signed long long*)((YelConstant*)a)->ref,
+                stack, sp);
                 break;
             case BYNARY_NOT_EQ:
                 stack[sp-1] = yel_set_unused_int_memory(
                     *(signed long long*)((YelConstant*)b)->ref !=
-                    *(signed long long*)((YelConstant*)a)->ref
-                );
+                    *(signed long long*)((YelConstant*)a)->ref,
+                stack, sp);
                 break;
             case BYNARY_AND:
                 stack[sp-1] = yel_set_unused_int_memory(
                     *(signed long long*)((YelConstant*)b)->ref &
-                    *(signed long long*)((YelConstant*)a)->ref
-                );
+                    *(signed long long*)((YelConstant*)a)->ref,
+                stack, sp);
                 break;
             case BYNARY_OR:
                 stack[sp-1] = yel_set_unused_int_memory(
                     *(signed long long*)((YelConstant*)b)->ref |
-                    *(signed long long*)((YelConstant*)a)->ref
-                );
+                    *(signed long long*)((YelConstant*)a)->ref,
+                stack, sp);
                 break;
             case BYNARY_LOGICAL_AND:
                 stack[sp-1] = yel_set_unused_int_memory(
                     *(signed long long*)((YelConstant*)b)->ref &&
-                    *(signed long long*)((YelConstant*)a)->ref
-                );
+                    *(signed long long*)((YelConstant*)a)->ref,
+                stack, sp);
                 break;
             case BYNARY_LOGICAL_OR:
                 stack[sp-1] = yel_set_unused_int_memory(
                     *(signed long long*)((YelConstant*)b)->ref ||
-                    *(signed long long*)((YelConstant*)a)->ref
-                );
+                    *(signed long long*)((YelConstant*)a)->ref,
+                stack, sp);
                 break;
             }
         
@@ -464,29 +470,29 @@ void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
             break;
         case UNARY_NEG:
             stack[sp-1] = yel_set_unused_int_memory(
-                -*(signed long long*)((YelConstant*)stack[sp-1])->ref
-            );
+                -*(signed long long*)((YelConstant*)stack[sp-1])->ref,
+                stack, sp);
             ++ip;
             break;
         
         case UNARY_POS:
             stack[sp-1] = yel_set_unused_int_memory(
-                +*(signed long long*)((YelConstant*)stack[sp-1])->ref
-            );
+                +*(signed long long*)((YelConstant*)stack[sp-1])->ref,
+                stack, sp);
             ++ip;
             break;
 
         case UNARY_NOT:
             stack[sp-1] = yel_set_unused_int_memory(
-                ~*(signed long long*)((YelConstant*)stack[sp-1])->ref
-            );
+                ~*(signed long long*)((YelConstant*)stack[sp-1])->ref,
+                stack, sp);
             ++ip;
             break;
 
         case UNARY_LOGICAL_NOT:
             stack[sp-1] = yel_set_unused_int_memory(
-                !*(signed long long*)((YelConstant*)stack[sp-1])->ref
-            );
+                !*(signed long long*)((YelConstant*)stack[sp-1])->ref,
+                stack, sp);
             ++ip;
 
             break;
@@ -529,8 +535,6 @@ void yel_run(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
 
             break;
         }
-
-        // collector
     }
 
 _end: return;
