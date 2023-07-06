@@ -10,4 +10,4 @@ CFILES IN Modules/Errors/   { error.c }
 CFILES IN Modules/IO/       { io.c }
 CFILES IN Modules/Lexer/    { lexer.c }
 CFILES IN Modules/Parser/   { parser.c syntaxer.c }
-CFILES IN Modules/VM/       { yvm.c }
+CFILES IN Modules/VM/       { yvm.c vm_main.c }
