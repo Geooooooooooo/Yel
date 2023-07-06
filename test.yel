@@ -1,10 +1,21 @@
-a = 0;
+// 3n+1 algorithm on Yel
 
-while (a) {
-    if (a != 100) 
-        continue;
+n = 19;
+counter = 0;
+
+max = 0;
+
+while (n != 1) {
+    if (n % 2 == 0)
+        n /= 2;
     else
-        break;
+        n = 3*n+1;
 
-   a += 1;
+    if (max < n)
+        max = n;
+
+    counter += 1;
 }
+
+max;
+counter;
