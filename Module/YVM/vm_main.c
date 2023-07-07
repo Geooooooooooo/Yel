@@ -275,7 +275,7 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
                 else if (TO_YEL_CONST(b).type == FLT_TYPE) {
                     if (TO_YEL_CONST(a).type == INT_TYPE) {
                         stack[sp-1] = yel_set_unused_float_memory(
-                            TO_LD(TO_YEL_CONST(b).ref) - TO_LL(TO_YEL_CONST(a).ref), stack, sp
+                            TO_LD(TO_YEL_CONST(b).ref) - (long double)TO_LL(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                     else if (TO_YEL_CONST(a).type == FLT_TYPE) {
@@ -991,11 +991,11 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
 
             // store float
             else if (TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).type == FLT_TYPE) {
-                if (TO_YEL_CONST(stack[sp-1]).type == INT_TYPE)
-                    TO_LD(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = (long double)TO_LL(TO_YEL_CONST(stack[--sp]).ref);
-
-                else if (TO_YEL_CONST(stack[sp-1]).type == FLT_TYPE)
+                if (TO_YEL_CONST(stack[sp-1]).type == FLT_TYPE)
                     TO_LD(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = TO_LD(TO_YEL_CONST(stack[--sp]).ref);
+
+                else if (TO_YEL_CONST(stack[sp-1]).type == INT_TYPE)
+                    TO_LD(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = (long double)TO_LL(TO_YEL_CONST(stack[--sp]).ref);
 
                 else if (TO_YEL_CONST(stack[sp-1]).type == BOOL_TYPE)
                     TO_LD(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = (long double)TO_B(TO_YEL_CONST(stack[--sp]).ref);
@@ -1003,14 +1003,14 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
 
             // store bool
             else if (TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).type == BOOL_TYPE) {
-                if (TO_YEL_CONST(stack[sp-1]).type == INT_TYPE)
+                if (TO_YEL_CONST(stack[sp-1]).type == BOOL_TYPE)
+                    TO_B(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = TO_B(TO_YEL_CONST(stack[--sp]).ref);
+
+                else if (TO_YEL_CONST(stack[sp-1]).type == INT_TYPE)
                     TO_B(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = (_Bool)TO_LL(TO_YEL_CONST(stack[--sp]).ref);
 
                 else if (TO_YEL_CONST(stack[sp-1]).type == FLT_TYPE)
                     TO_B(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = (_Bool)TO_LD(TO_YEL_CONST(stack[--sp]).ref);
-
-                else if (TO_YEL_CONST(stack[sp-1]).type == BOOL_TYPE)
-                    TO_B(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = TO_B(TO_YEL_CONST(stack[--sp]).ref);
             }
 
             ip += 2;
@@ -1048,7 +1048,7 @@ _debug_info:
         if (((YelConstant*)stack[i])->type == INT_TYPE)
             printf("%lld\n", TO_LL(TO_YEL_CONST(stack[i]).ref));
         else if (((YelConstant*)stack[i])->type == FLT_TYPE)
-            printf("%.20Lf\n", TO_LD(TO_YEL_CONST(stack[i]).ref));
+            printf("%Lf\n", TO_LD(TO_YEL_CONST(stack[i]).ref));
         else if (((YelConstant*)stack[i])->type == BOOL_TYPE)
             printf("%d\n", TO_B(TO_YEL_CONST(stack[i]).ref));
     }

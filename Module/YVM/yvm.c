@@ -280,7 +280,7 @@ SIZE_REF yel_set_unused_int_memory(signed long long _Val, OPCODEWORD* stack, uns
         return data_int_segment[i];
     }
 
-_alloc_new://printf("new int for %lld\n", _Val);getchar();
+_alloc_new: //printf("new int for %lld\n", _Val);getchar();
     data_int_segment = (SIZE_REF*)__builtin_realloc(data_int_segment, (data_int_segment_len+1) * sizeof(SIZE_REF));
     signed long long* tmp = (signed long long*)__builtin_malloc(sizeof(signed long long));
     *tmp = _Val;
@@ -311,7 +311,7 @@ SIZE_REF yel_set_unused_float_memory(long double _Val, OPCODEWORD* stack, unsign
         return data_float_segment[i];
     }
 
-_alloc_new://puts("new flt");
+_alloc_new: //puts("new flt");
     data_float_segment = (SIZE_REF*)__builtin_realloc(data_float_segment, (data_float_segment_len+1) * sizeof(SIZE_REF));
     long double* tmp = (long double*)__builtin_malloc(sizeof(long double));
     *tmp = _Val;
