@@ -106,9 +106,11 @@ unsigned long long data_str_segment_len;
 unsigned long long variables_segment_len;
 
 unsigned long long end_data_int_segment_len;
+unsigned long long end_data_float_segment_len;
 
 void init_yvm_env() {
     end_data_int_segment_len = data_int_segment_len;
+    end_data_float_segment_len = data_float_segment;
 }
 
 void yel_init_data_seg() {
@@ -287,4 +289,39 @@ _alloc_new:
     ++data_int_segment_len;
 
     return data_int_segment[data_int_segment_len-1];
+}
+
+SIZE_REF yel_set_unused_float_memory(long double _Val, OPCODEWORD* stack, unsigned long long sp) {
+    for (unsigned long long i = end_data_float_segment_len; i < data_float_segment_len; i++) {
+        for (unsigned long long l = 0; l < sp; l++)
+            if (TO_YEL_CONST(stack[l]).ref == TO_YEL_CONST(data_float_segment[i]).ref)
+                goto _alloc_new;
+         
+        for (unsigned long long l = 0; l < variables_segment_len; l++) {
+            if (TO_YEL_VAR(variables_segment[l]).ref == NULL)
+                continue;
+
+            if (TO_YEL_CONST(TO_YEL_VAR(variables_segment[l]).ref).ref == TO_YEL_CONST(data_float_segment[i]).ref)
+                goto _alloc_new;
+        }
+
+        puts("Old float");
+
+        TO_LD(TO_YEL_CONST(data_float_segment[i]).ref) = _Val;
+        return data_float_segment[i];
+    }
+
+_alloc_new:
+    data_float_segment = (SIZE_REF*)__builtin_realloc(data_float_segment, (data_float_segment_len+1) * sizeof(SIZE_REF));
+    long double* tmp = (long double*)__builtin_malloc(sizeof(long double));
+    *tmp = _Val;
+    YelConstant* cnst = (YelConstant*)__builtin_malloc(sizeof(YelConstant));
+    cnst->ref = tmp;
+    cnst->type = FLT_TYPE;
+    data_float_segment[data_float_segment_len] = (SIZE_REF)cnst;
+    ++data_float_segment_len;
+
+    puts("New float");
+
+    return data_float_segment[data_float_segment_len-1];
 }

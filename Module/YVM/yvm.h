@@ -20,6 +20,7 @@ SIZE_REF yel_alloc_variable(char*, SIZE_REF);
 
 // @return unused int memory or alloc new memory
 SIZE_REF yel_set_unused_int_memory(signed long long, OPCODEWORD*, unsigned long long);
+SIZE_REF yel_set_unused_float_memory(long double, OPCODEWORD*, unsigned long long);
 
 void print_disassembly_bytecode(YelByteCode);
 
