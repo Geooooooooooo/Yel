@@ -68,32 +68,51 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
                 if (TO_YEL_CONST(b).type == INT_TYPE) {
                     if (TO_YEL_CONST(a).type == INT_TYPE) {
                         stack[sp-1] = yel_set_unused_float_memory(
-                            (long double)TO_LL(TO_YEL_CONST(b).ref) /
-                            (long double)TO_LL(TO_YEL_CONST(a).ref), 
-                            stack, sp
+                            (long double)TO_LL(TO_YEL_CONST(b).ref) / (long double)TO_LL(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                     else if (TO_YEL_CONST(a).type == FLT_TYPE) {
                         stack[sp-1] = yel_set_unused_float_memory(
-                            (long double)TO_LL(TO_YEL_CONST(b).ref) /
-                            TO_LD(TO_YEL_CONST(a).ref), 
-                            stack, sp
+                            (long double)TO_LL(TO_YEL_CONST(b).ref) / TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_float_memory(
+                            (long double)TO_LL(TO_YEL_CONST(b).ref) / (long double)TO_B(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                 }
                 else if (TO_YEL_CONST(b).type == FLT_TYPE) {
                     if (TO_YEL_CONST(a).type == INT_TYPE) {
                         stack[sp-1] = yel_set_unused_float_memory(
-                            TO_LD(TO_YEL_CONST(b).ref) /
-                            (long double)TO_LL(TO_YEL_CONST(a).ref), 
-                            stack, sp
+                            TO_LD(TO_YEL_CONST(b).ref) / (long double)TO_LL(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                     else if (TO_YEL_CONST(a).type == FLT_TYPE) {
                         stack[sp-1] = yel_set_unused_float_memory(
-                            TO_LD(TO_YEL_CONST(b).ref) /
-                            TO_LD(TO_YEL_CONST(a).ref), 
-                            stack, sp
+                            TO_LD(TO_YEL_CONST(b).ref) / TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_float_memory(
+                            TO_LD(TO_YEL_CONST(b).ref) / (long double)TO_B(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                }
+                else if (TO_YEL_CONST(b).type == BOOL_TYPE) {
+                    if (TO_YEL_CONST(a).type == INT_TYPE) {
+                        stack[sp-1] = yel_set_unused_float_memory(
+                            (long double)TO_B(TO_YEL_CONST(b).ref) / (long double)TO_LL(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == FLT_TYPE) {
+                        stack[sp-1] = yel_set_unused_float_memory(
+                            (long double)TO_B(TO_YEL_CONST(b).ref) / TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_float_memory(
+                            (long double)TO_B(TO_YEL_CONST(b).ref) / (long double)TO_B(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                 }
@@ -103,42 +122,80 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
                 if (TO_YEL_CONST(b).type == INT_TYPE) {
                     if (TO_YEL_CONST(a).type == INT_TYPE) {
                         stack[sp-1] = yel_set_unused_int_memory(
-                            TO_LL(TO_YEL_CONST(b).ref) *
-                            TO_LL(TO_YEL_CONST(a).ref), 
-                            stack, sp
+                            TO_LL(TO_YEL_CONST(b).ref) * TO_LL(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                     else if (TO_YEL_CONST(a).type == FLT_TYPE) {
                         stack[sp-1] = yel_set_unused_float_memory(
-                            TO_LL(TO_YEL_CONST(b).ref) *
-                            TO_LD(TO_YEL_CONST(a).ref), 
-                            stack, sp
+                            TO_LL(TO_YEL_CONST(b).ref) * TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_int_memory(
+                            TO_LL(TO_YEL_CONST(b).ref) * TO_B(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                 }
                 else if (TO_YEL_CONST(b).type == FLT_TYPE) {
                     if (TO_YEL_CONST(a).type == INT_TYPE) {
                         stack[sp-1] = yel_set_unused_float_memory(
-                            TO_LD(TO_YEL_CONST(b).ref) *
-                            TO_LL(TO_YEL_CONST(a).ref), 
-                            stack, sp
+                            TO_LD(TO_YEL_CONST(b).ref) * TO_LL(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                     else if (TO_YEL_CONST(a).type == FLT_TYPE) {
                         stack[sp-1] = yel_set_unused_float_memory(
-                            TO_LD(TO_YEL_CONST(b).ref) *
-                            TO_LD(TO_YEL_CONST(a).ref), 
-                            stack, sp
+                            TO_LD(TO_YEL_CONST(b).ref) * TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_float_memory(
+                            TO_LD(TO_YEL_CONST(b).ref) * TO_B(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                }
+                else if (TO_YEL_CONST(b).type == BOOL_TYPE) {
+                    if (TO_YEL_CONST(a).type == INT_TYPE) {
+                        stack[sp-1] = yel_set_unused_int_memory(
+                            TO_B(TO_YEL_CONST(b).ref) * TO_LL(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == FLT_TYPE) {
+                        stack[sp-1] = yel_set_unused_float_memory(
+                            TO_B(TO_YEL_CONST(b).ref) * TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) * TO_B(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                 }
 
                 break;
             case BYNARY_MOD:
-                if (TO_YEL_CONST(b).type == INT_TYPE && TO_YEL_CONST(a).type == INT_TYPE) {
-                    stack[sp-1] = yel_set_unused_int_memory(
-                        TO_LL(TO_YEL_CONST(b).ref) % TO_LL(TO_YEL_CONST(a).ref), stack, sp
-                    );
+                if (TO_YEL_CONST(b).type == INT_TYPE) {
+                    if (TO_YEL_CONST(a).type == INT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LL(TO_YEL_CONST(b).ref) % TO_LL(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if(TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LL(TO_YEL_CONST(b).ref) % TO_B(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                }
+                else if (TO_YEL_CONST(b).type == BOOL_TYPE) {
+                    if (TO_YEL_CONST(a).type == INT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) % TO_LL(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if(TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) % TO_B(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
                 }
                 else {
                     puts("Error");
@@ -156,16 +213,43 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
                             TO_LL(TO_YEL_CONST(b).ref) + TO_LD(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_int_memory(
+                            TO_LL(TO_YEL_CONST(b).ref) + TO_B(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
                 }
                 else if (TO_YEL_CONST(b).type == FLT_TYPE) {
                     if (TO_YEL_CONST(a).type == INT_TYPE) {
                         stack[sp-1] = yel_set_unused_float_memory(
-                            TO_LD(TO_YEL_CONST(b).ref) + TO_LL(TO_YEL_CONST(a).ref), stack, sp
+                            TO_LD(TO_YEL_CONST(b).ref) + (long double)TO_LL(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                     else if (TO_YEL_CONST(a).type == FLT_TYPE) {
                         stack[sp-1] = yel_set_unused_float_memory(
                             TO_LD(TO_YEL_CONST(b).ref) + TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_float_memory(
+                            TO_LD(TO_YEL_CONST(b).ref) + (long double)TO_B(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                }
+                else if (TO_YEL_CONST(b).type == BOOL_TYPE) {
+                    if (TO_YEL_CONST(a).type == INT_TYPE) {
+                        stack[sp-1] = yel_set_unused_int_memory(
+                            TO_B(TO_YEL_CONST(b).ref) + TO_LL(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == FLT_TYPE) {
+                        stack[sp-1] = yel_set_unused_float_memory(
+                            (long double)TO_B(TO_YEL_CONST(b).ref) + TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_int_memory(
+                            TO_B(TO_YEL_CONST(b).ref) + TO_B(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                 }
@@ -179,7 +263,12 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
                     }
                     else if (TO_YEL_CONST(a).type == FLT_TYPE) {
                         stack[sp-1] = yel_set_unused_float_memory(
-                            TO_LL(TO_YEL_CONST(b).ref) - TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                            (long double)TO_LL(TO_YEL_CONST(b).ref) - TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_int_memory(
+                            TO_LL(TO_YEL_CONST(b).ref) - TO_B(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                 }
@@ -194,51 +283,138 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
                             TO_LD(TO_YEL_CONST(b).ref) - TO_LD(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_float_memory(
+                            TO_LD(TO_YEL_CONST(b).ref) - (long double)TO_B(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                }
+                else if (TO_YEL_CONST(b).type == BOOL_TYPE) {
+                    if (TO_YEL_CONST(a).type == INT_TYPE) {
+                        stack[sp-1] = yel_set_unused_int_memory(
+                            TO_B(TO_YEL_CONST(b).ref) - TO_LL(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == FLT_TYPE) {
+                        stack[sp-1] = yel_set_unused_float_memory(
+                            (long double)TO_B(TO_YEL_CONST(b).ref) - TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_int_memory(
+                            TO_B(TO_YEL_CONST(b).ref) - TO_B(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
                 }
                 
                 break;
             case BYNARY_RSH:
-                if (TO_YEL_CONST(b).type == INT_TYPE && TO_YEL_CONST(a).type == INT_TYPE) {
-                    stack[sp-1] = yel_set_unused_int_memory(
-                        TO_LL(TO_YEL_CONST(b).ref) >> TO_LL(TO_YEL_CONST(a).ref), stack, sp
-                    );
+                if (TO_YEL_CONST(b).type == INT_TYPE) {
+                    if (TO_YEL_CONST(a).type == INT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LL(TO_YEL_CONST(b).ref) >> TO_LL(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if(TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LL(TO_YEL_CONST(b).ref) >> TO_B(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                }
+                else if (TO_YEL_CONST(b).type == BOOL_TYPE) {
+                    if (TO_YEL_CONST(a).type == INT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) >> TO_LL(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if(TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) >> TO_B(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
                 }
                 else {
                     puts("Error");
                 }
                 break;
             case BYNARY_LSH:
-                if (TO_YEL_CONST(b).type == INT_TYPE && TO_YEL_CONST(a).type == INT_TYPE) {
-                    stack[sp-1] = yel_set_unused_int_memory(
-                        TO_LL(TO_YEL_CONST(b).ref) << TO_LL(TO_YEL_CONST(a).ref), stack, sp
-                    );
+                if (TO_YEL_CONST(b).type == INT_TYPE) {
+                    if (TO_YEL_CONST(a).type == INT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LL(TO_YEL_CONST(b).ref) << TO_LL(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if(TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LL(TO_YEL_CONST(b).ref) << TO_B(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                }
+                else if (TO_YEL_CONST(b).type == BOOL_TYPE) {
+                    if (TO_YEL_CONST(a).type == INT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) << TO_LL(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if(TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) << TO_B(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
                 }
                 else {
                     puts("Error");
                 }
                 break;
-            case BYNARY_MORE:           // fix to bool
+            case BYNARY_MORE: 
                 if (TO_YEL_CONST(b).type == INT_TYPE) {
                     if (TO_YEL_CONST(a).type == INT_TYPE) {
-                        stack[sp-1] = yel_set_unused_int_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LL(TO_YEL_CONST(b).ref) > TO_LL(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                     else if (TO_YEL_CONST(a).type == FLT_TYPE) {
-                        stack[sp-1] = yel_set_unused_float_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LL(TO_YEL_CONST(b).ref) > TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LL(TO_YEL_CONST(b).ref) > TO_B(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                 }
                 else if (TO_YEL_CONST(b).type == FLT_TYPE) {
                     if (TO_YEL_CONST(a).type == INT_TYPE) {
-                        stack[sp-1] = yel_set_unused_float_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LD(TO_YEL_CONST(b).ref) > TO_LL(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                     else if (TO_YEL_CONST(a).type == FLT_TYPE) {
-                        stack[sp-1] = yel_set_unused_float_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LD(TO_YEL_CONST(b).ref) > TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LD(TO_YEL_CONST(b).ref) > TO_B(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                }
+                else if (TO_YEL_CONST(b).type == BOOL_TYPE) {
+                    if (TO_YEL_CONST(a).type == INT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) > TO_LL(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == FLT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) > TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) > TO_B(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                 }
@@ -246,25 +422,52 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
             case BYNARY_LESS:
                 if (TO_YEL_CONST(b).type == INT_TYPE) {
                     if (TO_YEL_CONST(a).type == INT_TYPE) {
-                        stack[sp-1] = yel_set_unused_int_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LL(TO_YEL_CONST(b).ref) < TO_LL(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                     else if (TO_YEL_CONST(a).type == FLT_TYPE) {
-                        stack[sp-1] = yel_set_unused_float_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LL(TO_YEL_CONST(b).ref) < TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LL(TO_YEL_CONST(b).ref) < TO_B(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                 }
                 else if (TO_YEL_CONST(b).type == FLT_TYPE) {
                     if (TO_YEL_CONST(a).type == INT_TYPE) {
-                        stack[sp-1] = yel_set_unused_float_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LD(TO_YEL_CONST(b).ref) < TO_LL(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                     else if (TO_YEL_CONST(a).type == FLT_TYPE) {
-                        stack[sp-1] = yel_set_unused_float_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LD(TO_YEL_CONST(b).ref) < TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LD(TO_YEL_CONST(b).ref) < TO_B(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                }
+                else if (TO_YEL_CONST(b).type == BOOL_TYPE) {
+                    if (TO_YEL_CONST(a).type == INT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) < TO_LL(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == FLT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) < TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) < TO_B(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                 }
@@ -272,25 +475,52 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
             case BYNARY_MORE_EQ:
                 if (TO_YEL_CONST(b).type == INT_TYPE) {
                     if (TO_YEL_CONST(a).type == INT_TYPE) {
-                        stack[sp-1] = yel_set_unused_int_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LL(TO_YEL_CONST(b).ref) >= TO_LL(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                     else if (TO_YEL_CONST(a).type == FLT_TYPE) {
-                        stack[sp-1] = yel_set_unused_float_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LL(TO_YEL_CONST(b).ref) >= TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LL(TO_YEL_CONST(b).ref) >= TO_B(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                 }
                 else if (TO_YEL_CONST(b).type == FLT_TYPE) {
                     if (TO_YEL_CONST(a).type == INT_TYPE) {
-                        stack[sp-1] = yel_set_unused_float_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LD(TO_YEL_CONST(b).ref) >= TO_LL(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                     else if (TO_YEL_CONST(a).type == FLT_TYPE) {
-                        stack[sp-1] = yel_set_unused_float_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LD(TO_YEL_CONST(b).ref) >= TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LD(TO_YEL_CONST(b).ref) >= TO_B(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                }
+                else if (TO_YEL_CONST(b).type == BOOL_TYPE) {
+                    if (TO_YEL_CONST(a).type == INT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) >= TO_LL(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == FLT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) >= TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) >= TO_B(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                 }
@@ -298,25 +528,52 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
             case BYNARY_LESS_EQ:
                 if (TO_YEL_CONST(b).type == INT_TYPE) {
                     if (TO_YEL_CONST(a).type == INT_TYPE) {
-                        stack[sp-1] = yel_set_unused_int_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LL(TO_YEL_CONST(b).ref) <= TO_LL(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                     else if (TO_YEL_CONST(a).type == FLT_TYPE) {
-                        stack[sp-1] = yel_set_unused_float_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LL(TO_YEL_CONST(b).ref) <= TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LL(TO_YEL_CONST(b).ref) <= TO_B(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                 }
                 else if (TO_YEL_CONST(b).type == FLT_TYPE) {
                     if (TO_YEL_CONST(a).type == INT_TYPE) {
-                        stack[sp-1] = yel_set_unused_float_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LD(TO_YEL_CONST(b).ref) <= TO_LL(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                     else if (TO_YEL_CONST(a).type == FLT_TYPE) {
-                        stack[sp-1] = yel_set_unused_float_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LD(TO_YEL_CONST(b).ref) <= TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LD(TO_YEL_CONST(b).ref) <= TO_B(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                }
+                else if (TO_YEL_CONST(b).type == BOOL_TYPE) {
+                    if (TO_YEL_CONST(a).type == INT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) <= TO_LL(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == FLT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) <= TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) <= TO_B(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                 }
@@ -324,25 +581,52 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
             case BYNARY_EQ:
                 if (TO_YEL_CONST(b).type == INT_TYPE) {
                     if (TO_YEL_CONST(a).type == INT_TYPE) {
-                        stack[sp-1] = yel_set_unused_int_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LL(TO_YEL_CONST(b).ref) == TO_LL(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                     else if (TO_YEL_CONST(a).type == FLT_TYPE) {
-                        stack[sp-1] = yel_set_unused_float_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LL(TO_YEL_CONST(b).ref) == TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LL(TO_YEL_CONST(b).ref) == TO_B(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                 }
                 else if (TO_YEL_CONST(b).type == FLT_TYPE) {
                     if (TO_YEL_CONST(a).type == INT_TYPE) {
-                        stack[sp-1] = yel_set_unused_float_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LD(TO_YEL_CONST(b).ref) == TO_LL(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                     else if (TO_YEL_CONST(a).type == FLT_TYPE) {
-                        stack[sp-1] = yel_set_unused_float_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LD(TO_YEL_CONST(b).ref) == TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LD(TO_YEL_CONST(b).ref) == TO_B(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                }
+                else if (TO_YEL_CONST(b).type == BOOL_TYPE) {
+                    if (TO_YEL_CONST(a).type == INT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) == TO_LL(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == FLT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) == TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) == TO_B(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                 }
@@ -351,44 +635,109 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
             case BYNARY_NOT_EQ:
                 if (TO_YEL_CONST(b).type == INT_TYPE) {
                     if (TO_YEL_CONST(a).type == INT_TYPE) {
-                        stack[sp-1] = yel_set_unused_int_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LL(TO_YEL_CONST(b).ref) != TO_LL(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                     else if (TO_YEL_CONST(a).type == FLT_TYPE) {
-                        stack[sp-1] = yel_set_unused_float_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LL(TO_YEL_CONST(b).ref) != TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LL(TO_YEL_CONST(b).ref) != TO_B(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                 }
                 else if (TO_YEL_CONST(b).type == FLT_TYPE) {
                     if (TO_YEL_CONST(a).type == INT_TYPE) {
-                        stack[sp-1] = yel_set_unused_float_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LD(TO_YEL_CONST(b).ref) != TO_LL(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                     else if (TO_YEL_CONST(a).type == FLT_TYPE) {
-                        stack[sp-1] = yel_set_unused_float_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LD(TO_YEL_CONST(b).ref) != TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LD(TO_YEL_CONST(b).ref) != TO_B(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                }
+                else if (TO_YEL_CONST(b).type == BOOL_TYPE) {
+                    if (TO_YEL_CONST(a).type == INT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) != TO_LL(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == FLT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) != TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) != TO_B(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                 }
                 break;
             case BYNARY_AND:
-                if (TO_YEL_CONST(b).type == INT_TYPE && TO_YEL_CONST(a).type == INT_TYPE) {
-                    stack[sp-1] = yel_set_unused_int_memory(
-                        TO_LL(TO_YEL_CONST(b).ref) & TO_LL(TO_YEL_CONST(a).ref), stack, sp
-                    );
+                if (TO_YEL_CONST(b).type == INT_TYPE) {
+                    if (TO_YEL_CONST(a).type == INT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LL(TO_YEL_CONST(b).ref) & TO_LL(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if(TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LL(TO_YEL_CONST(b).ref) & TO_B(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                }
+                else if (TO_YEL_CONST(b).type == BOOL_TYPE) {
+                    if (TO_YEL_CONST(a).type == INT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) & TO_LL(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if(TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) & TO_B(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
                 }
                 else {
                     puts("Error");
                 }
                 break;
             case BYNARY_OR:
-                if (TO_YEL_CONST(b).type == INT_TYPE && TO_YEL_CONST(a).type == INT_TYPE) {
-                    stack[sp-1] = yel_set_unused_int_memory(
-                        TO_LL(TO_YEL_CONST(b).ref) | TO_LL(TO_YEL_CONST(a).ref), stack, sp
-                    );
+                if (TO_YEL_CONST(b).type == INT_TYPE) {
+                    if (TO_YEL_CONST(a).type == INT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LL(TO_YEL_CONST(b).ref) | TO_LL(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if(TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LL(TO_YEL_CONST(b).ref) | TO_B(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                }
+                else if (TO_YEL_CONST(b).type == BOOL_TYPE) {
+                    if (TO_YEL_CONST(a).type == INT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) | TO_LL(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if(TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) | TO_B(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
                 }
                 else {
                     puts("Error");
@@ -397,25 +746,52 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
             case BYNARY_LOGICAL_AND:
                 if (TO_YEL_CONST(b).type == INT_TYPE) {
                     if (TO_YEL_CONST(a).type == INT_TYPE) {
-                        stack[sp-1] = yel_set_unused_int_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LL(TO_YEL_CONST(b).ref) && TO_LL(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                     else if (TO_YEL_CONST(a).type == FLT_TYPE) {
-                        stack[sp-1] = yel_set_unused_float_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LL(TO_YEL_CONST(b).ref) && TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LL(TO_YEL_CONST(b).ref) && TO_B(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                 }
                 else if (TO_YEL_CONST(b).type == FLT_TYPE) {
                     if (TO_YEL_CONST(a).type == INT_TYPE) {
-                        stack[sp-1] = yel_set_unused_float_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LD(TO_YEL_CONST(b).ref) && TO_LL(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                     else if (TO_YEL_CONST(a).type == FLT_TYPE) {
-                        stack[sp-1] = yel_set_unused_float_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LD(TO_YEL_CONST(b).ref) && TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LD(TO_YEL_CONST(b).ref) && TO_B(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                }
+                else if (TO_YEL_CONST(b).type == BOOL_TYPE) {
+                    if (TO_YEL_CONST(a).type == INT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) && TO_LL(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == FLT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) && TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) && TO_B(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                 }
@@ -423,25 +799,52 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
             case BYNARY_LOGICAL_OR:
                 if (TO_YEL_CONST(b).type == INT_TYPE) {
                     if (TO_YEL_CONST(a).type == INT_TYPE) {
-                        stack[sp-1] = yel_set_unused_int_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LL(TO_YEL_CONST(b).ref) || TO_LL(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                     else if (TO_YEL_CONST(a).type == FLT_TYPE) {
-                        stack[sp-1] = yel_set_unused_float_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LL(TO_YEL_CONST(b).ref) || TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LL(TO_YEL_CONST(b).ref) || TO_B(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                 }
                 else if (TO_YEL_CONST(b).type == FLT_TYPE) {
                     if (TO_YEL_CONST(a).type == INT_TYPE) {
-                        stack[sp-1] = yel_set_unused_float_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LD(TO_YEL_CONST(b).ref) || TO_LL(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                     else if (TO_YEL_CONST(a).type == FLT_TYPE) {
-                        stack[sp-1] = yel_set_unused_float_memory(
+                        stack[sp-1] = yel_set_unused_bool_memory(
                             TO_LD(TO_YEL_CONST(b).ref) || TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_LD(TO_YEL_CONST(b).ref) || TO_B(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                }
+                else if (TO_YEL_CONST(b).type == BOOL_TYPE) {
+                    if (TO_YEL_CONST(a).type == INT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) || TO_LL(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == FLT_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) || TO_LD(TO_YEL_CONST(a).ref), stack, sp
+                        );
+                    }
+                    else if (TO_YEL_CONST(a).type == BOOL_TYPE) {
+                        stack[sp-1] = yel_set_unused_bool_memory(
+                            TO_B(TO_YEL_CONST(b).ref) || TO_B(TO_YEL_CONST(a).ref), stack, sp
                         );
                     }
                 }
@@ -462,6 +865,11 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
                     -TO_LD(TO_YEL_CONST(stack[sp-1]).ref), stack, sp
                 );
             }
+            else if (TO_YEL_CONST(stack[sp-1]).type == BOOL_TYPE) {
+                stack[sp-1] = yel_set_unused_int_memory(
+                    -TO_B(TO_YEL_CONST(stack[sp-1]).ref), stack, sp
+                );
+            }
 
             ++ip;
             break;
@@ -477,6 +885,12 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
                     +TO_LD(TO_YEL_CONST(stack[sp-1]).ref), stack, sp
                 );
             }
+            else if (TO_YEL_CONST(stack[sp-1]).type == BOOL_TYPE) {
+                stack[sp-1] = yel_set_unused_int_memory(
+                    +TO_B(TO_YEL_CONST(stack[sp-1]).ref), stack, sp
+                );
+            }
+
             ++ip;
             break;
 
@@ -486,6 +900,11 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
                     ~TO_LL(TO_YEL_CONST(stack[sp-1]).ref), stack, sp
                 );
             }
+            else if (TO_YEL_CONST(stack[sp-1]).type == BOOL_TYPE) {
+                stack[sp-1] = yel_set_unused_int_memory(
+                    ~TO_B(TO_YEL_CONST(stack[sp-1]).ref), stack, sp
+                );
+            }
             else {
                 puts("Error");
             }
@@ -493,13 +912,18 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
             break;
 
         case UNARY_LOGICAL_NOT:
-            if (TO_YEL_CONST(stack[sp-1]).type == INT_TYPE) {
-                stack[sp-1] = yel_set_unused_int_memory(
+            if (TO_YEL_CONST(stack[sp-1]).type == BOOL_TYPE) {
+                stack[sp-1] = yel_set_unused_bool_memory(
+                    !TO_B(TO_YEL_CONST(stack[sp-1]).ref), stack, sp
+                );
+            }
+            else if (TO_YEL_CONST(stack[sp-1]).type == INT_TYPE) {
+                stack[sp-1] = yel_set_unused_bool_memory(
                     !TO_LL(TO_YEL_CONST(stack[sp-1]).ref), stack, sp
                 );
             }
             else if (TO_YEL_CONST(stack[sp-1]).type == FLT_TYPE) {
-                stack[sp-1] = yel_set_unused_float_memory(
+                stack[sp-1] = yel_set_unused_bool_memory(
                     !TO_LD(TO_YEL_CONST(stack[sp-1]).ref), stack, sp
                 );
             }
@@ -511,49 +935,83 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
 
             break;
         case OP_POP_JUMP_ZERO:
-            if (TO_YEL_CONST(stack[sp-1]).type == INT_TYPE) {
-                if (TO_LL(TO_YEL_CONST(stack[sp-1]).ref)) {
-                    --sp;
+            if (TO_YEL_CONST(stack[sp-1]).type == BOOL_TYPE) {
+                if (TO_B(TO_YEL_CONST(stack[--sp]).ref)) 
                     ip += 2;
-                }
-                else {
+                else
                     ip = instructions[ip+1];
-                }
+            }
+            else if (TO_YEL_CONST(stack[sp-1]).type == INT_TYPE) {
+                if (TO_LL(TO_YEL_CONST(stack[--sp]).ref))
+                    ip += 2;
+                else
+                    ip = instructions[ip+1];
             }
             else if (TO_YEL_CONST(stack[sp-1]).type == FLT_TYPE) {
-                if (TO_LD(TO_YEL_CONST(stack[sp-1]).ref)) {
-                    --sp;
+                if (TO_LD(TO_YEL_CONST(stack[--sp]).ref))
                     ip += 2;
-                }
-                else {
+                else
                     ip = instructions[ip+1];
-                }
             }
 
             break;
 
         case OP_STORE:
-            if ((*(YelVariable*)instructions[ip+1]).ref == NULL) {
-                if ((*(YelConstant*)stack[sp-1]).type == INT_TYPE) {
-                    (*(YelVariable*)instructions[ip+1]).ref = __builtin_malloc(sizeof(YelConstant));
-                    (*(YelConstant*)(*(YelVariable*)instructions[ip+1]).ref).ref = __builtin_malloc(YEL_SIZE_INT);
-
-                    (*(YelConstant*)(*(YelVariable*)instructions[ip+1]).ref).type = INT_TYPE;
+            if (TO_YEL_VAR(instructions[ip+1]).ref == NULL) {
+                if (TO_YEL_CONST(stack[sp-1]).type == INT_TYPE) {
+                    TO_YEL_VAR(instructions[ip+1]).ref = __builtin_malloc(sizeof(YelConstant));
+                    TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref = __builtin_malloc(YEL_SIZE_INT);
+                    TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).type = INT_TYPE;
                 }
-                else if ((*(YelConstant*)stack[sp-1]).type == FLT_TYPE) {
-                    (*(YelVariable*)instructions[ip+1]).ref = __builtin_malloc(sizeof(YelConstant));
-                    (*(YelConstant*)(*(YelVariable*)instructions[ip+1]).ref).ref = __builtin_malloc(YEL_SIZE_FLT);
-
-                    (*(YelConstant*)(*(YelVariable*)instructions[ip+1]).ref).type = FLT_TYPE;
+                else if (TO_YEL_CONST(stack[sp-1]).type == FLT_TYPE) {
+                    TO_YEL_VAR(instructions[ip+1]).ref = __builtin_malloc(sizeof(YelConstant));
+                    TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref = __builtin_malloc(YEL_SIZE_FLT);
+                    TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).type = FLT_TYPE;
+                }
+                else if (TO_YEL_CONST(stack[sp-1]).type == BOOL_TYPE) {
+                    TO_YEL_VAR(instructions[ip+1]).ref = __builtin_malloc(sizeof(YelConstant));
+                    TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref = __builtin_malloc(sizeof(_Bool));
+                    TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).type = BOOL_TYPE;
                 }
 
                 // another types will be here
             }
 
-            if ((*(YelConstant*)stack[sp-1]).type == INT_TYPE)
-                (*(long long*)(*(YelConstant*)(*(YelVariable*)instructions[ip+1]).ref).ref) = (*(long long*)(*(YelConstant*)stack[--sp]).ref);
-            else if ((*(YelConstant*)stack[sp-1]).type == FLT_TYPE) 
-                (*(long double*)(*(YelConstant*)(*(YelVariable*)instructions[ip+1]).ref).ref) = (*(long double*)(*(YelConstant*)stack[--sp]).ref);
+            // store int
+            if (TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).type == INT_TYPE) {
+                if (TO_YEL_CONST(stack[sp-1]).type == INT_TYPE)
+                    TO_LL(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = TO_LL(TO_YEL_CONST(stack[--sp]).ref);
+
+                else if (TO_YEL_CONST(stack[sp-1]).type == FLT_TYPE)
+                    TO_LL(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = (long long)TO_LD(TO_YEL_CONST(stack[--sp]).ref);
+
+                else if (TO_YEL_CONST(stack[sp-1]).type == BOOL_TYPE)
+                    TO_LL(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = (long long)TO_B(TO_YEL_CONST(stack[--sp]).ref);
+            }
+
+            // store float
+            else if (TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).type == FLT_TYPE) {
+                if (TO_YEL_CONST(stack[sp-1]).type == INT_TYPE)
+                    TO_LD(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = (long double)TO_LL(TO_YEL_CONST(stack[--sp]).ref);
+
+                else if (TO_YEL_CONST(stack[sp-1]).type == FLT_TYPE)
+                    TO_LD(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = TO_LD(TO_YEL_CONST(stack[--sp]).ref);
+
+                else if (TO_YEL_CONST(stack[sp-1]).type == BOOL_TYPE)
+                    TO_LD(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = (long double)TO_B(TO_YEL_CONST(stack[--sp]).ref);
+            }
+
+            // store bool
+            else if (TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).type == BOOL_TYPE) {
+                if (TO_YEL_CONST(stack[sp-1]).type == INT_TYPE)
+                    TO_B(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = (_Bool)TO_LL(TO_YEL_CONST(stack[--sp]).ref);
+
+                else if (TO_YEL_CONST(stack[sp-1]).type == FLT_TYPE)
+                    TO_B(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = (_Bool)TO_LD(TO_YEL_CONST(stack[--sp]).ref);
+
+                else if (TO_YEL_CONST(stack[sp-1]).type == BOOL_TYPE)
+                    TO_B(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = TO_B(TO_YEL_CONST(stack[--sp]).ref);
+            }
 
             ip += 2;
 
@@ -572,8 +1030,10 @@ _debug_info:
             printf("--> top = %lld ", TO_LL(TO_YEL_CONST(stack[sp-1]).ref));
         else if (((YelConstant*)stack[sp-1])->type == FLT_TYPE)
             printf("--> top = %Lf ", TO_LD(TO_YEL_CONST(stack[sp-1]).ref));
+        else if (((YelConstant*)stack[sp-1])->type == BOOL_TYPE)
+            printf("--> top = %d ", TO_B(TO_YEL_CONST(stack[sp-1]).ref));
 
-        printf("(%pp)\n", TO_YEL_CONST(stack[sp-1]).ref);
+        printf("(%p)\n", TO_YEL_CONST(stack[sp-1]).ref);
     }
     else printf("--> stack is empty\n");
 
@@ -588,7 +1048,9 @@ _debug_info:
         if (((YelConstant*)stack[i])->type == INT_TYPE)
             printf("%lld\n", TO_LL(TO_YEL_CONST(stack[i]).ref));
         else if (((YelConstant*)stack[i])->type == FLT_TYPE)
-            printf("%Lf\n", TO_LD(TO_YEL_CONST(stack[i]).ref));
+            printf("%.20Lf\n", TO_LD(TO_YEL_CONST(stack[i]).ref));
+        else if (((YelConstant*)stack[i])->type == BOOL_TYPE)
+            printf("%d\n", TO_B(TO_YEL_CONST(stack[i]).ref));
     }
 
     return;

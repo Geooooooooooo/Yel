@@ -107,10 +107,12 @@ unsigned long long variables_segment_len;
 
 unsigned long long end_data_int_segment_len;
 unsigned long long end_data_float_segment_len;
+unsigned long long end_data_bool_segment_len;
 
 void init_yvm_env() {
     end_data_int_segment_len = data_int_segment_len;
     end_data_float_segment_len = data_float_segment;
+    end_data_bool_segment_len = data_bool_segment_len;
 }
 
 void yel_init_data_seg() {
@@ -278,7 +280,7 @@ SIZE_REF yel_set_unused_int_memory(signed long long _Val, OPCODEWORD* stack, uns
         return data_int_segment[i];
     }
 
-_alloc_new:
+_alloc_new://printf("new int for %lld\n", _Val);getchar();
     data_int_segment = (SIZE_REF*)__builtin_realloc(data_int_segment, (data_int_segment_len+1) * sizeof(SIZE_REF));
     signed long long* tmp = (signed long long*)__builtin_malloc(sizeof(signed long long));
     *tmp = _Val;
@@ -305,13 +307,11 @@ SIZE_REF yel_set_unused_float_memory(long double _Val, OPCODEWORD* stack, unsign
                 goto _alloc_new;
         }
 
-        puts("Old float");
-
         TO_LD(TO_YEL_CONST(data_float_segment[i]).ref) = _Val;
         return data_float_segment[i];
     }
 
-_alloc_new:
+_alloc_new://puts("new flt");
     data_float_segment = (SIZE_REF*)__builtin_realloc(data_float_segment, (data_float_segment_len+1) * sizeof(SIZE_REF));
     long double* tmp = (long double*)__builtin_malloc(sizeof(long double));
     *tmp = _Val;
@@ -321,7 +321,36 @@ _alloc_new:
     data_float_segment[data_float_segment_len] = (SIZE_REF)cnst;
     ++data_float_segment_len;
 
-    puts("New float");
-
     return data_float_segment[data_float_segment_len-1];
+}
+
+SIZE_REF yel_set_unused_bool_memory(_Bool _Val, OPCODEWORD* stack, unsigned long long sp) {
+    for (unsigned long long i = end_data_bool_segment_len; i < data_bool_segment_len; i++) {
+        for (unsigned long long l = 0; l < sp; l++)
+            if (TO_YEL_CONST(stack[l]).ref == TO_YEL_CONST(data_bool_segment[i]).ref)
+                goto _alloc_new;
+         
+        for (unsigned long long l = 0; l < variables_segment_len; l++) {
+            if (TO_YEL_VAR(variables_segment[l]).ref == NULL)
+                continue;
+
+            if (TO_YEL_CONST(TO_YEL_VAR(variables_segment[l]).ref).ref == TO_YEL_CONST(data_bool_segment[i]).ref)
+                goto _alloc_new;
+        }
+
+        TO_B(TO_YEL_CONST(data_bool_segment[i]).ref) = _Val;
+        return data_bool_segment[i];
+    }
+
+_alloc_new:// puts("new bool");
+    data_bool_segment = (SIZE_REF*)__builtin_realloc(data_bool_segment, (data_bool_segment_len+1) * sizeof(SIZE_REF));
+    _Bool* tmp = (_Bool*)__builtin_malloc(sizeof(_Bool));
+    *tmp = _Val;
+    YelConstant* cnst = (YelConstant*)__builtin_malloc(sizeof(YelConstant));
+    cnst->ref = tmp;
+    cnst->type = BOOL_TYPE;
+    data_bool_segment[data_bool_segment_len] = (SIZE_REF)cnst;
+    ++data_bool_segment_len;
+
+    return data_bool_segment[data_bool_segment_len-1];
 }
