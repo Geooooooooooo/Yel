@@ -3,7 +3,7 @@
 #include "../Lexer/lexer.h"
 #include "../Errors/error.h"
 #include "../Dependencies/dependencies.h"
-#include "../VM/yvm.h"
+#include "../YVM/yvm.h"
 
 #define WRITE_OPCODE() {\
     if (_CurType == tok_name) {bytecode->opcode[bytecode->len] = LOAD_VALUE;\
@@ -726,13 +726,13 @@ void yel_parse_expression(YelTokens* yel_tokens, YelByteCode* bytecode) {
                 argCounter = 0;
 
                 yel_parse_expression(yel_tokens, bytecode);
-
+                
                 --_SimpleExpr;
 
                 bytecode->opcode[bytecode->len] = LOAD_VALUE;
-                bytecode->opcode[bytecode->len+1] = yel_alloc_variable(yel_tokens->value[tmp_i], NULL);
+                bytecode->opcode[bytecode->len+1] = yel_alloc_variable(yel_tokens->value[tmp_i], 0);
                 bytecode->opcode[bytecode->len+2] = OP_CALL;
-                bytecode->opcode[bytecode->len+3] = yel_alloc_variable(argCounter, NULL);
+                bytecode->opcode[bytecode->len+3] = argCounter;
 
                 bytecode->len += 4;
                 argCounter = tmp_argCounter + 1;
@@ -1164,7 +1164,17 @@ void yel_parse_statement(YelTokens* yel_tokens, YelByteCode* bytecode) {
             return;
         }
         else if (_CurType == tok_word_func) {
+            bytecode->opcode[bytecode->len] = OP_JUMP_TO;
+            OPCODEWORD tmp_w = bytecode->len+1;
+            bytecode->len += 2;
+
             size_t tmp_i = ++yel_tokens->pointer;
+
+            YelFunction* this_function = (YelFunction*)__builtin_malloc(sizeof(YelFunction));
+            this_function->returt_type = -1;
+            this_function->args = NULL;
+            this_function->argc = 0;
+            this_function->start = bytecode->len;
 
             if (_NextType != tok_op_lpar) {
                 yel_print_error("SyntaxError", "invalid syntax", yel_tokens->src_ptr, 
@@ -1176,11 +1186,18 @@ void yel_parse_statement(YelTokens* yel_tokens, YelByteCode* bytecode) {
 
             yel_tokens->pointer += 2;
 
-            printf("%s:\n", yel_tokens->value[tmp_i]);
-            int largCounter = 0;
             while (_CurType != tok_op_rpar) {
                 if (_CurType == tok_name && (_NextType == tok_comma || _NextType == tok_op_rpar)) {
-                    printf("%s      ; %d\n", _CurVal, ++largCounter);
+                    if (this_function->args == 0) {
+                        this_function->args = __builtin_malloc(sizeof(SIZE_REF));
+                    }
+                    else {
+                        this_function->args = __builtin_realloc(this_function->args, (this_function->argc+1) * sizeof(SIZE_REF));
+                    }
+
+                    this_function->args[this_function->argc] = yel_alloc_variable(_CurVal, NULL);
+
+                    ++this_function->argc;
                 }
                 else if (_CurType == tok_comma && _NextType == tok_name) {
                     ++yel_tokens->pointer;
@@ -1197,7 +1214,8 @@ void yel_parse_statement(YelTokens* yel_tokens, YelByteCode* bytecode) {
             ++yel_tokens->pointer;
 
             if (_CurType == tok_op_flbrk) {
-                int fbrks = 0;
+                int fbrks = 1;
+                ++yel_tokens->pointer;
 
                 while (yel_tokens->pointer < yel_tokens->length) {
                     if (_CurType == tok_op_flbrk) {
@@ -1222,7 +1240,12 @@ void yel_parse_statement(YelTokens* yel_tokens, YelByteCode* bytecode) {
                     } else break;
                 }
 
-                printf("ret\n");
+                if (bytecode->opcode[bytecode->len-1] != OP_RET) {
+                    bytecode->opcode[bytecode->len] = LOAD_CONST;
+                    bytecode->opcode[bytecode->len+1] = yel_alloc_Int_data(0);
+                    bytecode->opcode[bytecode->len+2] = OP_RET;
+                    bytecode->len += 3;
+                }
             }
             else {
                 yel_print_error("SyntaxError", "invalid syntax. function must be declared and implemented", 
@@ -1230,14 +1253,15 @@ void yel_parse_statement(YelTokens* yel_tokens, YelByteCode* bytecode) {
                     yel_tokens->start_symbol[yel_tokens->pointer]);
             }
 
+            bytecode->opcode[tmp_w] = bytecode->len;
+
             bytecode->opcode[bytecode->len] = LOAD_CONST;
-            bytecode->opcode[bytecode->len+1] = yel_tokens->value[tmp_i];
+            bytecode->opcode[bytecode->len+1] = yel_alloc_func(this_function);
 
-            bytecode->opcode[bytecode->len+2] = MAKE_FUNC;
-            bytecode->opcode[bytecode->len+3] = OP_STORE;
-            bytecode->opcode[bytecode->len+4] = yel_alloc_variable(yel_tokens->value[tmp_i], NULL);
+            bytecode->opcode[bytecode->len+2] = OP_STORE;
+            bytecode->opcode[bytecode->len+3] = yel_alloc_variable(yel_tokens->value[tmp_i], NULL);
 
-            bytecode->len += 5;
+            bytecode->len += 4;
             return;
         }
 

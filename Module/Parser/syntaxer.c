@@ -2,7 +2,7 @@
 #include "../Parser/parser.h"
 #include "../Lexer/lexer.h"
 #include "../Errors/error.h"
-#include "../VM/yvm.h"
+#include "../YVM/yvm.h"
 
 #define print_ystack() for(int i=0;i<_ParserStackCounter;i++)printf("%d\n",_ParserStack[i]);
 
