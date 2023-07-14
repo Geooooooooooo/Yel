@@ -26,13 +26,20 @@
 #define RET_CODE_ERROR  0x1
 #define RET_CODE_OK     0x0
 
-// YVM OPCODES
-
 #define INT_TYPE            1
 #define FLT_TYPE            2
 #define BOOL_TYPE           3
 #define STR_TYPE            4
+#define FUNC_TYPE           5
 
 #define YEL_SIZE_INT        sizeof(long long)
+#define YEL_SIZE_FLT        sizeof(long double)
+
+#define TO_YEL_VAR(var)     (*(YelVariable*)(var))
+#define TO_YEL_CONST(var)   (*(YelConstant*)(var))
+#define TO_LL(var)          (*(signed long long*)(var))
+#define TO_LD(var)          (*(long double*)(var))
+#define TO_B(var)           (*(_Bool*)(var))
+#define TO_FUNC(var)        (*(YelFunction*)(var))
 
 #endif // __DEPENDECIES_H_

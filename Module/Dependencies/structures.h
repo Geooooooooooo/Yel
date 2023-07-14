@@ -7,7 +7,7 @@ typedef long long SIZE_REF;
 
 typedef struct __YelByteCode {
     OPCODEWORD* opcode;
-    long long len;
+    long long   len;
 } YelByteCode;
 
 typedef enum __YelTokenType {
@@ -84,31 +84,37 @@ typedef enum __YelTokenType {
 } YelTokenType;
 
 typedef struct __YelTokens {
-    _Bool error;
-    size_t length;
-    size_t pointer;
-    size_t *line;            // trace 
-    size_t* start_symbol;   // trace
-    YelTokenType* type;
-    char** value;
-    char* file_name;
-
+    _Bool           error;
+    size_t          length;
+    size_t          pointer;
+    size_t*         line;            // trace 
+    size_t*         start_symbol;   // trace
+    YelTokenType*   type;
+    char**          value;
+    char*           file_name;
     struct __Source* src_ptr;
 } YelTokens;
 
 typedef struct __YelSource {
-    char* source_text;
-    char* file_name;        // trace   
-    size_t pointer;
-    size_t length;
+    char*   source_text;
+    char*   file_name;        // trace   
+    size_t  pointer;
+    size_t  length;
 } YelSource;
 
 typedef struct __YelConstant {
-    int type;
-    OPCODEWORD ref;     // ref to value
+    int         type;
+    OPCODEWORD  ref;     // ref to value
 } YelConstant;
 
 typedef struct __YelVariable {
-    char* name;
-    OPCODEWORD ref;     // to YelConstant
+    char*       name;
+    OPCODEWORD  ref;     // to YelConstant
 } YelVariable;
+
+typedef struct __YelFunction {
+    int             returt_type;
+    int             argc;
+    SIZE_REF*       args;
+    OPCODEWORD      start;
+} YelFunction;
