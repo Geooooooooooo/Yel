@@ -5,10 +5,11 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
     register unsigned long long ip = 0;             // instruntion pointer
     register unsigned long long sp = 0;             // stack pointer
 
+    unsigned long long ret_ip = 0;
+    unsigned long long ret_sp = 0;
+
     register OPCODEWORD a;
     register OPCODEWORD b;
-
-    OPCODEWORD* instructions = bytecode->opcode;
 
     clock_t begin = clock();
 
@@ -18,15 +19,62 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
             goto _emergency_stop;
         }
 
-        switch (instructions[ip]) {
+        switch (bytecode->opcode[ip]) {
         case OP_HALT:
             goto _debug_info; // _end;
 
+        case OP_CALL:
+            int call_args = bytecode->opcode[ip+1];
+
+            YelFunction func = TO_FUNC(TO_YEL_CONST(stack[--sp]).ref);
+
+            if (call_args > func.argc) {
+                printf("RuntimeError: too many arguments passed\n");
+                goto _emergency_stop;
+            }
+            else if (call_args < func.argc) {
+                printf("RuntimeError: too few arguments passed\n");
+                goto _emergency_stop;
+            }
+
+            for (int l = func.argc-1; l >= 0; l--) {
+                YelConstant arg = TO_YEL_CONST(stack[--sp]);
+
+                if (TO_YEL_VAR(func.args[l]).ref == NULL) {
+                    if (arg.type == INT_TYPE) {
+                        TO_YEL_VAR(func.args[l]).ref = yel_alloc_Int_data(TO_LL(arg.ref));
+                    }
+                }
+
+                if (arg.type == INT_TYPE) {
+                    TO_YEL_VAR(func.args[l]).ref = yel_set_unused_int_memory(TO_LL(arg.ref), stack, sp);
+                }
+            }
+
+            // args
+
+            unsigned long long tmp_ret_ip = ret_ip;
+            unsigned long long tmp_ret_sp = ret_sp;
+            ret_ip = ip+2;
+            ret_sp = sp+1;
+
+            ip = func.start;
+
+            break;
+
+        case OP_RET: 
+            ip = ret_ip;
+            sp = ret_sp;
+            ret_ip = tmp_ret_ip;
+            ret_sp = tmp_ret_sp;
+
+            break;
+
         case LOAD_VALUE:
-            stack[sp] = TO_YEL_VAR(instructions[ip+1]).ref;
+            stack[sp] = TO_YEL_VAR(bytecode->opcode[ip+1]).ref;
 
             if (stack[sp] == NULL) {
-                printf("RuntimeError: undeclared name '%s'\n", TO_YEL_VAR(instructions[ip+1]).name);
+                printf("RuntimeError: undeclared name '%s'\n", TO_YEL_VAR(bytecode->opcode[ip+1]).name);
                 goto _emergency_stop;
             }
 
@@ -36,7 +84,7 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
             break;
 
         case LOAD_CONST: 
-            stack[sp] = instructions[ip+1];
+            stack[sp] = bytecode->opcode[ip+1];
             ++sp;
             ip += 2;
             break;
@@ -53,7 +101,7 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
             a = stack[sp];
             b = stack[sp-1];
 
-            switch (instructions[++ip])
+            switch (bytecode->opcode[++ip])
             {
             case BYNARY_POW:
                 /* tmp_int = powl(
@@ -931,7 +979,7 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
 
             break;
         case OP_JUMP_TO: 
-            ip = instructions[ip+1];
+            ip = bytecode->opcode[ip+1];
 
             break;
         case OP_POP_JUMP_ZERO:
@@ -939,78 +987,93 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
                 if (TO_B(TO_YEL_CONST(stack[--sp]).ref)) 
                     ip += 2;
                 else
-                    ip = instructions[ip+1];
+                    ip = bytecode->opcode[ip+1];
             }
             else if (TO_YEL_CONST(stack[sp-1]).type == INT_TYPE) {
                 if (TO_LL(TO_YEL_CONST(stack[--sp]).ref))
                     ip += 2;
                 else
-                    ip = instructions[ip+1];
+                    ip = bytecode->opcode[ip+1];
             }
             else if (TO_YEL_CONST(stack[sp-1]).type == FLT_TYPE) {
                 if (TO_LD(TO_YEL_CONST(stack[--sp]).ref))
                     ip += 2;
                 else
-                    ip = instructions[ip+1];
+                    ip = bytecode->opcode[ip+1];
             }
 
             break;
 
         case OP_STORE:
-            if (TO_YEL_VAR(instructions[ip+1]).ref == NULL) {
+            if (TO_YEL_VAR(bytecode->opcode[ip+1]).ref == NULL) {
                 if (TO_YEL_CONST(stack[sp-1]).type == INT_TYPE) {
-                    TO_YEL_VAR(instructions[ip+1]).ref = __builtin_malloc(sizeof(YelConstant));
-                    TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref = __builtin_malloc(YEL_SIZE_INT);
-                    TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).type = INT_TYPE;
+                    TO_YEL_VAR(bytecode->opcode[ip+1]).ref = __builtin_malloc(sizeof(YelConstant));
+                    TO_YEL_CONST(TO_YEL_VAR(bytecode->opcode[ip+1]).ref).ref = __builtin_malloc(YEL_SIZE_INT);
+                    TO_YEL_CONST(TO_YEL_VAR(bytecode->opcode[ip+1]).ref).type = INT_TYPE;
                 }
                 else if (TO_YEL_CONST(stack[sp-1]).type == FLT_TYPE) {
-                    TO_YEL_VAR(instructions[ip+1]).ref = __builtin_malloc(sizeof(YelConstant));
-                    TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref = __builtin_malloc(YEL_SIZE_FLT);
-                    TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).type = FLT_TYPE;
+                    TO_YEL_VAR(bytecode->opcode[ip+1]).ref = __builtin_malloc(sizeof(YelConstant));
+                    TO_YEL_CONST(TO_YEL_VAR(bytecode->opcode[ip+1]).ref).ref = __builtin_malloc(YEL_SIZE_FLT);
+                    TO_YEL_CONST(TO_YEL_VAR(bytecode->opcode[ip+1]).ref).type = FLT_TYPE;
                 }
                 else if (TO_YEL_CONST(stack[sp-1]).type == BOOL_TYPE) {
-                    TO_YEL_VAR(instructions[ip+1]).ref = __builtin_malloc(sizeof(YelConstant));
-                    TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref = __builtin_malloc(sizeof(_Bool));
-                    TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).type = BOOL_TYPE;
+                    TO_YEL_VAR(bytecode->opcode[ip+1]).ref = __builtin_malloc(sizeof(YelConstant));
+                    TO_YEL_CONST(TO_YEL_VAR(bytecode->opcode[ip+1]).ref).ref = __builtin_malloc(sizeof(_Bool));
+                    TO_YEL_CONST(TO_YEL_VAR(bytecode->opcode[ip+1]).ref).type = BOOL_TYPE;
+                }
+                else if (TO_YEL_CONST(stack[sp-1]).type == FUNC_TYPE) {
+                    TO_YEL_VAR(bytecode->opcode[ip+1]).ref = __builtin_malloc(sizeof(YelConstant));
+                    TO_YEL_CONST(TO_YEL_VAR(bytecode->opcode[ip+1]).ref).ref = __builtin_malloc(sizeof(YelFunction));
+                    TO_YEL_CONST(TO_YEL_VAR(bytecode->opcode[ip+1]).ref).type = FUNC_TYPE;
                 }
 
                 // another types will be here
             }
 
             // store int
-            if (TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).type == INT_TYPE) {
+            if (TO_YEL_CONST(TO_YEL_VAR(bytecode->opcode[ip+1]).ref).type == INT_TYPE) {
                 if (TO_YEL_CONST(stack[sp-1]).type == INT_TYPE)
-                    TO_LL(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = TO_LL(TO_YEL_CONST(stack[--sp]).ref);
+                    TO_LL(TO_YEL_CONST(TO_YEL_VAR(bytecode->opcode[ip+1]).ref).ref) = TO_LL(TO_YEL_CONST(stack[--sp]).ref);
 
                 else if (TO_YEL_CONST(stack[sp-1]).type == FLT_TYPE)
-                    TO_LL(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = (long long)TO_LD(TO_YEL_CONST(stack[--sp]).ref);
+                    TO_LL(TO_YEL_CONST(TO_YEL_VAR(bytecode->opcode[ip+1]).ref).ref) = (long long)TO_LD(TO_YEL_CONST(stack[--sp]).ref);
 
                 else if (TO_YEL_CONST(stack[sp-1]).type == BOOL_TYPE)
-                    TO_LL(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = (long long)TO_B(TO_YEL_CONST(stack[--sp]).ref);
+                    TO_LL(TO_YEL_CONST(TO_YEL_VAR(bytecode->opcode[ip+1]).ref).ref) = (long long)TO_B(TO_YEL_CONST(stack[--sp]).ref);
             }
 
             // store float
-            else if (TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).type == FLT_TYPE) {
+            else if (TO_YEL_CONST(TO_YEL_VAR(bytecode->opcode[ip+1]).ref).type == FLT_TYPE) {
                 if (TO_YEL_CONST(stack[sp-1]).type == FLT_TYPE)
-                    TO_LD(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = TO_LD(TO_YEL_CONST(stack[--sp]).ref);
+                    TO_LD(TO_YEL_CONST(TO_YEL_VAR(bytecode->opcode[ip+1]).ref).ref) = TO_LD(TO_YEL_CONST(stack[--sp]).ref);
 
                 else if (TO_YEL_CONST(stack[sp-1]).type == INT_TYPE)
-                    TO_LD(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = (long double)TO_LL(TO_YEL_CONST(stack[--sp]).ref);
+                    TO_LD(TO_YEL_CONST(TO_YEL_VAR(bytecode->opcode[ip+1]).ref).ref) = (long double)TO_LL(TO_YEL_CONST(stack[--sp]).ref);
 
                 else if (TO_YEL_CONST(stack[sp-1]).type == BOOL_TYPE)
-                    TO_LD(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = (long double)TO_B(TO_YEL_CONST(stack[--sp]).ref);
+                    TO_LD(TO_YEL_CONST(TO_YEL_VAR(bytecode->opcode[ip+1]).ref).ref) = (long double)TO_B(TO_YEL_CONST(stack[--sp]).ref);
             }
 
             // store bool
-            else if (TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).type == BOOL_TYPE) {
+            else if (TO_YEL_CONST(TO_YEL_VAR(bytecode->opcode[ip+1]).ref).type == BOOL_TYPE) {
                 if (TO_YEL_CONST(stack[sp-1]).type == BOOL_TYPE)
-                    TO_B(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = TO_B(TO_YEL_CONST(stack[--sp]).ref);
+                    TO_B(TO_YEL_CONST(TO_YEL_VAR(bytecode->opcode[ip+1]).ref).ref) = TO_B(TO_YEL_CONST(stack[--sp]).ref);
 
                 else if (TO_YEL_CONST(stack[sp-1]).type == INT_TYPE)
-                    TO_B(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = (_Bool)TO_LL(TO_YEL_CONST(stack[--sp]).ref);
+                    TO_B(TO_YEL_CONST(TO_YEL_VAR(bytecode->opcode[ip+1]).ref).ref) = (_Bool)TO_LL(TO_YEL_CONST(stack[--sp]).ref);
 
                 else if (TO_YEL_CONST(stack[sp-1]).type == FLT_TYPE)
-                    TO_B(TO_YEL_CONST(TO_YEL_VAR(instructions[ip+1]).ref).ref) = (_Bool)TO_LD(TO_YEL_CONST(stack[--sp]).ref);
+                    TO_B(TO_YEL_CONST(TO_YEL_VAR(bytecode->opcode[ip+1]).ref).ref) = (_Bool)TO_LD(TO_YEL_CONST(stack[--sp]).ref);
+            }
+
+            // store func
+            else if (TO_YEL_CONST(TO_YEL_VAR(bytecode->opcode[ip+1]).ref).type == FUNC_TYPE) {
+                if (TO_YEL_CONST(stack[sp-1]).type == FUNC_TYPE) {
+                    TO_FUNC(TO_YEL_CONST(TO_YEL_VAR(bytecode->opcode[ip+1]).ref).ref).returt_type = TO_FUNC(TO_YEL_CONST(stack[sp-1]).ref).returt_type;
+                    TO_FUNC(TO_YEL_CONST(TO_YEL_VAR(bytecode->opcode[ip+1]).ref).ref).argc = TO_FUNC(TO_YEL_CONST(stack[sp-1]).ref).argc;
+                    TO_FUNC(TO_YEL_CONST(TO_YEL_VAR(bytecode->opcode[ip+1]).ref).ref).args = TO_FUNC(TO_YEL_CONST(stack[sp-1]).ref).args;
+                    TO_FUNC(TO_YEL_CONST(TO_YEL_VAR(bytecode->opcode[ip+1]).ref).ref).start = TO_FUNC(TO_YEL_CONST(stack[--sp]).ref).start;
+                }
             }
 
             ip += 2;
@@ -1046,11 +1109,13 @@ _debug_info:
         printf("[%p]: ", stack[i]);
 
         if (((YelConstant*)stack[i])->type == INT_TYPE)
-            printf("%lld\n", TO_LL(TO_YEL_CONST(stack[i]).ref));
+            printf("%lld (Int)\n", TO_LL(TO_YEL_CONST(stack[i]).ref));
         else if (((YelConstant*)stack[i])->type == FLT_TYPE)
-            printf("%Lf\n", TO_LD(TO_YEL_CONST(stack[i]).ref));
+            printf("%Lf (Flt)\n", TO_LD(TO_YEL_CONST(stack[i]).ref));
         else if (((YelConstant*)stack[i])->type == BOOL_TYPE)
-            printf("%d\n", TO_B(TO_YEL_CONST(stack[i]).ref));
+            printf("%d (Bool)\n", TO_B(TO_YEL_CONST(stack[i]).ref));
+        else if (((YelConstant*)stack[i])->type == FUNC_TYPE)
+            printf("%p (func)\n", TO_YEL_CONST(stack[i]).ref);
     }
 
     return;

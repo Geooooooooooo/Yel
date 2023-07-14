@@ -40,13 +40,15 @@ void print_disassembly_bytecode(YelByteCode bytecode) {
                 printf("('%s')\n", (char*)(TO_YEL_CONST(bytecode.opcode[i]).ref));
             else if (TO_YEL_CONST(bytecode.opcode[i]).type == BOOL_TYPE)
                 printf("(%d)\n", *(_Bool*)(TO_YEL_CONST(bytecode.opcode[i]).ref));
+            else 
+                puts("");
 
             continue;
         }
         else if (next == 6) {
             next = 0;
 
-            printf("%ld\n", bytecode.opcode[i]);
+            printf("%lld\n", bytecode.opcode[i]);
             continue;
         }
 
@@ -98,12 +100,14 @@ SIZE_REF* data_bool_segment;
 SIZE_REF* data_int_segment;
 SIZE_REF* data_str_segment;
 SIZE_REF* variables_segment;
+SIZE_REF* functions_segment;
 
 unsigned long long data_float_segment_len;
 unsigned long long data_int_segment_len;
 unsigned long long data_bool_segment_len;
 unsigned long long data_str_segment_len;
 unsigned long long variables_segment_len;
+unsigned long long functions_segment_len;
 
 unsigned long long end_data_int_segment_len;
 unsigned long long end_data_float_segment_len;
@@ -130,6 +134,9 @@ void yel_init_data_seg() {
 
     variables_segment = (SIZE_REF*)__builtin_malloc(sizeof(SIZE_REF));
     variables_segment_len = 0;
+    
+    functions_segment = (SIZE_REF*)__builtin_malloc(sizeof(SIZE_REF));
+    functions_segment_len = 0;
 }
 void yel_free_data_seg() {
     size_t i;
@@ -172,7 +179,7 @@ SIZE_REF yel_alloc_variable(char* name, SIZE_REF c_ref) {
     variables_segment[variables_segment_len] = (SIZE_REF)var;
 
     ++variables_segment_len;
-    return (SIZE_REF)variables_segment[variables_segment_len-1];
+    return (SIZE_REF)var;
 }
 
 SIZE_REF yel_alloc_Flt_data(long double _Val) {
@@ -250,6 +257,17 @@ SIZE_REF yel_alloc_Bool_data(_Bool _Val) {
 
     ++data_bool_segment_len;
     return (SIZE_REF)data_bool_segment[data_bool_segment_len-1];
+}
+
+SIZE_REF yel_alloc_func(YelFunction* _Val) {
+    functions_segment = (SIZE_REF*)__builtin_realloc(functions_segment, (functions_segment_len+1) * sizeof(SIZE_REF));
+    YelConstant* cnst = (YelConstant*)__builtin_malloc(sizeof(YelConstant));
+    cnst->ref = _Val;
+    cnst->type = FUNC_TYPE;
+
+    functions_segment[functions_segment_len] = (SIZE_REF)cnst;
+    ++functions_segment_len;
+    return (SIZE_REF)cnst;
 }
 
 OPCODEWORD* yel_init_stack(size_t stack_size) {
