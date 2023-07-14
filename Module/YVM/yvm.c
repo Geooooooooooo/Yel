@@ -283,7 +283,7 @@ OPCODEWORD* yel_init_stack(size_t stack_size) {
 SIZE_REF yel_set_unused_int_memory(signed long long _Val, OPCODEWORD* stack, unsigned long long sp) {
     for (unsigned long long i = end_data_int_segment_len; i < data_int_segment_len; i++) {
         for (unsigned long long l = 0; l < sp; l++)
-            if (TO_YEL_CONST(stack[l]).ref == TO_YEL_CONST(data_int_segment[i]).ref)
+            if (stack[l] == NULL || stack[l+1] == NULL || TO_YEL_CONST(stack[l]).ref == TO_YEL_CONST(data_int_segment[i]).ref)
                 goto _alloc_new;
          
         for (unsigned long long l = 0; l < variables_segment_len; l++) {

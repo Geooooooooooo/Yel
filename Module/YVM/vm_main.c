@@ -47,26 +47,24 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
                 }
 
                 if (arg.type == INT_TYPE) {
-                    TO_YEL_VAR(func.args[l]).ref = yel_set_unused_int_memory(TO_LL(arg.ref), stack, sp);
+                    TO_LL(TO_YEL_CONST(TO_YEL_VAR(func.args[l]).ref).ref) = TO_LL(arg.ref);
                 }
             }
 
-            // args
-
-            unsigned long long tmp_ret_ip = ret_ip;
-            unsigned long long tmp_ret_sp = ret_sp;
-            ret_ip = ip+2;
-            ret_sp = sp+1;
-
+            stack[sp] = ip+2;
+            stack[++sp] = NULL;
+            ++sp;
             ip = func.start;
 
             break;
 
         case OP_RET: 
-            ip = ret_ip;
-            sp = ret_sp;
-            ret_ip = tmp_ret_ip;
-            ret_sp = tmp_ret_sp;
+            OPCODEWORD rlavue = stack[--sp];
+            while (stack[sp] != NULL) --sp;
+
+            ip = stack[--sp];
+            stack[sp] = rlavue;
+            ++sp;
 
             break;
 
