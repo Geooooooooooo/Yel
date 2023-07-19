@@ -1,50 +1,87 @@
-<decl> ::=
-    | tok_word.(func) tok_name '(' <expr> ')' '{' ... '}'
+empty 
+undefined ::= <stmt> | <expr>
+type_annotation ::= ':' tok_word
 
-<stmt> ::=
-    | tok_name '=' <expr>
-    | tok_word.(return) <expr>
-    | tok_word.(break)
-    | '{' ... '}'
+# statements
+stmt ::= stmt_name_decl | stmt_assign | stmt_return | stmt_break | stmt_continue | stmt_if | stmt_if_else | stmt_curly_bracket
+stmt_name_decl ::= tok_name <type_annotation>
+stmt_assign ::= <stmt_name_decl> '=' <expr>
+stmt_return ::= return <expr>
+stmt_break ::= break
+stmt_continue  ::= continue
+stmt_if ::= if '(' <expr> ')' <undefined>
+stmt_if_else ::= <stmt_if> else <undefined>
+stmt_curly_bracket ::= '{' <undefined> '}'
 
-<expr> ::=
-    | ';' -> expr.(end)
-    | tok_name
-    | tok_number
-    | <expr> <bin_op> <expr>
-    | <unary_op> <expr>
-    | tok_name '(' <expr> ')'
-    | <expr> ',' <expr>
-    | tok_word.(func) '(' <expr> ')' -> '{' ... '}'
+# declarations
+decl ::= decl_func
+decl_func ::= func <type_annotation> tok_name '(' empty | <stmt_name_decl>, ... ')' <stmt_curly_bracket>
 
-<bin_op> ::=
-    | *
-    | /
-    | *=
-    | /=
-    | +
-    | -
-    | +=
-    | -=
-    | =
-    | ==
-    | !=
-    | <
-    | <=
-    | >
-    | >=
+# expressions
+expr ::= expr_name | expr_num | expr_binary | expr_unary_op | expr_enumeration | expr_func_decl
+expr_name ::= tok_name
+expr_num ::= tok_number
+expr_binary ::= <expr> <binary> <expr>
+expr_unary_op ::= <unary_op> <expr>
+expr_enumeration ::= <expr> ',' <expr>
+expr_func_decl ::= func <type_annotation> '(' empty | <stmt_name_decl>, ... ')' '->' <stmt_curly_bracket>
 
-<unary_op> ::=
-    | +
-    | -
-    | !
-    | +-
+# binary operators
+bin_op ::= binary_pow | binary_mul | binary_div | binary_floor_div | binary_mod | binary_add | binary_sub |
+    binary_rsh | binary_lsh | binary_bitwise_and | binary_bitwise_xor | binary_bitwise_or | binary_eq |
+    binary_not_eq | binary_greater_than | binary_less_than | binary_greater_than_eq | binary_less_than_eq |
+    binary_is | binary_logical_and | binary_logical_or | binary_pow_assign | binary_mul_assign | binary_div_assign |
+    binary_floor_div_assign | binary_mod_assign | binary_add_assign | binary_sub_assign | binary_rsh_assign | 
+    binary_lsh_assign | binary_bitwise_and_assign | binary_bitwise_xor_assign | binary_bitwise_or_assign
+binary_pow ::= '**'
+binary_mul ::= '*'
+binary_div ::= '/'
+binary_floor_div ::= '//'
+binary_mod ::= '%'
+binary_add ::= '+'
+binary_sub ::= '-'
+binary_rsh ::= '>>'
+binary_lsh ::= '<<'
+binary_bitwise_and ::= '&'
+binary_bitwise_xor ::= '^'
+binary_bitwise_or ::= '|'
+binary_eq ::= '=='
+binary_not_eq ::= '!='
+binary_greater_than ::= '>'
+binary_less_than ::= '<'
+binary_greater_than_eq ::= '>='
+binary_less_than_eq ::= '<='
+binary_is ::= is
+binary_logical_and ::= and
+binary_logical_or ::= or
+binary_pow_assign ::= '**='
+binary_mul_assign ::= '*='
+binary_div_assign ::= '/='
+binary_floor_div_assign ::= '//='
+binary_mod_assign ::= '%='
+binary_add_assign ::= '+='
+binary_sub_assign ::= '-='
+binary_rsh_assign ::= '>>='
+binary_lsh_assign ::= '<<='
+binary_bitwise_and_assign ::= '&='
+binary_bitwise_xor_assign ::= '^='
+binary_bitwise_or_assign ::= '|='
 
-<operator> ::=
-    | ;
-    | (
-    | )
-    | {
-    | }
-    | [
-    | ]
+# unary operators
+unary_op ::= unary_pos | unary_neg | unary_not
+unary_pos ::= '+'
+unary_neg ::= '-'
+unary_not ::= not
+
+# service symbols
+service_symbols ::= op_semicolon | op_colon | op_comma | op_follow | op_lpar | op_rpar | op_clbrk | op_slbrk | op_srbrk
+op_semicolon ::= ';'
+op_colon ::= ':'
+op_comma ::= ','
+op_follow ::= '->'
+op_lpar ::= '('
+op_rpar ::= ')'
+op_clbrk ::= '{'
+op_crbrk ::= '}'
+op_slbrk ::= '['
+op_srbrk ::= ']'
