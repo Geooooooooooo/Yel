@@ -18,7 +18,7 @@ decl ::= decl_func
 decl_func ::= func <type_annotation> tok_name '(' empty | <stmt_name_decl>, ... ')' <stmt_curly_bracket>
 
 # expressions
-expr ::= expr_name | expr_num | expr_binary | expr_unary_op | expr_enumeration | expr_func_decl | expr_brackets
+expr ::= expr_name | expr_num | expr_binary | expr_unary_op | expr_enumeration | expr_func_decl | expr_brackets | expr_func_call
 expr_name ::= tok_name
 expr_num ::= tok_number
 expr_binary ::= <expr> <binary> <expr>
@@ -26,6 +26,7 @@ expr_unary_op ::= <unary_op> <expr>
 expr_enumeration ::= <expr> ',' <expr>
 expr_func_decl ::= func <type_annotation> '(' empty | <stmt_name_decl>, ... ')' '->' <stmt_curly_bracket>
 expr_brackets ::= '(' <expr> ')'
+expr_func_call ::= <expr> '(' <expr_enumeration> ')'
 
 # binary operators
 bin_op ::= binary_pow | binary_mul | binary_div | binary_floor_div | binary_mod | binary_add | binary_sub |
