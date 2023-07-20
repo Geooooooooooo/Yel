@@ -14,7 +14,7 @@ stmt_break ::= break
 stmt_continue  ::= continue
 stmt_if ::= if <expr_brackets> <undefined>
 stmt_if_else ::= <stmt_if> else <undefined>
-stmt_curly_bracket ::= '{' <undefined> '}'
+stmt_curly_bracket ::= '{' <empty> | <undefined> '}'
 stmt_while ::= while <expr_brackets> <undefined>
 
 # declarations
@@ -30,7 +30,7 @@ expr_bool ::= tok_bool_true | tok_bool_false
 expr_bin_op ::= <expr> <bin_op> <expr>
 expr_unary_op ::= <unary_op> <expr>
 expr_enumeration ::= <expr> ',' <expr>
-expr_func_decl ::= func <type_annotation> '(' <empty> | <stmt_name_decl>, ... ')' '->' <stmt_curly_bracket>
+expr_func_decl ::= func <type_annotation> '(' <empty> | <stmt_name_decl>, ... ')' '->' <undefined>
 expr_brackets ::= '(' <empty> | <expr> ')'
 expr_func_call ::= <expr> <expr_brackets>
 
