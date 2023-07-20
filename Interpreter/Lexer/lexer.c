@@ -7,7 +7,7 @@
 #define cur_char    cur_src[cur_ptr]
 
 #define yel_is_op(c) (c == '(' || c == ')' || c == '{' || c == '}' || c == '[' || c == ']' || c == ';' || c == ':')
-#define yel_is_bin_op(c) (c == '*' || c == '+' || c == '-' || c == '/' || c == '>' || c == '<' || c == '=' || c == ',' || c == '~')
+#define yel_is_bin_op(c) (c == '*' || c == '+' || c == '-' || c == '/' || c == '>' || c == '<' || c == '=' || c == ',' || c == '~' || c == '^')
 #define yel_is_alpha(c) ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_')
 #define yel_is_number(c) (c >= '0' && c <= '9')
 
@@ -18,10 +18,11 @@ size_t cur_line = 1;
 size_t cur_line_symbol = 1;
 size_t start_symbol = 1;
 
-const int yel_keywords_length = 8;
+const int yel_keywords_length = 12;
 const const char* yel_keywords[] = {
     "func", "return", "defer", "break",
-    "if", "else", "while", "continue"
+    "if", "else", "while", "continue",
+    "Int", "Flt", "Bool", "Str"
 };
 
 void yel_get_next_token(YelSource* source, YelTokenType* t_token_type, char* token_value) {
@@ -306,18 +307,21 @@ _start_:
             goto _count_bin_operator1;
         }
 
-    case '!':
-        if (cur_src[cur_ptr+1] == '=') {
-            *t_token_type = (YelTokenType)tok_binary_op_not_eq;
-            goto _count_bin_operator2;
-        }
-
     case '&':
         if (cur_src[cur_ptr+1] == '=') {
             *t_token_type = (YelTokenType)tok_binary_op_and_assign;
             goto _count_bin_operator2;
         } else {
             *t_token_type = (YelTokenType)tok_binary_op_and;
+            goto _count_bin_operator1;
+        }
+
+    case '^':
+        if (cur_src[cur_ptr+1] == '=') {
+            *t_token_type = (YelTokenType)tok_binary_op_xor_assign;
+            goto _count_bin_operator2;
+        } else {
+            *t_token_type = (YelTokenType)tok_binary_op_xor;
             goto _count_bin_operator1;
         }
 
@@ -415,19 +419,19 @@ _end_:
         }
 
         if (__builtin_strcmp("and", token_value) == 0) {
-            *t_token_type = (YelTokenType)tok_binary_op_log_and;
+            *t_token_type = tok_binary_op_log_and;
         }
         else if (__builtin_strcmp("or", token_value) == 0) {
-            *t_token_type = (YelTokenType)tok_binary_op_log_or;
+            *t_token_type = tok_binary_op_log_or;
         }
         else if (__builtin_strcmp("not", token_value) == 0) {
-            *t_token_type = (YelTokenType)tok_unary_op_log_not;
+            *t_token_type = tok_unary_op_log_not;
         }
         else if (__builtin_strcmp("True", token_value) == 0) {
-            *t_token_type = (YelTokenType)tok_bool;
+            *t_token_type = tok_bool_true;
         }
         else if (__builtin_strcmp("False", token_value) == 0) {
-            *t_token_type = (YelTokenType)tok_bool;
+            *t_token_type = tok_bool_false;
         }
     }
 }
