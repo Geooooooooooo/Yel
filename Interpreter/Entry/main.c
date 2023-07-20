@@ -2,25 +2,21 @@
 #include "../Lexer/lexer.h"
 #include "../Parser/syntaxer.h"
 #include "../Parser/parser.h"
-#include "../Dependencies/dependencies.h"
-#include "../VM/yvm.h"
+#include "../YVM/yvm.h"
+#include "../YVM/vm_main.h"
 
-// TODO: fix SYNTAXER for: (a1=b1=c1=f1, hello); print(a1=(b1=(c1=f1)), a2=(b2=(c2=f2)));
+/*          === TODO ===
+    1. parsers for expr, decl and stmt
+*/
 
-// TODO: if (not (a = foo(b, c)))
-//          exit(bar());
-// fix error
-
-// fix: not a != (10 + 10);
-// fix: True == not False;
+// fix: (a1=b1=c1=f1, hello); print(a1=(b1=(c1=f1)), a2=(b2=(c2=f2)));
+// fix: if (not (a = foo(b, c))) exit(bar());
 
 // TODO: create ref to vars into heap in bytecode (!!!!!!!!!!!!!!!!!!!!!!!!). this will give a high speed
 
 int dis_flag = 0;
 
 int main(int argc, char* argv[]) {
-    clock_t full_time_start = clock();
-
     if (argc < 2) {
         printf("Inline mode is not available\nUse: 'yel [filename] [OPTIONS ... ]'\n");
         return -1;
@@ -50,6 +46,9 @@ int main(int argc, char* argv[]) {
     YelTokens yeltokens = yel_parse_tokens(&source);
     if (yeltokens.error)
         goto _yel_end;
+
+    //print_tokens();
+    //getchar();
     
     yel_init_data_seg();
 
@@ -59,6 +58,8 @@ int main(int argc, char* argv[]) {
     if (yeltokens.error) 
         goto _yel_end;
 
+    return 0;
+
     if (dis_flag) {
         print_disassembly_bytecode(bytecode);
         goto _yel_end;
@@ -66,17 +67,13 @@ int main(int argc, char* argv[]) {
 
     OPCODEWORD* stack = yel_init_stack(65536UL);
 
-    yel_run(stack, &bytecode, 65536UL);
+    yvm_main(stack, &bytecode, 65536UL);
 
 _yel_end:
     yel_free_tokens(&yeltokens);
     __builtin_free(source.source_text);
     __builtin_free(bytecode.opcode);
     yel_free_data_seg();
-
-    clock_t full_time_end = clock();
-
-    printf("--> full time = %.7f\n", (double)(full_time_end-full_time_start) / CLOCKS_PER_SEC);
 
     return 0;
 }
