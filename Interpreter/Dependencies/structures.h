@@ -16,6 +16,8 @@ typedef enum __YelTokenType {
     tok_number_int, // const numeric integer literal - CNIL
     tok_number_flt, // const numeric floating literal - CNFL
     tok_string,     // const string literal - CSL
+    tok_bool_true,
+    tok_bool_false,
     tok_bool,       // const bool literal True or False
 
     tok_binary_op = 400,
@@ -28,6 +30,7 @@ typedef enum __YelTokenType {
     tok_binary_op_rsh,                  // >>
     tok_binary_op_lsh,                  // <<
     tok_binary_op_and,                  // &
+    tok_binary_op_xor,                  // ^
     tok_binary_op_or,                   // |
     tok_binary_op_more,                 // >
     tok_binary_op_less,                 // <
@@ -47,6 +50,7 @@ typedef enum __YelTokenType {
     tok_binary_op_and_assign = 435,     // &=
     tok_binary_op_or_assign,            // |=
     tok_binary_op_pow_assign,           // **=
+    tok_binary_op_xor_assign,           // ^=
     tok_binary_op_assign,               // =
 
     tok_unary_op = 500,
@@ -76,12 +80,57 @@ typedef enum __YelTokenType {
     tok_word_else,      // else
     tok_word_while,     // while
     tok_word_continue,  // continue
+    tok_word_Int,
+    tok_word_Flt,
+    tok_word_Bool,
+    tok_word_Str,
 
     tok_$,              // end of expression
     tok_en_expr,
     tok_en_stmt,
     tok_en_decl,
 } YelTokenType;
+
+typedef enum __YelParsingEntities {
+    empty = 800,
+    undefined,
+    type_annotation,
+
+    // statment
+    stmt,
+    stmt_name_decl,
+    stmt_name_decl_enum,
+    stmt_assign,
+    stmt_return,
+    stmt_break,
+    stmt_continue,
+    stmt_if,
+    stmt_if_else,
+    stmt_curly_bracket,
+    stmt_while,
+
+    // declarations
+    decl,
+    decl_func,
+
+    // expressions
+    expr, // = 16,
+    expr_name,
+    expr_num,
+    expr_bool,
+    expr_str,
+    expr_bin_op,
+    expr_unary_op,
+    expr_enumeration,
+    expr_func_decl,
+    expr_brackets,
+    expr_func_call,
+
+    bin_op,
+    unary_op,
+    assign_op,
+
+} YelParsingEntities;
 
 typedef struct __YelTokens {
     _Bool           error;

@@ -12,8 +12,8 @@
 
 #define print_cur() printf("\ncur = %s\n", _CurVal)
 #define print_tokens() puts("tokens = {");\
-    for (size_t i = 0; i < token_array.length; i++) {\
-        printf("   [%d, '%s', %lu:%lu]\n", token_array.type[i], token_array.value[i], token_array.line[i], token_array.start_symbol[i]);\
+    for (size_t i = 0; i < yeltokens.length; i++) {\
+        printf("   [%d, '%s', %lu:%lu]\n", yeltokens.type[i], yeltokens.value[i], yeltokens.line[i], yeltokens.start_symbol[i]);\
     } puts("}")
 
 #define print_info() printf("_CurVal = %s, _NextVal = %s\n_SimpleExpr == %d\n _Unary == %d\n\n", _CurVal, _NextVal, _SimpleExpr, _Unary);getchar()
