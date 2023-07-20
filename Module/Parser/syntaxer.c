@@ -334,9 +334,46 @@ void yel_gen_opcode(YelTokens* yel_tokens, YelByteCode* bytecode) {
             puts("<expr_func_call>");
             break;
 
-        case expr:
-            yel_parse_expression(yel_tokens, bytecode);
+        case stmt_name_decl:
+            puts("<stmt_name_decl>");
             break;
+
+        case stmt_name_decl_enum:
+            puts("<stmt_name_decl_enum>");
+            break;
+
+        case stmt_assign:
+            puts("<stmt_assign>");
+            break;
+        
+        case stmt_return:
+            puts("<stmt_return>");
+            break;
+        
+        case stmt_break:
+            puts("<stmt_break>");
+            break;
+        
+        case stmt_continue:
+            puts("<stmt_continue>");
+            break;
+        
+        case stmt_if:
+            puts("<stmt_if>");
+            break;
+        
+        case stmt_if_else:
+            puts("<stmt_if_else>");
+            break;
+        
+        case stmt_curly_bracket:
+            puts("<stmt_curly_bracket>");
+            break;
+        
+        case stmt_while:
+            puts("<stmt_while>");
+            break;
+        
 
         case undefined:
             yel_tokens->error = 1;
@@ -394,9 +431,6 @@ YelParsingEntities yel_define_next_entity(YelTokens* yel_tokens) {
             else if (_CurType >= tok_binary_op_div_assign && _CurType <= tok_binary_op_assign) {
                 def_stack[dscounter] = assign_op;
             }
-            else if (_CurType >= tok_word_Int && _CurType <= tok_word_Str) {
-                def_stack[dscounter] = type_word;
-            }
             else {
                 def_stack[dscounter] = _CurType;
             }
@@ -406,7 +440,6 @@ YelParsingEntities yel_define_next_entity(YelTokens* yel_tokens) {
 
         if (_CurType == tok_semicolon) {
             ++yel_tokens->pointer;
-            ++dscounter;
             break;
         }
 
@@ -418,7 +451,7 @@ YelParsingEntities yel_define_next_entity(YelTokens* yel_tokens) {
     int tmp_sp;
     while (sp < dscounter) {
         // stmt_assign
-        if (def_stack[sp] == stmt_name_decl && def_stack[sp+1] == assign_op && isExpr(def_stack[sp+2])) {
+        if ((def_stack[sp] == stmt_name_decl || isExpr(def_stack[sp])) && def_stack[sp+1] == assign_op && isExpr(def_stack[sp+2])) {
             def_stack[sp] = stmt_assign;
             goto _delete2;
         }
@@ -517,6 +550,9 @@ YelParsingEntities yel_define_next_entity(YelTokens* yel_tokens) {
             goto _delete1;
         }
 
+        ++sp;
+        continue;
+
 _delete0:
         goto _continue;
 
@@ -538,10 +574,6 @@ _delete2:
         }
 
 _continue:
-        if (sp <= 1) {
-            break;
-        }
-
         sp = 0;
         continue;
     }
