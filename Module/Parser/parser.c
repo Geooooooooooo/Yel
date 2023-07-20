@@ -7,13 +7,13 @@
 
 #define WRITE_OPCODE() {\
     if (_CurType == tok_name) {bytecode->opcode[bytecode->len] = LOAD_VALUE;\
-        bytecode->opcode[bytecode->len+1] = yel_alloc_variable(_CurVal, NULL);}\
+        bytecode->opcode[bytecode->len+1] = yel_alloc_variable(_CurVal, 0);}\
     else if (_CurType == tok_number_int) {bytecode->opcode[bytecode->len] = LOAD_CONST;\
         bytecode->opcode[bytecode->len+1] = yel_alloc_Int_data((signed long long)atoll(_CurVal));}\
     else if(_CurType == tok_number_flt) {bytecode->opcode[bytecode->len] = LOAD_CONST;\
         bytecode->opcode[bytecode->len+1] = yel_alloc_Flt_data(atof(_CurVal));}\
     else if(_CurType == tok_bool) {bytecode->opcode[bytecode->len] = LOAD_CONST;\
-        bytecode->opcode[bytecode->len+1] = yel_alloc_Bool_data((_Bool)atoi(_CurVal));}\
+        bytecode->opcode[bytecode->len+1] = yel_alloc_Bool_data((_CurVal[0]=='T'));}\
     else if(_CurType == tok_string) {bytecode->opcode[bytecode->len] = LOAD_CONST;\
         bytecode->opcode[bytecode->len+1] = yel_alloc_Str_data(_CurVal);}bytecode->len+=2;++argCounter;}
 
@@ -23,10 +23,12 @@ static int      _Unary = 1;
 static size_t   argCounter = 0;
 static size_t   curInstLen = 0;
 
+int recursion = 0;
+
 // from parser.c
 void yel_parse_expression(YelTokens* yel_tokens, YelByteCode* bytecode) {
     if (curInstLen < bytecode->len+10) {
-        curInstLen = bytecode->len + 20;
+        curInstLen = bytecode->len + 60;
         bytecode->opcode = __builtin_realloc(bytecode->opcode, (curInstLen)*sizeof(OPCODEWORD));
     }
 
@@ -51,9 +53,11 @@ void yel_parse_expression(YelTokens* yel_tokens, YelByteCode* bytecode) {
             _Unary = 0;
 
             if (_SimpleExpr) return;
+            continue;
         }
         else if (_CurType == tok_op_rpar) {
             --_Parentheses;
+            ++yel_tokens->pointer;
             return;
         }
 
@@ -111,7 +115,7 @@ void yel_parse_expression(YelTokens* yel_tokens, YelByteCode* bytecode) {
         }
         
         else if (_Unary && (_CurType == tok_binary_op_plus || _CurType == tok_binary_op_minus || _CurType == tok_unary_op_not ||
-        _CurType == tok_unary_op_inc || _CurType == tok_unary_op_dec)) {
+        _CurType == tok_unary_op_inc || _CurType == tok_unary_op_dec || _CurType == tok_unary_op_log_not)) {
             size_t uo_ptr = yel_tokens->pointer;
             ++_SimpleExpr;
             ++yel_tokens->pointer;
@@ -139,6 +143,8 @@ void yel_parse_expression(YelTokens* yel_tokens, YelByteCode* bytecode) {
                 bytecode->opcode[bytecode->len] = UNARY_DEC;
             else if (yel_tokens->type[uo_ptr] == tok_unary_op_not) 
                 bytecode->opcode[bytecode->len] = UNARY_NOT;
+            else if (yel_tokens->type[uo_ptr] == tok_unary_op_log_not) 
+                bytecode->opcode[bytecode->len] = UNARY_LOGICAL_NOT;
 
             ++bytecode->len;
             _Unary = 0;
@@ -812,7 +818,7 @@ void yel_parse_expression(YelTokens* yel_tokens, YelByteCode* bytecode) {
 
                 yel_tokens->error = 1;
             }
-            
+
             bytecode->opcode[bytecode->len] = LOAD_CONST;
             bytecode->opcode[bytecode->len+1] = yel_alloc_Int_data((signed long long)atoll(_CurVal));            // add to const
             bytecode->len += 2;
@@ -869,7 +875,7 @@ void yel_parse_expression(YelTokens* yel_tokens, YelByteCode* bytecode) {
             
             bytecode->opcode[bytecode->len] = LOAD_CONST;
 
-            if (strcmp(_CurVal, "True") == 0)
+            if (_CurVal[0] == 'T')
                 bytecode->opcode[bytecode->len+1] = yel_alloc_Bool_data((_Bool)1);
             else
                 bytecode->opcode[bytecode->len+1] = yel_alloc_Bool_data((_Bool)0);
@@ -889,6 +895,7 @@ void yel_parse_expression(YelTokens* yel_tokens, YelByteCode* bytecode) {
 }
 
 // from parser.c
+// fix
 void yel_parse_statement(YelTokens* yel_tokens, YelByteCode* bytecode) {
     if (curInstLen < bytecode->len+10) {
         curInstLen = bytecode->len + 40;
@@ -985,6 +992,7 @@ void yel_parse_statement(YelTokens* yel_tokens, YelByteCode* bytecode) {
         }
         else if (_CurType == tok_word_if) {
             ++yel_tokens->pointer;
+
             if (yel_check_expr(yel_tokens, 1) == RET_CODE_OK) {
                 _Unary = 1;
                 ++_SimpleExpr;
