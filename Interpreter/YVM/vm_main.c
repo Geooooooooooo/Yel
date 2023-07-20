@@ -5,9 +5,6 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
     register unsigned long long ip = 0;             // instruntion pointer
     register unsigned long long sp = 0;             // stack pointer
 
-    unsigned long long ret_ip = 0;
-    unsigned long long ret_sp = 0;
-
     register OPCODEWORD a;
     register OPCODEWORD b;
 
@@ -22,51 +19,6 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
         switch (bytecode->opcode[ip]) {
         case OP_HALT:
             goto _debug_info; // _end;
-
-        case OP_CALL:
-            int call_args = bytecode->opcode[ip+1];
-
-            YelFunction func = TO_FUNC(TO_YEL_CONST(stack[--sp]).ref);
-
-            if (call_args > func.argc) {
-                printf("RuntimeError: too many arguments passed\n");
-                goto _emergency_stop;
-            }
-            else if (call_args < func.argc) {
-                printf("RuntimeError: too few arguments passed\n");
-                goto _emergency_stop;
-            }
-
-            for (int l = func.argc-1; l >= 0; l--) {
-                YelConstant arg = TO_YEL_CONST(stack[--sp]);
-
-                if (TO_YEL_VAR(func.args[l]).ref == NULL) {
-                    if (arg.type == INT_TYPE) {
-                        TO_YEL_VAR(func.args[l]).ref = yel_alloc_Int_data(TO_LL(arg.ref));
-                    }
-                }
-
-                if (arg.type == INT_TYPE) {
-                    TO_LL(TO_YEL_CONST(TO_YEL_VAR(func.args[l]).ref).ref) = TO_LL(arg.ref);
-                }
-            }
-
-            stack[sp] = ip+2;
-            stack[++sp] = NULL;
-            ++sp;
-            ip = func.start;
-
-            break;
-
-        case OP_RET: 
-            OPCODEWORD rlavue = stack[--sp];
-            while (stack[sp] != NULL) --sp;
-
-            ip = stack[--sp];
-            stack[sp] = rlavue;
-            ++sp;
-
-            break;
 
         case LOAD_VALUE:
             stack[sp] = TO_YEL_VAR(bytecode->opcode[ip+1]).ref;
@@ -900,6 +852,86 @@ void yvm_main(OPCODEWORD* stack, YelByteCode* bytecode, size_t stack_size) {
             ++ip;
 
             break;
+
+        case OP_CALL:
+            int call_args = (int)bytecode->opcode[ip+1];
+
+            if (TO_YEL_CONST(stack[sp-1]).type != FUNC_TYPE) {
+                printf("RuntimeError: '");
+
+                if (TO_YEL_CONST(stack[sp-1]).type == INT_TYPE)
+                    printf("Int");
+                else if (TO_YEL_CONST(stack[sp-1]).type == FLT_TYPE)
+                    printf("Flt");
+                else if (TO_YEL_CONST(stack[sp-1]).type == BOOL_TYPE)
+                    printf("Bool");
+                else if (TO_YEL_CONST(stack[sp-1]).type == STR_TYPE)
+                    printf("Str");
+
+                printf("' type can not be call, must be 'func'\n");
+                goto _emergency_stop;
+            } 
+
+            YelFunction func = TO_FUNC(TO_YEL_CONST(stack[--sp]).ref);
+
+            if (call_args > func.argc) {
+                printf("RuntimeError: too many arguments passed\n");
+                goto _emergency_stop;
+            }
+            else if (call_args < func.argc) {
+                printf("RuntimeError: too few arguments passed\n");
+                goto _emergency_stop;
+            }
+
+            for (int l = func.argc-1; l >= 0; l--) {
+                YelConstant arg = TO_YEL_CONST(stack[--sp]);
+
+                if (TO_YEL_VAR(func.args[l]).ref == NULL) {
+                    if (arg.type == INT_TYPE) {
+                        TO_YEL_VAR(func.args[l]).ref = yel_alloc_Int_data(TO_LL(arg.ref));
+                    }
+                    else if (arg.type == FLT_TYPE) {
+                        TO_YEL_VAR(func.args[l]).ref = yel_alloc_Flt_data(TO_LD(arg.ref));
+                    }
+                    else if (arg.type == BOOL_TYPE) {
+                        TO_YEL_VAR(func.args[l]).ref = yel_alloc_Bool_data(TO_B(arg.ref));
+                    }
+                    else if (arg.type == FUNC_TYPE) {
+                        TO_YEL_VAR(func.args[l]).ref = yel_alloc_func((YelFunction*)(arg.ref));
+                    }
+                }
+
+                if (arg.type == INT_TYPE) {
+                    TO_LL(TO_YEL_CONST(TO_YEL_VAR(func.args[l]).ref).ref) = TO_LL(arg.ref);
+                }
+                else if (arg.type == FLT_TYPE) {
+                    TO_LD(TO_YEL_CONST(TO_YEL_VAR(func.args[l]).ref).ref) = TO_LD(arg.ref);
+                }
+                else if (arg.type == BOOL_TYPE) {
+                    TO_B(TO_YEL_CONST(TO_YEL_VAR(func.args[l]).ref).ref) = TO_B(arg.ref);
+                }
+                else if (arg.type == FUNC_TYPE) {
+                    TO_FUNC(TO_YEL_CONST(TO_YEL_VAR(func.args[l]).ref).ref) = TO_FUNC(arg.ref);
+                }
+            }
+
+            stack[sp] = ip+2;
+            stack[++sp] = NULL;
+            ++sp;
+            ip = func.start;
+
+            break;
+
+        case OP_RET: 
+            a = stack[--sp];
+            while (stack[sp] != NULL) --sp;
+
+            ip = stack[--sp];
+            stack[sp] = a;
+            ++sp;
+
+            break;
+
         case UNARY_NEG:
             if (TO_YEL_CONST(stack[sp-1]).type == INT_TYPE) {
                 stack[sp-1] = yel_set_unused_int_memory(
