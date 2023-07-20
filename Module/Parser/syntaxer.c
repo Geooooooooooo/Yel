@@ -11,6 +11,8 @@
 #define isUndefined(t)  (isStmt(t) || isExpr(t))
 #define isTypeWord(t)   ((t) >= tok_word_Int && (t) <= tok_word_Str)
 #define isType(t)       ((t) == expr_name || isTypeWord(t))
+#define isUnaryOp(t)    ((t) == tok_unary_op_pos || (t) == tok_unary_op_neg || ((t) >= tok_unary_op_log_not && (t) <= tok_unary_op_not))
+#define isBinaryOp(t)   ((t) >= tok_binary_op_pow && (t) <= tok_binary_op_log_or)
 
 YelTokenType _ParserStack[1024];
 int _ParserStackCounter = 0;
@@ -393,6 +395,8 @@ _end:
 YelTokenType def_stack[2048];
 size_t dscounter = 0;
 YelParsingEntities yel_define_next_entity(YelTokens* yel_tokens) {
+    dscounter = 0;
+
     while (1) {
         switch (_CurType) {
         case tok_number_int:
@@ -422,13 +426,7 @@ YelParsingEntities yel_define_next_entity(YelTokens* yel_tokens) {
             break;
 
         default:
-            if (_CurType >= tok_binary_op_pow && _CurType <= tok_binary_op_log_or) {
-                def_stack[dscounter] = bin_op;
-            }
-            else if (_CurType == tok_unary_op_pos || _CurType == tok_unary_op_neg || (_CurType >= tok_unary_op_log_not && _CurType <= tok_unary_op_not)) {
-                def_stack[dscounter] = unary_op;
-            }
-            else if (_CurType >= tok_binary_op_div_assign && _CurType <= tok_binary_op_assign) {
+            if (_CurType >= tok_binary_op_div_assign && _CurType <= tok_binary_op_assign) {
                 def_stack[dscounter] = assign_op;
             }
             else {
@@ -440,6 +438,7 @@ YelParsingEntities yel_define_next_entity(YelTokens* yel_tokens) {
 
         if (_CurType == tok_semicolon) {
             ++yel_tokens->pointer;
+            ++dscounter;
             break;
         }
 
@@ -483,13 +482,13 @@ YelParsingEntities yel_define_next_entity(YelTokens* yel_tokens) {
         // stmt_break
         else if (def_stack[sp] == tok_word_break) {
             def_stack[sp] = stmt_break;
-            goto _delete0;
+            goto _continue;
         }
 
         // stmt_continue
         else if (def_stack[sp] == tok_word_continue) {
             def_stack[sp] = stmt_continue;
-            goto _delete0;
+            goto _continue;
         }
 
         // stmt_if
@@ -509,6 +508,10 @@ YelParsingEntities yel_define_next_entity(YelTokens* yel_tokens) {
             def_stack[sp] = stmt_curly_bracket;
             goto _delete2;
         }
+        else if (def_stack[sp] == tok_op_flbrk && def_stack[sp+1] == tok_op_frbrk) {
+            def_stack[sp] = stmt_curly_bracket;
+            goto _delete1;
+        }
 
         // stmt_while
         else if (def_stack[sp] == tok_word_while && def_stack[sp+1] == expr_brackets && isUndefined(def_stack[sp+2])) {
@@ -517,13 +520,13 @@ YelParsingEntities yel_define_next_entity(YelTokens* yel_tokens) {
         }
 
         // expr_bin_op
-        else if (isExpr(def_stack[sp]) && def_stack[sp+1] == bin_op && isExpr(def_stack[sp+2])) {
+        else if (isExpr(def_stack[sp]) && isBinaryOp(def_stack[sp+1]) && isExpr(def_stack[sp+2])) {
             def_stack[sp] = expr_bin_op;
             goto _delete2;
         }
 
         // expr_unary_op
-        else if (def_stack[sp] == unary_op && isExpr(def_stack[sp+1])) {
+        else if (isUnaryOp(def_stack[sp]) && isExpr(def_stack[sp+1])) {
             def_stack[sp] = expr_unary_op;
             goto _delete1;
         }
@@ -552,9 +555,6 @@ YelParsingEntities yel_define_next_entity(YelTokens* yel_tokens) {
 
         ++sp;
         continue;
-
-_delete0:
-        goto _continue;
 
 _delete1:
         tmp_sp = sp+1;
