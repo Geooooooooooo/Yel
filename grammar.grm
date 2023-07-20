@@ -1,32 +1,38 @@
-empty 
+empty
+type_word ::= Int | Flt | Bool | Str
+type ::= expr_name | type_word <empty>
 undefined ::= <stmt> | <expr>
-type_annotation ::= ':' tok_word
+type_annotation ::= ':' <type>
 
 # statements
-stmt ::= stmt_name_decl | stmt_assign | stmt_return | stmt_break | stmt_continue | stmt_if | stmt_if_else | stmt_curly_bracket
-stmt_name_decl ::= tok_name <type_annotation>
-stmt_assign ::= <stmt_name_decl> '=' <expr>
+stmt ::= stmt_name_decl | stmt_name_decl_enum | stmt_assign | stmt_return | stmt_break | stmt_continue | stmt_if | stmt_if_else | stmt_curly_bracket | stmt_while
+stmt_name_decl ::= <expr> <type_annotation>
+stmt_name_decl_enum ::= <stmt_name_decl> ',' <stmt_name_decl>
+stmt_assign ::= <stmt_name_decl> | <expr_name> <assign_op> <expr>
 stmt_return ::= return <expr>
 stmt_break ::= break
 stmt_continue  ::= continue
-stmt_if ::= if '(' <expr> ')' <undefined>
+stmt_if ::= if <expr_brackets> <undefined>
 stmt_if_else ::= <stmt_if> else <undefined>
 stmt_curly_bracket ::= '{' <undefined> '}'
+stmt_while ::= while <expr_brackets> <undefined>
 
 # declarations
 decl ::= decl_func
-decl_func ::= func <type_annotation> tok_name '(' empty | <stmt_name_decl>, ... ')' <stmt_curly_bracket>
+decl_func ::= func <type_annotation> tok_name '(' <empty> | <stmt_name_decl_enum> ')' <stmt_curly_bracket>
 
 # expressions
-expr ::= expr_name | expr_num | expr_binary | expr_unary_op | expr_enumeration | expr_func_decl | expr_brackets | expr_func_call
+expr ::= expr_name | expr_num | expr_str | expr_bool | expr_bin_op | expr_unary_op | expr_enumeration | expr_func_decl | expr_brackets | expr_func_call
 expr_name ::= tok_name
-expr_num ::= tok_number
-expr_binary ::= <expr> <binary> <expr>
+expr_num ::= tok_number_int | tok_number_flt
+expr_str ::= tok_string
+expr_bool ::= tok_bool_true | tok_bool_false
+expr_bin_op ::= <expr> <bin_op> <expr>
 expr_unary_op ::= <unary_op> <expr>
 expr_enumeration ::= <expr> ',' <expr>
-expr_func_decl ::= func <type_annotation> '(' empty | <stmt_name_decl>, ... ')' '->' <stmt_curly_bracket>
-expr_brackets ::= '(' <expr> ')'
-expr_func_call ::= <expr> '(' <expr_enumeration> ')'
+expr_func_decl ::= func <type_annotation> '(' <empty> | <stmt_name_decl>, ... ')' '->' <stmt_curly_bracket>
+expr_brackets ::= '(' <empty> | <expr> ')'
+expr_func_call ::= <expr> <expr_brackets>
 
 # binary operators
 bin_op ::= binary_pow | binary_mul | binary_div | binary_floor_div | binary_mod | binary_add | binary_sub |
@@ -35,6 +41,9 @@ bin_op ::= binary_pow | binary_mul | binary_div | binary_floor_div | binary_mod 
     binary_is | binary_logical_and | binary_logical_or | binary_pow_assign | binary_mul_assign | binary_div_assign |
     binary_floor_div_assign | binary_mod_assign | binary_add_assign | binary_sub_assign | binary_rsh_assign | 
     binary_lsh_assign | binary_bitwise_and_assign | binary_bitwise_xor_assign | binary_bitwise_or_assign
+
+assign_op ::= binary_pow_assign | binary_mul_assign | 
+
 binary_pow ::= '**'
 binary_mul ::= '*'
 binary_div ::= '/'
