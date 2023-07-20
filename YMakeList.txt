@@ -5,9 +5,9 @@ OUT_DIR /bin/
 
 OPTIMIZATION 2
 
-CFILES IN Modules/Entry/    { main.c }
-CFILES IN Modules/Errors/   { error.c }
-CFILES IN Modules/IO/       { io.c }
-CFILES IN Modules/Lexer/    { lexer.c }
-CFILES IN Modules/Parser/   { parser.c syntaxer.c }
-CFILES IN Modules/VM/       { yvm.c vm_main.c }
+CFILES IN nterpreter/Entry/     { main.c }
+CFILES IN Interpreter/Errors/   { error.c }
+CFILES IN Interpreter/IO/       { io.c }
+CFILES IN Interpreter/Lexer/    { lexer.c }
+CFILES IN /Interpreter/Parser/  { parser.c syntaxer.c }
+CFILES IN Interpreter/YVM/      { yvm.c vm_main.c }
