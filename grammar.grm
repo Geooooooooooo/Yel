@@ -1,6 +1,6 @@
 empty
 type_word ::= Int | Flt | Bool | Str
-type ::= expr_name | type_word <empty>
+type ::= <expr_name> | type_word <empty>
 undefined ::= <stmt> | <expr>
 type_annotation ::= ':' <type>
 
@@ -31,7 +31,7 @@ expr_bin_op ::= <expr> <bin_op> <expr>
 expr_unary_op ::= <unary_op> <expr>
 expr_enumeration ::= <expr> ',' <expr>
 expr_func_decl ::= func <type_annotation> '(' <empty> | <stmt_name_decl>, ... ')' '->' <undefined>
-expr_brackets ::= '(' <empty> | <expr> ')'
+expr_brackets ::= '(' <empty> | <expr> | <stmt_assign> ')'
 expr_func_call ::= <expr> <expr_brackets>
 
 # binary operators
